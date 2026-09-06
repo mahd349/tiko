@@ -1,0 +1,1112 @@
+/* ================================================================
+   ROUTINE — CORE / STORE.JS
+   Central data store:
+   - tasks
+   - habits
+   - logs
+   - settings
+   - trash
+   - backup / restore
+   - timers
+   - streak / score selectors
+================================================================ */
+
+(function () {
+  "use strict";
+
+  const KEYS = {
+    tasks: "pd_tasks",
+    habits: "pd_habits",
+    logs: "pd_habitLogs",
+    settings: "pd_settings",
+    meta: "pd_meta",
+    trash: "pd_trash"
+  };
+
+  const memory = new Map();
+
+  const storage = (function () {
+    try {
+      const probe = "__pd_probe__";
+      window.localStorage.setItem(probe, "1");
+      window.localStorage.removeItem(probe);
+
+      return {
+        persistent: true,
+        get: function (key) {
+          return window.localStorage.getItem(key);
+        },
+        set: function (key, value) {
+          window.localStorage.setItem(key, value);
+        },
+        del: function (key) {
+          window.localStorage.removeItem(key);
+        }
+      };
+    } catch (error) {
+      return {
+        persistent: false,
+        get: function (key) {
+          return memory.has(key) ? memory.get(key) : null;
+        },
+        set: function (key, value) {
+          memory.set(key, String(value));
+        },
+        del: function (key) {
+          memory.delete(key);
+        }
+      };
+    }
+  })();
+
+  const listeners = new Set();
+
+  const state = {
+    tasks: [],
+    habits: [],
+    logs: {},
+    settings: {
+      theme: "aurora",
+      lang: "fa",
+      animations: true,
+      sounds: false,
+      density: "comfortable"
+    },
+    trash: {
+      tasks: [],
+      habits: []
+    },
+    meta: {
+      schemaVersion: 3,
+      createdAt: new Date().toISOString(),
+      lastBackupAt: null,
+      appId: "routine"
+    }
+  };
+
+  /* ------------------------------
+     Helpers
+  ------------------------------ */
+
+  function loadJson(key, fallback) {
+    try {
+      const raw = storage.get(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (error) {
+      console.warn("Failed to read storage key:", key, error);
+      return fallback;
+    }
+  }
+
+  function saveJson(key, value) {
+    try {
+      storage.set(key, JSON.stringify(value));
+      return true;
+    } catch (error) {
+      console.error("Failed to save storage key:", key, error);
+
+      document.dispatchEvent(
+        new CustomEvent("store:error", {
+          detail: {
+            type: "quota",
+            key: key,
+            error: error
+          }
+        })
+      );
+
+      return false;
+    }
+  }
+
+  function notify(action) {
+    listeners.forEach(function (fn) {
+      try {
+        fn(action, state);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  }
+
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function normalizeDateKey(value) {
+    if (window.Utils.isValidDateKey(value)) return value;
+    return window.Calendar.todayKey();
+  }
+
+  function normalizePriority(value) {
+    if (value === "high" || value === "med" || value === "low") return value;
+    return "med";
+  }
+
+  function normalizeCategory(value) {
+    const map = {
+      "سلامت": "health",
+      "ورزش": "fitness",
+      "یادگیری": "learning",
+      "کار": "work",
+      "شخصی": "personal",
+      "مالی": "finance",
+      "هنر": "art",
+      "خانه": "home",
+      health: "health",
+      fitness: "fitness",
+      learning: "learning",
+      work: "work",
+      personal: "personal",
+      finance: "finance",
+      art: "art",
+      home: "home"
+    };
+
+    return map[value] || "personal";
+  }
+
+  function normalizeHabitType(value) {
+    if (value === "checkbox" || value === "timer" || value === "number") {
+      return value;
+    }
+
+    return "checkbox";
+  }
+
+  function normalizeTheme(value) {
+    const map = {
+      aurora: "aurora",
+      dark: "aurora",
+      midnight: "midnight",
+      blue: "midnight",
+      rose: "rose",
+      pink: "rose",
+      light: "light"
+    };
+
+    return map[value] || "aurora";
+  }
+
+  /* ------------------------------
+     Normalizers
+  ------------------------------ */
+
+  function normalizeTask(raw) {
+    raw = raw || {};
+
+    return {
+      id: raw.id != null ? String(raw.id) : window.Utils.uid("task"),
+      name: window.Utils.sanitizeText(raw.name, 160),
+      date: normalizeDateKey(raw.date),
+      priority: normalizePriority(raw.priority),
+      done: !!raw.done,
+      created: raw.created || new Date().toISOString()
+    };
+  }
+
+  function normalizeHabit(raw) {
+    raw = raw || {};
+
+    return {
+      id: raw.id != null ? String(raw.id) : window.Utils.uid("habit"),
+      name: window.Utils.sanitizeText(raw.name, 80),
+      emoji: window.Utils.sanitizeText(raw.emoji || "target", 50),
+      category: normalizeCategory(raw.category),
+      type: normalizeHabitType(raw.type),
+      color: window.Utils.sanitizeText(raw.color || "#8b5cf6", 20),
+      goal: Math.max(0, parseFloat(raw.goal) || 0),
+      created: raw.created || new Date().toISOString()
+    };
+  }
+
+  function normalizeLogEntry(raw) {
+    raw = raw || {};
+
+    return {
+      value: Math.max(0, parseFloat(raw.value) || 0),
+      checked: !!raw.checked,
+      seconds: Math.max(0, Math.floor(parseFloat(raw.seconds) || 0)),
+      startedAt: null
+    };
+  }
+
+  function normalizeLogs(raw) {
+    const result = {};
+
+    if (!window.Utils.isPlainObject(raw)) return result;
+
+    Object.keys(raw).forEach(function (dateKey) {
+      if (!window.Utils.isValidDateKey(dateKey)) return;
+
+      const day = raw[dateKey];
+      if (!window.Utils.isPlainObject(day)) return;
+
+      result[dateKey] = {};
+
+      Object.keys(day).forEach(function (habitId) {
+        result[dateKey][habitId] = normalizeLogEntry(day[habitId]);
+      });
+
+      if (!Object.keys(result[dateKey]).length) {
+        delete result[dateKey];
+      }
+    });
+
+    return result;
+  }
+
+  function normalizeSettings(raw) {
+    raw = raw || {};
+
+    return {
+      theme: normalizeTheme(raw.theme),
+      lang: raw.lang === "en" ? "en" : "fa",
+      animations: raw.animations !== false,
+      sounds: !!raw.sounds,
+      density: raw.density === "compact" ? "compact" : "comfortable"
+    };
+  }
+
+  function normalizeTrash(raw) {
+    raw = raw || {};
+
+    return {
+      tasks: Array.isArray(raw.tasks)
+        ? raw.tasks.map(function (item) {
+            const task = normalizeTask(item);
+            task.deletedAt = item.deletedAt || new Date().toISOString();
+            return task;
+          })
+        : [],
+      habits: Array.isArray(raw.habits)
+        ? raw.habits.map(function (item) {
+            const habit = normalizeHabit(item);
+            habit.deletedAt = item.deletedAt || new Date().toISOString();
+            return habit;
+          })
+        : []
+    };
+  }
+
+  function normalizeMeta(raw) {
+    raw = raw || {};
+
+    return {
+      schemaVersion: Number(raw.schemaVersion) || 3,
+      createdAt: raw.createdAt || new Date().toISOString(),
+      lastBackupAt: raw.lastBackupAt || null,
+      appId: raw.appId || "routine"
+    };
+  }
+
+  /* ------------------------------
+     Load / Save
+  ------------------------------ */
+
+  function loadState() {
+    state.tasks = (loadJson(KEYS.tasks, []) || [])
+      .filter(function (item) {
+        return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+      })
+      .map(normalizeTask);
+
+    state.habits = (loadJson(KEYS.habits, []) || [])
+      .filter(function (item) {
+        return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+      })
+      .map(normalizeHabit);
+
+    state.logs = normalizeLogs(loadJson(KEYS.logs, {}));
+    state.settings = normalizeSettings(loadJson(KEYS.settings, {}));
+    state.trash = normalizeTrash(loadJson(KEYS.trash, {}));
+    state.meta = normalizeMeta(loadJson(KEYS.meta, {}));
+
+    if (!storage.get(KEYS.settings)) {
+      saveState();
+    }
+  }
+
+  function saveState() {
+    saveJson(KEYS.tasks, state.tasks);
+    saveJson(KEYS.habits, state.habits);
+    saveJson(KEYS.logs, state.logs);
+    saveJson(KEYS.settings, state.settings);
+    saveJson(KEYS.trash, state.trash);
+    saveJson(KEYS.meta, state.meta);
+  }
+
+  function subscribe(fn) {
+    listeners.add(fn);
+
+    return function () {
+      listeners.delete(fn);
+    };
+  }
+
+  /* ------------------------------
+     Snapshots / Undo
+  ------------------------------ */
+
+  function snapshot() {
+    return clone({
+      tasks: state.tasks,
+      habits: state.habits,
+      logs: state.logs,
+      trash: state.trash
+    });
+  }
+
+  function restoreSnapshot(snap) {
+    if (!snap) return;
+
+    state.tasks = Array.isArray(snap.tasks) ? clone(snap.tasks) : [];
+    state.habits = Array.isArray(snap.habits) ? clone(snap.habits) : [];
+    state.logs = normalizeLogs(snap.logs);
+    state.trash = normalizeTrash(snap.trash);
+
+    saveState();
+    notify("snapshot:restore");
+  }
+
+  /* ------------------------------
+     Tasks
+  ------------------------------ */
+
+  function addTask(data) {
+    const task = normalizeTask(data);
+
+    if (!task.name) return null;
+
+    state.tasks.push(task);
+    saveState();
+    notify("task:add");
+
+    return task;
+  }
+
+  function updateTask(id, patch) {
+    const task = state.tasks.find(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (!task) return null;
+
+    Object.assign(task, normalizeTask(Object.assign({}, task, patch, { id: task.id })));
+    saveState();
+    notify("task:update");
+
+    return task;
+  }
+
+  function toggleTask(id) {
+    const task = state.tasks.find(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (!task) return false;
+
+    task.done = !task.done;
+    saveState();
+    notify("task:toggle");
+
+    return task.done;
+  }
+
+  function deleteTask(id) {
+    const index = state.tasks.findIndex(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (index === -1) return false;
+
+    const task = state.tasks.splice(index, 1)[0];
+    task.deletedAt = new Date().toISOString();
+
+    state.trash.tasks.push(task);
+    saveState();
+    notify("task:delete");
+
+    return true;
+  }
+
+  function restoreTask(id) {
+    const index = state.trash.tasks.findIndex(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (index === -1) return false;
+
+    const task = state.trash.tasks.splice(index, 1)[0];
+    delete task.deletedAt;
+
+    state.tasks.push(task);
+    saveState();
+    notify("task:restore");
+
+    return true;
+  }
+
+  function clearDoneTasks() {
+    const doneTasks = state.tasks.filter(function (task) {
+      return task.done;
+    });
+
+    if (!doneTasks.length) return 0;
+
+    state.tasks = state.tasks.filter(function (task) {
+      return !task.done;
+    });
+
+    doneTasks.forEach(function (task) {
+      task.deletedAt = new Date().toISOString();
+      state.trash.tasks.push(task);
+    });
+
+    saveState();
+    notify("tasks:clearDone");
+
+    return doneTasks.length;
+  }
+
+  /* ------------------------------
+     Habits
+  ------------------------------ */
+
+  function addHabit(data) {
+    const habit = normalizeHabit(data);
+
+    if (!habit.name) return null;
+
+    state.habits.push(habit);
+    saveState();
+    notify("habit:add");
+
+    return habit;
+  }
+
+  function updateHabit(id, patch) {
+    const habit = state.habits.find(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (!habit) return null;
+
+    Object.assign(habit, normalizeHabit(Object.assign({}, habit, patch, { id: habit.id })));
+    saveState();
+    notify("habit:update");
+
+    return habit;
+  }
+
+  function deleteHabit(id) {
+    const index = state.habits.findIndex(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (index === -1) return false;
+
+    if (isRunning(id)) {
+      stopTimer(id, true);
+    }
+
+    const habit = state.habits.splice(index, 1)[0];
+    habit.deletedAt = new Date().toISOString();
+
+    state.trash.habits.push(habit);
+    saveState();
+    notify("habit:delete");
+
+    return true;
+  }
+
+  function restoreHabit(id) {
+    const index = state.trash.habits.findIndex(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (index === -1) return false;
+
+    const habit = state.trash.habits.splice(index, 1)[0];
+    delete habit.deletedAt;
+
+    state.habits.push(habit);
+    saveState();
+    notify("habit:restore");
+
+    return true;
+  }
+
+  function emptyTrash() {
+    const deletedHabitIds = state.trash.habits.map(function (habit) {
+      return String(habit.id);
+    });
+
+    state.trash.tasks = [];
+    state.trash.habits = [];
+
+    deletedHabitIds.forEach(function (habitId) {
+      Object.keys(state.logs).forEach(function (dateKey) {
+        if (state.logs[dateKey] && state.logs[dateKey][habitId]) {
+          delete state.logs[dateKey][habitId];
+        }
+
+        if (state.logs[dateKey] && !Object.keys(state.logs[dateKey]).length) {
+          delete state.logs[dateKey];
+        }
+      });
+    });
+
+    saveState();
+    notify("trash:empty");
+  }
+
+  /* ------------------------------
+     Logs
+  ------------------------------ */
+
+  function getLog(habitId, dateKey) {
+    const key = dateKey || window.Calendar.todayKey();
+    const day = state.logs[key];
+    const log = day ? day[habitId] : null;
+
+    return {
+      value: log ? Number(log.value) || 0 : 0,
+      checked: !!(log && log.checked),
+      seconds: log ? Math.max(0, Math.floor(Number(log.seconds) || 0)) : 0,
+      startedAt: log && log.startedAt ? log.startedAt : null
+    };
+  }
+
+  function setLog(habitId, patch, dateKey) {
+    const key = dateKey || window.Calendar.todayKey();
+
+    if (!state.logs[key]) {
+      state.logs[key] = {};
+    }
+
+    state.logs[key][habitId] = Object.assign(
+      getLog(habitId, key),
+      patch || {}
+    );
+
+    if (state.logs[key][habitId].startedAt) {
+      state.logs[key][habitId].startedAt = Number(
+        state.logs[key][habitId].startedAt
+      );
+    }
+
+    saveState();
+    notify("log:set");
+
+    return state.logs[key][habitId];
+  }
+
+  function toggleHabitCheck(habitId, dateKey) {
+    const log = getLog(habitId, dateKey);
+    const nextChecked = !log.checked;
+
+    setLog(
+      habitId,
+      {
+        checked: nextChecked,
+        value: nextChecked ? 1 : 0
+      },
+      dateKey
+    );
+
+    return nextChecked;
+  }
+
+  function setHabitValue(habitId, value, dateKey) {
+    setLog(
+      habitId,
+      {
+        value: Math.max(0, parseFloat(value) || 0)
+      },
+      dateKey
+    );
+  }
+
+  function bumpHabit(habitId, delta, dateKey) {
+    const habit = state.habits.find(function (item) {
+      return String(item.id) === String(habitId);
+    });
+
+    if (!habit) return;
+
+    const step = habit.goal > 0 ? Math.max(1, Math.round(habit.goal / 8)) : 1;
+    const current = getLog(habitId, dateKey).value;
+
+    setHabitValue(habitId, current + delta * step, dateKey);
+  }
+
+  /* ------------------------------
+     Timers
+  ------------------------------ */
+
+  function liveSeconds(habitId, log) {
+    const entry = log || getLog(habitId);
+
+    if (!entry.startedAt) {
+      return entry.seconds;
+    }
+
+    return (
+      entry.seconds +
+      Math.max(0, Math.floor((Date.now() - entry.startedAt) / 1000))
+    );
+  }
+
+  function isRunning(habitId) {
+    return !!getLog(habitId).startedAt;
+  }
+
+  function startTimer(habitId) {
+    state.habits.forEach(function (habit) {
+      if (String(habit.id) !== String(habitId) && isRunning(habit.id)) {
+        stopTimer(habit.id, true);
+      }
+    });
+
+    setLog(habitId, {
+      startedAt: Date.now()
+    });
+
+    notify("timer:start");
+  }
+
+  function stopTimer(habitId, quiet = false) {
+    const log = getLog(habitId);
+
+    if (!log.startedAt) return 0;
+
+    const total = liveSeconds(habitId, log);
+
+    setLog(habitId, {
+      startedAt: null,
+      seconds: total,
+      value: total
+    });
+
+    if (!quiet) {
+      notify("timer:stop");
+    }
+
+    return total;
+  }
+
+  /* ------------------------------
+     Habit selectors
+  ------------------------------ */
+
+  function habitDone(habit, dateKey) {
+    const key = dateKey || window.Calendar.todayKey();
+    const log = getLog(habit.id, key);
+
+    if (habit.type === "checkbox") {
+      return log.checked;
+    }
+
+    if (habit.type === "number") {
+      return habit.goal > 0 ? log.value >= habit.goal : log.value > 0;
+    }
+
+    if (habit.type === "timer") {
+      const seconds = liveSeconds(habit.id, log);
+      return habit.goal > 0 ? seconds >= habit.goal * 60 : seconds > 0;
+    }
+
+    return false;
+  }
+
+  function habitProgress(habit, dateKey) {
+    const key = dateKey || window.Calendar.todayKey();
+    const log = getLog(habit.id, key);
+
+    if (habit.type === "checkbox") {
+      return log.checked ? 1 : 0;
+    }
+
+    if (habit.type === "number") {
+      if (habit.goal > 0) {
+        return Math.min(1, log.value / habit.goal);
+      }
+
+      return log.value > 0 ? 1 : 0;
+    }
+
+    if (habit.type === "timer") {
+      const seconds = liveSeconds(habit.id, log);
+
+      if (habit.goal > 0) {
+        return Math.min(1, seconds / (habit.goal * 60));
+      }
+
+      return seconds > 0 ? 1 : 0;
+    }
+
+    return 0;
+  }
+
+  function habitExistedOn(habit, dateKey) {
+    if (!habit.created) return true;
+
+    try {
+      const createdKey = window.Calendar.keyOf(new Date(habit.created));
+      return createdKey <= dateKey;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  function habitStreaks(habit) {
+    let current = 0;
+    let best = 0;
+    let run = 0;
+
+    const startKey = habit.created
+      ? window.Calendar.keyOf(new Date(habit.created))
+      : window.Calendar.todayKey();
+
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+
+    const keys = [];
+
+    for (let i = 0; i < 730; i += 1) {
+      const key = window.Calendar.keyOf(d);
+
+      if (key < startKey) break;
+
+      keys.push(key);
+      d.setDate(d.getDate() - 1);
+    }
+
+    for (let i = keys.length - 1; i >= 0; i -= 1) {
+      if (habitDone(habit, keys[i])) {
+        run += 1;
+        best = Math.max(best, run);
+      } else {
+        run = 0;
+      }
+    }
+
+    current = 0;
+
+    for (let i = 0; i < keys.length; i += 1) {
+      if (habitDone(habit, keys[i])) {
+        current += 1;
+      } else if (i === 0) {
+        continue;
+      } else {
+        break;
+      }
+    }
+
+    return {
+      current: current,
+      best: best
+    };
+  }
+
+  function dayScore(dateKey) {
+    const key = dateKey || window.Calendar.todayKey();
+    const today = window.Calendar.todayKey();
+    const future = key > today;
+
+    const dayTasks = state.tasks.filter(function (task) {
+      return task.date === key;
+    });
+
+    const dayHabits = future
+      ? []
+      : state.habits.filter(function (habit) {
+          return habitExistedOn(habit, key);
+        });
+
+    const total = dayTasks.length + dayHabits.length;
+
+    if (!total) {
+      return {
+        pct: 0,
+        done: 0,
+        total: 0,
+        future: future
+      };
+    }
+
+    let done = dayTasks.filter(function (task) {
+      return task.done;
+    }).length;
+
+    dayHabits.forEach(function (habit) {
+      done += habitProgress(habit, key);
+    });
+
+    return {
+      pct: Math.min(1, done / total),
+      done: done,
+      total: total,
+      future: future
+    };
+  }
+
+  function focusSeconds(habitId, days = 30) {
+    let total = 0;
+
+    for (let i = 0; i < days; i += 1) {
+      const key = window.Calendar.keyShift(-i);
+      const day = state.logs[key];
+      const log = day ? day[habitId] : null;
+
+      if (!log) continue;
+
+      if (i === 0 && log.startedAt) {
+        total += liveSeconds(habitId, log);
+      } else {
+        total += log.seconds || 0;
+      }
+    }
+
+    return total;
+  }
+
+  /* ------------------------------
+     Backup / Import / Reset
+  ------------------------------ */
+
+  function exportData() {
+    return {
+      app: "routine",
+      schemaVersion: 3,
+      exportedAt: new Date().toISOString(),
+      tasks: state.tasks,
+      habits: state.habits,
+      logs: state.logs,
+      settings: state.settings,
+      trash: state.trash,
+      meta: state.meta
+    };
+  }
+
+  function validateBackup(raw) {
+    if (!window.Utils.isPlainObject(raw)) {
+      throw new Error("Invalid backup: root must be an object");
+    }
+
+    const tasksRaw = Array.isArray(raw.tasks) ? raw.tasks : [];
+    const habitsRaw = Array.isArray(raw.habits) ? raw.habits : [];
+    const logsRaw = raw.logs || raw.habitLogs || {};
+    const settingsRaw = raw.settings || {};
+    const trashRaw = raw.trash || {};
+
+    if (tasksRaw.length > 20000) {
+      throw new Error("Too many tasks in backup");
+    }
+
+    if (habitsRaw.length > 5000) {
+      throw new Error("Too many habits in backup");
+    }
+
+    return {
+      tasks: tasksRaw
+        .filter(function (item) {
+          return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+        })
+        .map(normalizeTask),
+      habits: habitsRaw
+        .filter(function (item) {
+          return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+        })
+        .map(normalizeHabit),
+      logs: normalizeLogs(logsRaw),
+      settings: normalizeSettings(settingsRaw),
+      trash: normalizeTrash(trashRaw),
+      meta: normalizeMeta(raw.meta)
+    };
+  }
+
+  function importData(raw) {
+    const normalized = validateBackup(raw);
+
+    state.tasks = normalized.tasks;
+    state.habits = normalized.habits;
+    state.logs = normalized.logs;
+    state.settings = normalized.settings;
+    state.trash = normalized.trash;
+    state.meta = normalized.meta;
+
+    saveState();
+
+    if (window.I18N) {
+      window.I18N.setLang(state.settings.lang, false);
+    }
+
+    document.documentElement.setAttribute("data-theme", state.settings.theme);
+
+    notify("import");
+
+    return {
+      tasks: state.tasks.length,
+      habits: state.habits.length,
+      days: Object.keys(state.logs).length
+    };
+  }
+
+  function resetAll() {
+    state.tasks = [];
+    state.habits = [];
+    state.logs = {};
+    state.trash = {
+      tasks: [],
+      habits: []
+    };
+
+    saveState();
+    notify("reset");
+  }
+
+  function updateSettings(patch) {
+    state.settings = normalizeSettings(
+      Object.assign({}, state.settings, patch || {})
+    );
+
+    saveState();
+
+    if (window.I18N && patch && patch.lang) {
+      window.I18N.setLang(state.settings.lang, false);
+    }
+
+    if (patch && patch.theme) {
+      document.documentElement.setAttribute("data-theme", state.settings.theme);
+    }
+
+    notify("settings:update");
+  }
+
+  function markBackup() {
+    state.meta.lastBackupAt = new Date().toISOString();
+    saveState();
+    notify("meta:backup");
+  }
+
+  function storageSize() {
+    let bytes = 0;
+
+    Object.values(KEYS).forEach(function (key) {
+      const value = storage.get(key);
+      if (value) bytes += value.length * 2;
+    });
+
+    return bytes;
+  }
+
+  function pruneOrphanLogs() {
+    const activeIds = new Set(
+      state.habits.map(function (habit) {
+        return String(habit.id);
+      })
+    );
+
+    const trashIds = new Set(
+      state.trash.habits.map(function (habit) {
+        return String(habit.id);
+      })
+    );
+
+    let changed = false;
+
+    Object.keys(state.logs).forEach(function (dateKey) {
+      const day = state.logs[dateKey];
+
+      if (!window.Utils.isPlainObject(day)) {
+        delete state.logs[dateKey];
+        changed = true;
+        return;
+      }
+
+      Object.keys(day).forEach(function (habitId) {
+        if (!activeIds.has(String(habitId)) && !trashIds.has(String(habitId))) {
+          delete day[habitId];
+          changed = true;
+        }
+      });
+
+      if (!Object.keys(day).length) {
+        delete state.logs[dateKey];
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      saveState();
+    }
+  }
+
+  /* ------------------------------
+     Init + expose
+  ------------------------------ */
+
+  loadState();
+  pruneOrphanLogs();
+
+  document.documentElement.setAttribute("data-theme", state.settings.theme);
+
+  if (window.I18N) {
+    window.I18N.setLang(state.settings.lang, false);
+  }
+
+  window.Store = {
+    KEYS,
+    state,
+    storagePersistent: storage.persistent,
+
+    subscribe,
+    notify,
+    saveState,
+
+    snapshot,
+    restoreSnapshot,
+
+    addTask,
+    updateTask,
+    toggleTask,
+    deleteTask,
+    restoreTask,
+    clearDoneTasks,
+
+    addHabit,
+    updateHabit,
+    deleteHabit,
+    restoreHabit,
+    emptyTrash,
+
+    getLog,
+    setLog,
+    toggleHabitCheck,
+    setHabitValue,
+    bumpHabit,
+
+    liveSeconds,
+    isRunning,
+    startTimer,
+    stopTimer,
+
+    habitDone,
+    habitProgress,
+    habitExistedOn,
+    habitStreaks,
+    dayScore,
+    focusSeconds,
+
+    exportData,
+    validateBackup,
+    importData,
+    resetAll,
+    updateSettings,
+    markBackup,
+    storageSize,
+    pruneOrphanLogs
+  };
+})();
