@@ -720,7 +720,6 @@ html[dir="ltr"] .nav-item:hover {
 .main-content {
   position: relative;
   z-index: 1;
-  width: 100%;
   max-width: 1500px;
   margin-inline-start: var(--sidebar-width);
   padding: 28px clamp(16px, 3vw, 40px) 40px;
