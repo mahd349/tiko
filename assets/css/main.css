@@ -1437,9 +1437,7 @@ html[dir="ltr"] .nav-item:hover {
     background: #fff !important;
     color: #000 !important;
   }
-}
-/* ==== COMPACT DENSITY PATCH ==== */
-:root { --sidebar-width: 240px; }
+   :root { --sidebar-width: 240px; }
 .hero { min-height: 260px; }
 .hero-title { font-size: clamp(24px, 3.2vw, 34px); }
 .hero-subtitle { font-size: 13.5px; }
@@ -1461,3 +1459,4 @@ html[dir="ltr"] .nav-item:hover {
 .habit-name { font-size: 14px; }
 .stat-value { font-size: 20px; }
 .filter-chip { font-size: 11.5px; padding: 7px 12px; }
+}
