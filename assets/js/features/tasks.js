@@ -635,7 +635,29 @@ function openSubtasksModal(taskId) {
     });
   }
 }
-
+function enableTaskSwipe(container) {
+  if (!container || !window.Utils.makeSwipeable) return;
+  const items = container.querySelectorAll(".task-item");
+  items.forEach(function (item) {
+    const taskId = item.querySelector('[data-action="edit-task"]');
+    if (!taskId) return;
+    const id = taskId.dataset.id;
+    window.Utils.makeSwipeable(item, {
+      onSwipeRight: function () {
+        var dateContext = item.querySelector('.task-checkbox');
+        if (dateContext && dateContext.dataset.taskDate) {
+          window.Store.toggleTaskOnDate(id, dateContext.dataset.taskDate);
+        } else {
+          toggle(id);
+        }
+      },
+      onSwipeLeft: function () {
+        remove(id);
+      }
+    });
+  });
+}
+   
 function render() {
 var list = el("taskList");
 if (!list) return;
@@ -711,6 +733,12 @@ list.innerHTML = items
 return taskRowHTML(task, false, today);
 })
 .join("");
+list.innerHTML = items
+  .map(function (task) {
+    return taskRowHTML(task, false, today);
+  })
+  .join("");
+enableTaskSwipe(list);
 }
 
 function renderHome() {
@@ -790,6 +818,12 @@ box.innerHTML = items
 return taskRowHTML(task, true, today);
 })
 .join("");
+box.innerHTML = items
+  .map(function (task) {
+    return taskRowHTML(task, true, today);
+  })
+  .join("");
+enableTaskSwipe(box);
 }
 
   function bind() {
