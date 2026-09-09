@@ -14,14 +14,15 @@
 (function () {
   "use strict";
 
-  const KEYS = {
-    tasks: "pd_tasks",
-    habits: "pd_habits",
-    logs: "pd_habitLogs",
-    settings: "pd_settings",
-    meta: "pd_meta",
-    trash: "pd_trash"
-  };
+ const KEYS = {
+  tasks: "pd_tasks",
+  habits: "pd_habits",
+  logs: "pd_habitLogs",
+  settings: "pd_settings",
+  meta: "pd_meta",
+  trash: "pd_trash",
+  projects: "pd_projects"
+};
 
   const memory = new Map();
 
@@ -61,32 +62,33 @@
 
   const listeners = new Set();
 
-  const state = {
-    tasks: [],
-    habits: [],
-    logs: {},
-settings: {
-theme: "aurora",
-lang: "fa",
-animations: true,
-sounds: false,
-density: "comfortable",
-reminder: {
-enabled: false,
-time: "20:00"
-}
-},
-    trash: {
-      tasks: [],
-      habits: []
-    },
-    meta: {
-      schemaVersion: 3,
-      createdAt: new Date().toISOString(),
-      lastBackupAt: null,
-      appId: "routine"
+const state = {
+  tasks: [],
+  habits: [],
+  logs: {},
+  settings: {
+    theme: "aurora",
+    lang: "fa",
+    animations: true,
+    sounds: false,
+    density: "comfortable",
+    reminder: {
+      enabled: false,
+      time: "20:00"
     }
-  };
+  },
+  trash: {
+    tasks: [],
+    habits: []
+  },
+  meta: {
+    schemaVersion: 3,
+    createdAt: new Date().toISOString(),
+    lastBackupAt: null,
+    appId: "routine"
+  },
+  projects: []
+};
 
   /* ------------------------------
      Helpers
@@ -263,34 +265,74 @@ return result;
 }
    
 function normalizeTask(raw) {
-raw = raw || {};
-
-return {
-id: raw.id != null ? String(raw.id) : window.Utils.uid("task"),
-name: window.Utils.sanitizeText(raw.name, 160),
-date: normalizeDateKey(raw.date),
-priority: normalizePriority(raw.priority),
-done: !!raw.done,
-created: raw.created || new Date().toISOString(),
-recurrence: normalizeRecurrence(raw.recurrence),
-occurrences: normalizeOccurrences(raw.occurrences)
-};
+  raw = raw || {};
+  return {
+    id: raw.id != null ? String(raw.id) : window.Utils.uid("task"),
+    name: window.Utils.sanitizeText(raw.name, 160),
+    date: normalizeDateKey(raw.date),
+    priority: normalizePriority(raw.priority),
+    done: !!raw.done,
+    created: raw.created || new Date().toISOString(),
+    recurrence: normalizeRecurrence(raw.recurrence),
+    occurrences: normalizeOccurrences(raw.occurrences),
+    subtasks: Array.isArray(raw.subtasks)
+      ? raw.subtasks.map(normalizeSubtask).filter(function (s) { return s.text; })
+      : [],
+    tags: Array.isArray(raw.tags)
+      ? raw.tags.map(normalizeTag).filter(Boolean)
+      : [],
+    projectId: raw.projectId ? String(raw.projectId) : null
+  };
 }
 
-  function normalizeHabit(raw) {
-    raw = raw || {};
+   function normalizeSubtask(raw) {
+  raw = raw || {};
+  return {
+    id: raw.id != null ? String(raw.id) : window.Utils.uid("sub"),
+    text: window.Utils.sanitizeText(raw.text, 140),
+    done: !!raw.done
+  };
+}
 
-    return {
-      id: raw.id != null ? String(raw.id) : window.Utils.uid("habit"),
-      name: window.Utils.sanitizeText(raw.name, 80),
-      emoji: window.Utils.sanitizeText(raw.emoji || "target", 50),
-      category: normalizeCategory(raw.category),
-      type: normalizeHabitType(raw.type),
-      color: window.Utils.sanitizeText(raw.color || "#8b5cf6", 20),
-      goal: Math.max(0, parseFloat(raw.goal) || 0),
-      created: raw.created || new Date().toISOString()
-    };
-  }
+function normalizeTag(value) {
+  return window.Utils.sanitizeText(value, 30);
+}
+
+function normalizeProject(raw) {
+  raw = raw || {};
+  return {
+    id: raw.id != null ? String(raw.id) : window.Utils.uid("proj"),
+    name: window.Utils.sanitizeText(raw.name, 60),
+    color: window.Utils.sanitizeText(raw.color || "#6366f1", 20),
+    created: raw.created || new Date().toISOString()
+  };
+}
+
+function getProjectById(id) {
+  if (!id) return null;
+  return state.projects.find(function (p) {
+    return String(p.id) === String(id);
+  }) || null;
+}
+   
+function normalizeHabit(raw) {
+  raw = raw || {};
+  return {
+    id: raw.id != null ? String(raw.id) : window.Utils.uid("habit"),
+    name: window.Utils.sanitizeText(raw.name, 80),
+    emoji: window.Utils.sanitizeText(raw.emoji || "target", 50),
+    category: normalizeCategory(raw.category),
+    type: normalizeHabitType(raw.type),
+    color: window.Utils.sanitizeText(raw.color || "#8b5cf6", 20),
+    goal: Math.max(0, parseFloat(raw.goal) || 0),
+    activeDays: normalizeActiveDays(raw.activeDays),
+    created: raw.created || new Date().toISOString(),
+    tags: Array.isArray(raw.tags)
+      ? raw.tags.map(normalizeTag).filter(Boolean)
+      : [],
+    projectId: raw.projectId ? String(raw.projectId) : null
+  };
+}
 
   function normalizeLogEntry(raw) {
     raw = raw || {};
@@ -537,7 +579,7 @@ state.logs = clone(normalized.logs);
 state.settings = clone(normalized.settings);
 state.trash = clone(normalized.trash);
 state.meta = normalizeMeta(normalized.meta);
-
+state.projects = clone(normalized.projects || []);
 saveState();
 
 if (window.I18N) {
@@ -576,6 +618,12 @@ return item && window.Utils.sanitizeText(item.name, 1).length > 0;
 state.logs = normalizeLogs(loadJson(KEYS.logs, {}));
 state.settings = normalizeSettings(loadJson(KEYS.settings, {}));
 state.trash = normalizeTrash(loadJson(KEYS.trash, {}));
+state.trash = normalizeTrash(loadJson(KEYS.trash, {}));
+state.projects = (loadJson(KEYS.projects, []) || [])
+  .filter(function (item) {
+    return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+  })
+  .map(normalizeProject);
 state.meta = normalizeMeta(rawMeta);
 
 if (oldSchemaVersion < 3) {
@@ -593,6 +641,8 @@ saveState();
     saveJson(KEYS.logs, state.logs);
     saveJson(KEYS.settings, state.settings);
     saveJson(KEYS.trash, state.trash);
+   saveJson(KEYS.trash, state.trash);
+saveJson(KEYS.projects, state.projects);
     saveJson(KEYS.meta, state.meta);
   }
 
@@ -608,26 +658,26 @@ saveState();
      Snapshots / Undo
   ------------------------------ */
 
-  function snapshot() {
-    return clone({
-      tasks: state.tasks,
-      habits: state.habits,
-      logs: state.logs,
-      trash: state.trash
-    });
-  }
+function snapshot() {
+  return clone({
+    tasks: state.tasks,
+    habits: state.habits,
+    logs: state.logs,
+    trash: state.trash,
+    projects: state.projects
+  });
+}
 
-  function restoreSnapshot(snap) {
-    if (!snap) return;
-
-    state.tasks = Array.isArray(snap.tasks) ? clone(snap.tasks) : [];
-    state.habits = Array.isArray(snap.habits) ? clone(snap.habits) : [];
-    state.logs = normalizeLogs(snap.logs);
-    state.trash = normalizeTrash(snap.trash);
-
-    saveState();
-    notify("snapshot:restore");
-  }
+function restoreSnapshot(snap) {
+  if (!snap) return;
+  state.tasks = Array.isArray(snap.tasks) ? clone(snap.tasks) : [];
+  state.habits = Array.isArray(snap.habits) ? clone(snap.habits) : [];
+  state.logs = normalizeLogs(snap.logs);
+  state.trash = normalizeTrash(snap.trash);
+  state.projects = Array.isArray(snap.projects) ? clone(snap.projects) : [];
+  saveState();
+  notify("snapshot:restore");
+}
 
   /* ------------------------------
      Tasks
@@ -974,6 +1024,102 @@ return "";
     notify("trash:empty");
   }
 
+/* ------------------------------
+Projects
+------------------------------ */
+function addProject(data) {
+  const project = normalizeProject(data);
+  if (!project.name) return null;
+  state.projects.push(project);
+  saveState();
+  notify("project:add");
+  return project;
+}
+
+function updateProject(id, patch) {
+  const project = state.projects.find(function (item) {
+    return String(item.id) === String(id);
+  });
+  if (!project) return null;
+  Object.assign(project, normalizeProject(Object.assign({}, project, patch, { id: project.id })));
+  saveState();
+  notify("project:update");
+  return project;
+}
+
+function deleteProject(id) {
+  const index = state.projects.findIndex(function (item) {
+    return String(item.id) === String(id);
+  });
+  if (index === -1) return false;
+  state.projects.splice(index, 1);
+  state.tasks.forEach(function (task) {
+    if (task.projectId === String(id)) {
+      task.projectId = null;
+    }
+  });
+  state.habits.forEach(function (habit) {
+    if (habit.projectId === String(id)) {
+      habit.projectId = null;
+    }
+  });
+  saveState();
+  notify("project:delete");
+  return true;
+}
+
+function toggleSubtask(taskId, subtaskId) {
+  const task = state.tasks.find(function (item) {
+    return String(item.id) === String(taskId);
+  });
+  if (!task) return false;
+  const sub = task.subtasks.find(function (s) {
+    return String(s.id) === String(subtaskId);
+  });
+  if (!sub) return false;
+  sub.done = !sub.done;
+  saveState();
+  notify("subtask:toggle");
+  return sub.done;
+}
+
+function addSubtask(taskId, text) {
+  const task = state.tasks.find(function (item) {
+    return String(item.id) === String(taskId);
+  });
+  if (!task) return null;
+  const sub = normalizeSubtask({ text: text });
+  if (!sub.text) return null;
+  task.subtasks.push(sub);
+  saveState();
+  notify("subtask:add");
+  return sub;
+}
+
+function removeSubtask(taskId, subtaskId) {
+  const task = state.tasks.find(function (item) {
+    return String(item.id) === String(taskId);
+  });
+  if (!task) return false;
+  const idx = task.subtasks.findIndex(function (s) {
+    return String(s.id) === String(subtaskId);
+  });
+  if (idx === -1) return false;
+  task.subtasks.splice(idx, 1);
+  saveState();
+  notify("subtask:remove");
+  return true;
+}
+
+function taskProgress(task) {
+  if (!task.subtasks || !task.subtasks.length) {
+    return task.done ? 1 : 0;
+  }
+  const doneCount = task.subtasks.filter(function (s) { return s.done; }).length;
+  return doneCount / task.subtasks.length;
+}
+
+   
   /* ------------------------------
      Logs
   ------------------------------ */
@@ -1313,19 +1459,20 @@ future: future
      Backup / Import / Reset
   ------------------------------ */
 
-  function exportData() {
-    return {
-      app: "routine",
-      schemaVersion: 3,
-      exportedAt: new Date().toISOString(),
-      tasks: state.tasks,
-      habits: state.habits,
-      logs: state.logs,
-      settings: state.settings,
-      trash: state.trash,
-      meta: state.meta
-    };
-  }
+ function exportData() {
+  return {
+    app: "routine",
+    schemaVersion: 3,
+    exportedAt: new Date().toISOString(),
+    tasks: state.tasks,
+    habits: state.habits,
+    logs: state.logs,
+    settings: state.settings,
+    trash: state.trash,
+    meta: state.meta,
+    projects: state.projects
+  };
+}
 
   function validateBackup(raw) {
     if (!window.Utils.isPlainObject(raw)) {
@@ -1346,23 +1493,28 @@ future: future
       throw new Error("Too many habits in backup");
     }
 
-    return {
-      tasks: tasksRaw
-        .filter(function (item) {
-          return item && window.Utils.sanitizeText(item.name, 1).length > 0;
-        })
-        .map(normalizeTask),
-      habits: habitsRaw
-        .filter(function (item) {
-          return item && window.Utils.sanitizeText(item.name, 1).length > 0;
-        })
-        .map(normalizeHabit),
-      logs: normalizeLogs(logsRaw),
-      settings: normalizeSettings(settingsRaw),
-      trash: normalizeTrash(trashRaw),
-      meta: normalizeMeta(raw.meta)
-    };
-  }
+    const projectsRaw = Array.isArray(raw.projects) ? raw.projects : [];
+return {
+  tasks: tasksRaw
+    .filter(function (item) {
+      return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+    })
+    .map(normalizeTask),
+  habits: habitsRaw
+    .filter(function (item) {
+      return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+    })
+    .map(normalizeHabit),
+  logs: normalizeLogs(logsRaw),
+  settings: normalizeSettings(settingsRaw),
+  trash: normalizeTrash(trashRaw),
+  meta: normalizeMeta(raw.meta),
+  projects: projectsRaw
+    .filter(function (item) {
+      return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+    })
+    .map(normalizeProject)
+};
 
 function importData(raw) {
   const normalized = validateBackup(raw);
@@ -1488,6 +1640,14 @@ subscribe,
 notify,
 saveState,
 snapshot,
+addProject,
+updateProject,
+deleteProject,
+getProjectById,
+toggleSubtask,
+addSubtask,
+removeSubtask,
+taskProgress,
 restoreSnapshot,
 addTask,
 updateTask,
