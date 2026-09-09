@@ -2145,6 +2145,162 @@ SUBTASKS, TAGS, PROJECTS
   margin-top: 0;
 }
    
+/* ============================
+FAB & SWIPE & MOBILE UX
+============================ */
+.mobile-fab {
+  position: fixed;
+  bottom: calc(var(--mobile-nav-height) + 20px);
+  inset-inline-end: 16px;
+  z-index: 135;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-size: 24px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px var(--accent-glow), 0 4px 12px rgba(0,0,0,0.2);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  cursor: pointer;
+}
+.mobile-fab:hover,
+.mobile-fab:focus-visible {
+  transform: scale(1.08);
+  box-shadow: 0 12px 32px var(--accent-glow), 0 6px 16px rgba(0,0,0,0.25);
+}
+.mobile-fab:active {
+  transform: scale(0.95);
+}
+.mobile-fab .fab-icon {
+  transition: transform 0.3s var(--ease);
+  line-height: 1;
+}
+.mobile-fab.open .fab-icon {
+  transform: rotate(45deg);
+}
+.fab-menu {
+  position: fixed;
+  bottom: calc(var(--mobile-nav-height) + 84px);
+  inset-inline-end: 16px;
+  z-index: 134;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.fab-menu.open {
+  display: flex;
+  animation: fabMenuIn 0.25s var(--ease);
+}
+@keyframes fabMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--popover);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform 0.2s var(--ease), background 0.2s var(--ease);
+  white-space: nowrap;
+}
+.fab-menu-item:hover {
+  transform: translateY(-2px);
+  background: var(--accent-soft);
+}
+.fab-menu-icon {
+  font-size: 16px;
+}
+/* Swipe gestures */
+.swipe-container {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+  pointer-events: none;
+}
+.swipe-actions.left {
+  inset-inline-end: 0;
+  background: linear-gradient(90deg, transparent, var(--danger));
+}
+.swipe-actions.right {
+  inset-inline-start: 0;
+  background: linear-gradient(-90deg, transparent, var(--success));
+}
+.swipe-container.swiping-right .swipe-actions.left {
+  opacity: 1;
+  pointer-events: auto;
+}
+.swipe-container.swiping-left .swipe-actions.right {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* Mobile bottom sheet for forms */
+@media (max-width: 640px) {
+  .mobile-fab {
+    display: flex;
+  }
+  .form-card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 140;
+    margin: 0;
+    border-radius: 22px 22px 0 0;
+    max-height: 75vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.35s var(--ease);
+    box-shadow: var(--shadow-lg);
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+  .form-card.open {
+    transform: translateY(0);
+  }
+  .form-card .form-title {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    padding: 16px 20px;
+    margin: -20px -20px 12px;
+    border-bottom: 1px solid var(--border);
+    z-index: 1;
+  }
+  .form-card .form-hint,
+  .form-card .inline-note {
+    padding: 0 20px;
+  }
+}
    
    /* ============================
 RECURRENCE PICKER
