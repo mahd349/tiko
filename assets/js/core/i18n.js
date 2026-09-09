@@ -258,6 +258,8 @@
 "reminder.permUnknown": "نامشخص",
 "reminder.remaining": "هنوز {tasks} وظیفه و {habits} عادت برای امروز باقی مانده. بیا چند تاشون رو تموم کنیم! 💪",
 "reminder.openToday": "مشاهده امروز",
+      "habits.activeDaysTitle": "روزهای فعال",
+"habits.activeDaysHint": "فقط روزهای انتخاب‌شده در استریک و درصد پیشرفت روزانه حساب می‌شوند.",
     },
 
     en: {
@@ -509,6 +511,8 @@
 "reminder.permUnknown": "Unknown",
 "reminder.remaining": "You still have {tasks} tasks and {habits} habits left today. Let's knock out a few! 💪",
 "reminder.openToday": "View today",
+"habits.activeDaysTitle": "Active days",
+"habits.activeDaysHint": "Only selected days count toward streaks and daily progress.",
     }
   };
 
