@@ -169,15 +169,45 @@ time: "20:00"
 
     return map[value] || "personal";
   }
+function normalizeActiveDays(raw) {
+const allDays = [0, 1, 2, 3, 4, 5, 6];
 
-  function normalizeHabitType(value) {
-    if (value === "checkbox" || value === "timer" || value === "number") {
-      return value;
-    }
+if (!Array.isArray(raw)) {
+return allDays;
+}
 
-    return "checkbox";
-  }
+const days = [];
 
+raw.forEach(function (day) {
+const n = Number(day);
+
+if (n >= 0 && n <= 6 && days.indexOf(n) === -1) {
+days.push(n);
+}
+});
+
+days.sort(function (a, b) {
+return a - b;
+});
+
+return days.length ? days : allDays;
+}
+   
+function normalizeHabit(raw) {
+raw = raw || {};
+
+return {
+id: raw.id != null ? String(raw.id) : window.Utils.uid("habit"),
+name: window.Utils.sanitizeText(raw.name, 80),
+emoji: window.Utils.sanitizeText(raw.emoji || "target", 50),
+category: normalizeCategory(raw.category),
+type: normalizeHabitType(raw.type),
+color: window.Utils.sanitizeText(raw.color || "#8b5cf6", 20),
+goal: Math.max(0, parseFloat(raw.goal) || 0),
+activeDays: normalizeActiveDays(raw.activeDays),
+created: raw.created || new Date().toISOString()
+};
+}
   function normalizeTheme(value) {
     const map = {
       aurora: "aurora",
@@ -971,97 +1001,124 @@ saveState();
     }
   }
 
-  function habitStreaks(habit) {
-    let current = 0;
-    let best = 0;
-    let run = 0;
+   function habitActiveOn(habit, dateKey) {
+if (!habit) return false;
 
-    const startKey = habit.created
-      ? window.Calendar.keyOf(new Date(habit.created))
-      : window.Calendar.todayKey();
+if (!Array.isArray(habit.activeDays) || !habit.activeDays.length) {
+return true;
+}
 
-    const d = new Date();
-    d.setHours(12, 0, 0, 0);
+try {
+const date = window.Calendar.keyToDate(dateKey);
+const weekday = window.Calendar.getDayOfWeek(date, "fa");
 
-    const keys = [];
+return habit.activeDays.indexOf(weekday) !== -1;
+} catch (error) {
+return true;
+}
+}
 
-    for (let i = 0; i < 730; i += 1) {
-      const key = window.Calendar.keyOf(d);
+ function habitStreaks(habit) {
+let current = 0;
+let best = 0;
+let run = 0;
 
-      if (key < startKey) break;
+const startKey = habit.created
+? window.Calendar.keyOf(new Date(habit.created))
+: window.Calendar.todayKey();
 
-      keys.push(key);
-      d.setDate(d.getDate() - 1);
-    }
+const d = new Date();
+d.setHours(12, 0, 0, 0);
 
-    for (let i = keys.length - 1; i >= 0; i -= 1) {
-      if (habitDone(habit, keys[i])) {
-        run += 1;
-        best = Math.max(best, run);
-      } else {
-        run = 0;
-      }
-    }
+const keys = [];
 
-    current = 0;
+for (let i = 0; i < 730; i += 1) {
+const key = window.Calendar.keyOf(d);
 
-    for (let i = 0; i < keys.length; i += 1) {
-      if (habitDone(habit, keys[i])) {
-        current += 1;
-      } else if (i === 0) {
-        continue;
-      } else {
-        break;
-      }
-    }
+if (key < startKey) break;
 
-    return {
-      current: current,
-      best: best
-    };
-  }
+keys.push(key);
+d.setDate(d.getDate() - 1);
+}
 
-  function dayScore(dateKey) {
-    const key = dateKey || window.Calendar.todayKey();
-    const today = window.Calendar.todayKey();
-    const future = key > today;
+/* Best streak: oldest to newest */
+for (let i = keys.length - 1; i >= 0; i -= 1) {
+const key = keys[i];
 
-    const dayTasks = state.tasks.filter(function (task) {
-      return task.date === key;
-    });
+if (!habitExistedOn(habit, key) || !habitActiveOn(habit, key)) {
+continue;
+}
 
-    const dayHabits = future
-      ? []
-      : state.habits.filter(function (habit) {
-          return habitExistedOn(habit, key);
-        });
+if (habitDone(habit, key)) {
+run += 1;
+best = Math.max(best, run);
+} else {
+run = 0;
+}
+}
 
-    const total = dayTasks.length + dayHabits.length;
+/* Current streak: newest to oldest */
+for (let i = 0; i < keys.length; i += 1) {
+const key = keys[i];
 
-    if (!total) {
-      return {
-        pct: 0,
-        done: 0,
-        total: 0,
-        future: future
-      };
-    }
+if (!habitExistedOn(habit, key) || !habitActiveOn(habit, key)) {
+continue;
+}
 
-    let done = dayTasks.filter(function (task) {
-      return task.done;
-    }).length;
+if (habitDone(habit, key)) {
+current += 1;
+} else {
+break;
+}
+}
 
-    dayHabits.forEach(function (habit) {
-      done += habitProgress(habit, key);
-    });
+return {
+current: current,
+best: best
+};
+}
 
-    return {
-      pct: Math.min(1, done / total),
-      done: done,
-      total: total,
-      future: future
-    };
-  }
+function dayScore(dateKey) {
+const key = dateKey || window.Calendar.todayKey();
+const today = window.Calendar.todayKey();
+const future = key > today;
+
+const dayTasks = state.tasks.filter(function (task) {
+return task.date === key;
+});
+
+const dayHabits = future
+? []
+: state.habits.filter(function (habit) {
+return habitExistedOn(habit, key) && habitActiveOn(habit, key);
+});
+
+const total = dayTasks.length + dayHabits.length;
+
+if (!total) {
+return {
+pct: 0,
+done: 0,
+total: 0,
+future: future
+};
+}
+
+let done = dayTasks.filter(function (task) {
+return task.done;
+}).length;
+
+dayHabits.forEach(function (habit) {
+done += habitProgress(habit, key);
+});
+
+return {
+pct: Math.min(1, done / total),
+done: done,
+total: total,
+future: future
+};
+}
 
   function focusSeconds(habitId, days = 30) {
     let total = 0;
@@ -1348,6 +1405,7 @@ markBackup,
 backupDue,
 daysSinceLastBackup,
 storageSize,
+habitActiveOn,
 pruneOrphanLogs,
 purgeExpiredTrash,
 getTrashSummary
