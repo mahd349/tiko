@@ -229,6 +229,10 @@
 "backup.restoreNow": "♻️ بازیابی کن",
 "backup.reminder": "۷ روز است پشتیبان نگرفته‌ای. داده‌هایت فقط روی همین مرورگر است.",
 "backup.reminderAction": "پشتیبان بگیر"
+   "datepicker.today": "امروز",
+"datepicker.clear": "پاک کردن",
+"datepicker.invalid": "تاریخ واردشده نامعتبر است",
+"datepicker.placeholder": "مثلاً ۱۴۰۴/۱۱/۱۹"
     },
 
     en: {
@@ -451,6 +455,10 @@
 "backup.restoreNow": "♻️ Restore now",
 "backup.reminder": "You haven't backed up for 7 days. Your data exists only in this browser.",
 "backup.reminderAction": "Take backup"
+   "datepicker.today": "Today",
+"datepicker.clear": "Clear",
+"datepicker.invalid": "The entered date is invalid",
+"datepicker.placeholder": "e.g. 1404/11/19"
     }
   };
 
