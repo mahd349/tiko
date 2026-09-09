@@ -2091,6 +2091,65 @@ height: 36px;
 }
 }
 
+
+   /* ============================
+RECURRENCE PICKER
+============================ */
+.rec-options {
+display: flex;
+flex-direction: column;
+gap: 10px;
+margin-top: 8px;
+padding: 12px;
+background: var(--surface-2);
+border: 1px solid var(--border);
+border-radius: var(--radius-sm);
+}
+
+.rec-interval {
+display: flex;
+align-items: center;
+gap: 8px;
+font-size: 13px;
+font-weight: 700;
+color: var(--text-2);
+}
+
+.rec-end {
+display: flex;
+align-items: center;
+gap: 8px;
+font-size: 13px;
+font-weight: 700;
+color: var(--text-2);
+}
+
+.rec-end .input {
+flex: 1;
+max-width: 200px;
+}
+
+.chip.recurring {
+background: rgba(99, 102, 241, 0.12);
+color: var(--accent);
+border-color: rgba(99, 102, 241, 0.25);
+}
+
+.task-item.recurring-task::before {
+background: var(--accent);
+}
+
+@media (max-width: 900px) {
+.rec-options {
+padding: 10px;
+}
+
+.rec-interval,
+.rec-end {
+flex-wrap: wrap;
+}
+}
+
 .dp-day {
 min-height: 42px;
 }
