@@ -65,7 +65,7 @@
     tasks: [],
     habits: [],
     logs: {},
-    settings: {
+settings: {
 theme: "aurora",
 lang: "fa",
 animations: true,
@@ -259,9 +259,26 @@ time: "20:00"
 
     return result;
   }
-
- function normalizeSettings(raw) {
+function normalizeReminder(raw) {
 raw = raw || {};
+
+const time = String(raw.time || "");
+const validTime = /^([01]?\d|2[0-3]):[0-5]\d$/.test(time);
+
+let normalizedTime = validTime ? time : "20:00";
+
+if (normalizedTime.length === 4) {
+normalizedTime = "0" + normalizedTime;
+}
+
+return {
+enabled: !!raw.enabled,
+time: normalizedTime
+};
+}
+function normalizeSettings(raw) {
+raw = raw || {};
+
 return {
 theme: normalizeTheme(raw.theme),
 lang: raw.lang === "en" ? "en" : "fa",
@@ -1163,10 +1180,33 @@ return commitImport(normalized);
     notify("reset");
   }
 
-  function updateSettings(patch) {
-    state.settings = normalizeSettings(
-      Object.assign({}, state.settings, patch || {})
-    );
+ function updateSettings(patch) {
+patch = patch || {};
+
+const merged = Object.assign({}, state.settings, patch);
+
+if (window.Utils.isPlainObject(patch.reminder)) {
+merged.reminder = Object.assign(
+{},
+state.settings.reminder || {},
+patch.reminder
+);
+}
+
+state.settings = normalizeSettings(merged);
+
+saveState();
+
+if (window.I18N && patch.lang) {
+window.I18N.setLang(state.settings.lang, false);
+}
+
+if (patch.theme) {
+document.documentElement.setAttribute("data-theme", state.settings.theme);
+}
+
+notify("settings:update");
+}
 
     saveState();
 
