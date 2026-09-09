@@ -49,30 +49,79 @@
       renderToday();
     }
   }
+   function getCurrentDateKey(parseFirst) {
+const dateEl = el("taskDate");
 
-  function syncDateLabel() {
-    const dateEl = el("taskDate");
-    const labelEl = el("taskDateJalali");
+if (!dateEl) {
+return window.Calendar.todayKey();
+}
 
-    if (!dateEl || !labelEl) return;
+if (parseFirst && window.DatePicker && window.DatePicker.parse) {
+window.DatePicker.parse(dateEl);
+}
 
-    labelEl.textContent = dateEl.value
-      ? window.Calendar.keyToJalaliFull(dateEl.value)
-      : "—";
-  }
+const key = dateEl.dataset.value;
 
-  function add() {
-    const input = el("taskInput");
-    if (!input) return;
+if (window.Utils.isValidDateKey(key)) {
+return key;
+}
 
-    const name = window.Utils.sanitizeText(input.value, 160);
+if (window.Utils.isValidDateKey(dateEl.value)) {
+return dateEl.value;
+}
 
-    if (!name) {
-      toast(window.I18N.t("toast.enterTaskName"), "error");
-      input.focus();
-      return;
-    }
+return window.Calendar.todayKey();
+}
 
+ function syncDateLabel() {
+const dateEl = el("taskDate");
+const labelEl = el("taskDateJalali");
+
+if (!dateEl || !labelEl) return;
+
+const key = dateEl.dataset.value;
+
+if (window.Utils.isValidDateKey(key)) {
+labelEl.textContent = window.Calendar.keyToJalaliFull(key);
+return;
+}
+
+if (window.Utils.isValidDateKey(dateEl.value)) {
+labelEl.textContent = window.Calendar.keyToJalaliFull(dateEl.value);
+return;
+}
+
+labelEl.textContent = "—";
+}
+ function add() {
+const input = el("taskInput");
+
+if (!input) return;
+
+const name = window.Utils.sanitizeText(input.value, 160);
+
+if (!name) {
+toast(window.I18N.t("toast.enterTaskName"), "error");
+input.focus();
+return;
+}
+
+window.Store.addTask({
+name: name,
+date: getCurrentDateKey(true),
+priority: el("taskPriority") ? el("taskPriority").value || "med" : "med"
+});
+
+input.value = "";
+
+if (el("taskPriority")) {
+el("taskPriority").value = "med";
+}
+
+refreshAll();
+toast(window.I18N.t("toast.taskAdded"), "success");
+input.focus();
+}
     window.Store.addTask({
       name: name,
       date: el("taskDate") ? el("taskDate").value || window.Calendar.todayKey() : window.Calendar.todayKey(),
@@ -144,73 +193,89 @@
     });
   }
 
-  function edit(id) {
-    const task = window.Store.state.tasks.find(function (item) {
-      return String(item.id) === String(id);
-    });
+function edit(id) {
+const task = window.Store.state.tasks.find(function (item) {
+return String(item.id) === String(id);
+});
 
-    if (!task) return;
+if (!task) return;
 
-    if (!window.UI || !window.UI.modal) return;
+if (!window.UI || !window.UI.modal) return;
 
-    const html =
-      '<div class="form-row">' +
-      '<label for="etName">' + window.I18N.t("common.name") + "</label>" +
-      '<input id="etName" class="input" maxlength="160" value="' + window.Utils.escapeHtml(task.name) + '">' +
-      "</div>" +
-      '<div class="form-grid">' +
-      '<div class="form-row">' +
-      '<label for="etDate">' + window.I18N.t("common.date") + "</label>" +
-      '<input id="etDate" type="date" class="input" value="' + task.date + '">' +
-      "</div>" +
-      '<div class="form-row">' +
-      '<label for="etPri">' + window.I18N.t("common.priority") + "</label>" +
-      '<select id="etPri" class="input">' +
-      ['high', 'med', 'low'].map(function (p) {
-        return '<option value="' + p + '"' + (task.priority === p ? " selected" : "") + ">" +
-          window.I18N.t(PRI_KEY[p]) +
-          "</option>";
-      }).join("") +
-      "</select>" +
-      "</div>" +
-      "</div>" +
-      '<button class="btn btn-primary" data-action="save-task-edit" data-id="' + task.id + '" style="width:100%;margin-top:12px">' +
-      window.I18N.t("common.save") +
-      "</button>";
+const html =
+'<div class="form-row">' +
+'<label for="etName">' + window.I18N.t("common.name") + "</label>" +
+'<input id="etName" class="input" maxlength="160" value="' + window.Utils.escapeHtml(task.name) + '">' +
+"</div>" +
+'<div class="form-grid">' +
+'<div class="form-row">' +
+'<label for="etDate">' + window.I18N.t("common.date") + "</label>" +
+'<input id="etDate" type="text" class="input" data-datepicker autocomplete="off" value="' +
+window.Utils.escapeHtml(window.Calendar.keyToJalaliFull(task.date)) +
+'" data-value="' + task.date + '">' +
+"</div>" +
+'<div class="form-row">' +
+'<label for="etPri">' + window.I18N.t("common.priority") + "</label>" +
+'<select id="etPri" class="input">' +
+["high", "med", "low"]
+.map(function (p) {
+return (
+'<option value="' + p + '"' +
+(task.priority === p ? " selected" : "") +
+">" +
+window.I18N.t(PRI_KEY[p]) +
+"</option>"
+);
+})
+.join("") +
+"</select>" +
+"</div>" +
+"</div>" +
+'<button class="btn btn-primary" data-action="save-task-edit" data-id="' + task.id + '" style="width:100%;margin-top:12px">' +
+window.I18N.t("common.save") +
+"</button>";
 
-    const content = window.UI.modal.open(window.I18N.t("modal.editTask"), html);
+const content = window.UI.modal.open(window.I18N.t("modal.editTask"), html);
 
-    if (!content) return;
+if (!content) return;
 
-    const nameInput = content.querySelector("#etName");
-    const dateInput = content.querySelector("#etDate");
-    const priorityInput = content.querySelector("#etPri");
-    const saveBtn = content.querySelector('[data-action="save-task-edit"]');
+const nameInput = content.querySelector("#etName");
+const dateInput = content.querySelector("#etDate");
+const priorityInput = content.querySelector("#etPri");
+const saveBtn = content.querySelector('[data-action="save-task-edit"]');
 
-    if (nameInput) nameInput.focus();
+if (nameInput) nameInput.focus();
 
-    if (saveBtn) {
-      saveBtn.addEventListener("click", function () {
-        const name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 160);
+if (saveBtn) {
+saveBtn.addEventListener("click", function () {
+const name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 160);
 
-        if (!name) {
-          toast(window.I18N.t("toast.enterTaskName"), "error");
-          if (nameInput) nameInput.focus();
-          return;
-        }
+if (!name) {
+toast(window.I18N.t("toast.enterTaskName"), "error");
+if (nameInput) nameInput.focus();
+return;
+}
 
-        window.Store.updateTask(id, {
-          name: name,
-          date: dateInput && dateInput.value ? dateInput.value : task.date,
-          priority: priorityInput ? priorityInput.value : task.priority
-        });
+if (dateInput && window.DatePicker && window.DatePicker.parse) {
+window.DatePicker.parse(dateInput);
+}
 
-        window.UI.modal.close();
-        refreshAll();
-        toast(window.I18N.t("toast.saved"), "success");
-      });
-    }
-  }
+const dateValue = dateInput
+? dateInput.dataset.value || dateInput.value
+: task.date;
+
+window.Store.updateTask(id, {
+name: name,
+date: window.Utils.isValidDateKey(dateValue) ? dateValue : task.date,
+priority: priorityInput ? priorityInput.value : task.priority
+});
+
+window.UI.modal.close();
+refreshAll();
+toast(window.I18N.t("toast.saved"), "success");
+});
+}
+}
 
   function taskRowHTML(task, compact) {
     const today = window.Calendar.todayKey();
@@ -496,20 +561,30 @@
     });
   }
 
-  function init() {
-    if (initialized) return;
-    initialized = true;
+function init() {
+if (initialized) return;
 
-    bind();
+initialized = true;
 
-    const dateEl = el("taskDate");
+bind();
 
-    if (dateEl && !dateEl.value) {
-      dateEl.value = window.Calendar.todayKey();
-    }
+const dateEl = el("taskDate");
 
-    syncDateLabel();
-  }
+if (dateEl) {
+dateEl.type = "text";
+dateEl.setAttribute("data-datepicker", "");
+dateEl.autocomplete = "off";
+dateEl.classList.add("input-datepicker");
+
+if (!window.Utils.isValidDateKey(dateEl.dataset.value)) {
+dateEl.dataset.value = window.Calendar.todayKey();
+}
+
+dateEl.value = window.Calendar.keyToJalaliFull(dateEl.dataset.value);
+}
+
+syncDateLabel();
+}
 
   window.Tasks = {
     init: init,
