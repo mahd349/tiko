@@ -201,6 +201,34 @@
       "modal.backupFirst": "📥 اول پشتیبان",
       "modal.resetWarning": "تمام وظایف، عادت‌ها و تاریخچه برای همیشه پاک می‌شوند.",
       "modal.resetTitle": "⚠️ پاک‌کردن همهٔ داده‌ها"
+       "share.title": "🔥 کارت استریک",
+"share.selectHabit": "انتخاب عادت",
+"share.download": "📥 دانلود تصویر",
+"share.copyText": "📋 کپی متن",
+"share.share": "📤 اشتراک‌گذاری",
+"share.noHabits": "هنوز عادتی نداری. اول یک عادت بساز، بعد کارت استریک را دریافت کن.",
+"share.imageError": "ساخت تصویر ناموفق بود",
+
+"trash.title": "🗑️ سطل زباله",
+"trash.empty": "سطل زباله خالی است.",
+"trash.restore": "بازگردانی",
+"trash.emptyTrash": "پاک‌کردن دائمی",
+"trash.tasks": "وظایف حذف‌شده",
+"trash.habits": "عادت‌های حذف‌شده",
+"trash.confirmEmpty": "آیتم‌های سطل زباله برای همیشه حذف می‌شوند.",
+
+"backup.previewTitle": "پیش‌نمایش بازیابی",
+"backup.file": "فایل پشتیبان",
+"backup.current": "دادهٔ فعلی",
+"backup.tasks": "وظایف",
+"backup.habits": "عادت‌ها",
+"backup.days": "روزهای ثبت‌شده",
+"backup.trash": "سطل زباله",
+"backup.warning": "با بازیابی، دادهٔ فعلی جایگزین می‌شود.",
+"backup.backupFirst": "📥 اول پشتیبان بگیر",
+"backup.restoreNow": "♻️ بازیابی کن",
+"backup.reminder": "۷ روز است پشتیبان نگرفته‌ای. داده‌هایت فقط روی همین مرورگر است.",
+"backup.reminderAction": "پشتیبان بگیر"
     },
 
     en: {
@@ -395,6 +423,34 @@
       "modal.backupFirst": "📥 Back up first",
       "modal.resetWarning": "All tasks, habits and history will be permanently deleted.",
       "modal.resetTitle": "⚠️ Delete all data"
+   "share.title": "🔥 Streak card",
+"share.selectHabit": "Select habit",
+"share.download": "📥 Download image",
+"share.copyText": "📋 Copy text",
+"share.share": "📤 Share",
+"share.noHabits": "You don't have any habits yet. Create one first, then get your streak card.",
+"share.imageError": "Could not generate the image",
+
+"trash.title": "🗑️ Trash",
+"trash.empty": "Trash is empty.",
+"trash.restore": "Restore",
+"trash.emptyTrash": "Delete permanently",
+"trash.tasks": "Deleted tasks",
+"trash.habits": "Deleted habits",
+"trash.confirmEmpty": "Items in trash will be permanently deleted.",
+
+"backup.previewTitle": "Restore preview",
+"backup.file": "Backup file",
+"backup.current": "Current data",
+"backup.tasks": "Tasks",
+"backup.habits": "Habits",
+"backup.days": "Logged days",
+"backup.trash": "Trash",
+"backup.warning": "Restoring will replace your current data.",
+"backup.backupFirst": "📥 Back up first",
+"backup.restoreNow": "♻️ Restore now",
+"backup.reminder": "You haven't backed up for 7 days. Your data exists only in this browser.",
+"backup.reminderAction": "Take backup"
     }
   };
 
