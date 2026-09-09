@@ -225,19 +225,48 @@ created: raw.created || new Date().toISOString()
   /* ------------------------------
      Normalizers
   ------------------------------ */
+function normalizeRecurrence(raw) {
+raw = raw || {};
 
-  function normalizeTask(raw) {
-    raw = raw || {};
+var freqOptions = ["none", "daily", "weekly", "monthly"];
+var freq = freqOptions.indexOf(raw.freq) !== -1 ? raw.freq : "none";
 
-    return {
-      id: raw.id != null ? String(raw.id) : window.Utils.uid("task"),
-      name: window.Utils.sanitizeText(raw.name, 160),
-      date: normalizeDateKey(raw.date),
-      priority: normalizePriority(raw.priority),
-      done: !!raw.done,
-      created: raw.created || new Date().toISOString()
-    };
-  }
+var days = [0, 1, 2, 3, 4, 5, 6];
+if (Array.isArray(raw.days) && raw.days.length) {
+days = raw.days.filter(function (d) {
+return d >= 0 && d <= 6;
+});
+if (!days.length) days = [0, 1, 2, 3, 4, 5, 6];
+}
+
+var interval = Math.max(1, parseInt(raw.interval) || 1);
+var endDate = raw.endDate && window.Utils.isValidDateKey(raw.endDate)
+? raw.endDate
+: null;
+
+return {
+freq: freq,
+days: days,
+interval: interval,
+endDate: endDate
+};
+}
+   
+ function normalizeTask(raw) {
+raw = raw || {};
+return {
+id: raw.id != null ? String(raw.id) : window.Utils.uid("task"),
+name: window.Utils.sanitizeText(raw.name, 160),
+date: normalizeDateKey(raw.date),
+priority: normalizePriority(raw.priority),
+done: !!raw.done,
+created: raw.created || new Date().toISOString(),
+recurrence: normalizeRecurrence(raw.recurrence),
+occurrences: raw.occurrences && window.Utils.isPlainObject(raw.occurrences)
+? raw.occurrences
+: {}
+};
+}
 
   function normalizeHabit(raw) {
     raw = raw || {};
@@ -688,28 +717,132 @@ saveState();
     return true;
   }
 
-  function clearDoneTasks() {
-    const doneTasks = state.tasks.filter(function (task) {
-      return task.done;
-    });
+ function clearDoneTasks() {
+var doneTasks = state.tasks.filter(function (task) {
+if (isTaskRecurring(task)) return false;
+return task.done;
+});
+if (!doneTasks.length) return 0;
+state.tasks = state.tasks.filter(function (task) {
+if (isTaskRecurring(task)) return true;
+return !task.done;
+});
+doneTasks.forEach(function (task) {
+task.deletedAt = new Date().toISOString();
+state.trash.tasks.push(task);
+});
+saveState();
+notify("tasks:clearDone");
+return doneTasks.length;
+}
 
-    if (!doneTasks.length) return 0;
+/* ------------------------------
+Task Recurrence
+------------------------------ */
+function isTaskRecurring(task) {
+return !!(task.recurrence && task.recurrence.freq !== "none");
+}
 
-    state.tasks = state.tasks.filter(function (task) {
-      return !task.done;
-    });
+function isTaskActiveOn(task, dateKey) {
+if (!isTaskRecurring(task)) {
+return task.date === dateKey;
+}
 
-    doneTasks.forEach(function (task) {
-      task.deletedAt = new Date().toISOString();
-      state.trash.tasks.push(task);
-    });
+if (dateKey < task.date) {
+return false;
+}
 
-    saveState();
-    notify("tasks:clearDone");
+if (task.recurrence.endDate && dateKey > task.recurrence.endDate) {
+return false;
+}
 
-    return doneTasks.length;
-  }
+var date = window.Calendar.keyToDate(dateKey);
+var startDate = window.Calendar.keyToDate(task.date);
+var diffMs = date.getTime() - startDate.getTime();
+var diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
 
+if (task.recurrence.freq === "daily") {
+return diffDays >= 0 && diffDays % task.recurrence.interval === 0;
+}
+
+if (task.recurrence.freq === "weekly") {
+var weekday = window.Calendar.getDayOfWeek(date, "fa");
+if (task.recurrence.days.indexOf(weekday) === -1) {
+return false;
+}
+if (task.recurrence.interval > 1) {
+var diffWeeks = Math.floor(diffDays / 7);
+return diffWeeks % task.recurrence.interval === 0;
+}
+return true;
+}
+
+if (task.recurrence.freq === "monthly") {
+if (date.getDate() !== startDate.getDate()) {
+return false;
+}
+if (task.recurrence.interval > 1) {
+var monthDiff =
+(date.getFullYear() - startDate.getFullYear()) * 12 +
+(date.getMonth() - startDate.getMonth());
+return monthDiff >= 0 && monthDiff % task.recurrence.interval === 0;
+}
+return true;
+}
+
+return false;
+}
+
+function getTasksForDate(dateKey) {
+return state.tasks.filter(function (task) {
+return isTaskActiveOn(task, dateKey);
+});
+}
+
+function isTaskDoneOnDate(task, dateKey) {
+if (!isTaskRecurring(task)) {
+return task.done;
+}
+return !!(
+task.occurrences &&
+task.occurrences[dateKey] &&
+task.occurrences[dateKey].done
+);
+}
+
+function toggleTaskOnDate(taskId, dateKey) {
+var task = state.tasks.find(function (item) {
+return String(item.id) === String(taskId);
+});
+if (!task) return false;
+
+if (!isTaskRecurring(task)) {
+return toggleTask(taskId);
+}
+
+if (!task.occurrences) {
+task.occurrences = {};
+}
+if (!task.occurrences[dateKey]) {
+task.occurrences[dateKey] = { done: false };
+}
+
+task.occurrences[dateKey].done = !task.occurrences[dateKey].done;
+saveState();
+notify("task:toggle");
+return task.occurrences[dateKey].done;
+}
+
+function recurrenceLabel(task) {
+if (!isTaskRecurring(task)) return "";
+var freq = task.recurrence.freq;
+if (freq === "daily") return window.I18N.t("tasks.recDaily");
+if (freq === "weekly") return window.I18N.t("tasks.recWeekly");
+if (freq === "monthly") return window.I18N.t("tasks.recMonthly");
+return "";
+}
+
+   
   /* ------------------------------
      Habits
   ------------------------------ */
@@ -1079,33 +1212,26 @@ best: best
 }
 
 function dayScore(dateKey) {
-const key = dateKey || window.Calendar.todayKey();
-const today = window.Calendar.todayKey();
-const future = key > today;
+var key = dateKey || window.Calendar.todayKey();
+var today = window.Calendar.todayKey();
+var future = key > today;
 
-const dayTasks = state.tasks.filter(function (task) {
-return task.date === key;
-});
+var dayTasks = getTasksForDate(key);
 
-const dayHabits = future
+var dayHabits = future
 ? []
 : state.habits.filter(function (habit) {
 return habitExistedOn(habit, key) && habitActiveOn(habit, key);
 });
 
-const total = dayTasks.length + dayHabits.length;
+var total = dayTasks.length + dayHabits.length;
 
 if (!total) {
-return {
-pct: 0,
-done: 0,
-total: 0,
-future: future
-};
+return { pct: 0, done: 0, total: 0, future: future };
 }
 
-let done = dayTasks.filter(function (task) {
-return task.done;
+var done = dayTasks.filter(function (task) {
+return isTaskDoneOnDate(task, key);
 }).length;
 
 dayHabits.forEach(function (habit) {
@@ -1119,7 +1245,6 @@ total: total,
 future: future
 };
 }
-
   function focusSeconds(habitId, days = 30) {
     let total = 0;
 
@@ -1374,6 +1499,13 @@ toggleTask,
 deleteTask,
 restoreTask,
 clearDoneTasks,
+normalizeRecurrence,
+isTaskRecurring,
+isTaskActiveOn,
+getTasksForDate,
+isTaskDoneOnDate,
+toggleTaskOnDate,
+recurrenceLabel,
 addHabit,
 updateHabit,
 deleteHabit,
