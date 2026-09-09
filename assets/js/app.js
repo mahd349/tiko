@@ -1986,13 +1986,15 @@ if (action === "fab-habit") {
 
     clockTimer = setInterval(renderClock, 1000);
 
-    const hash = (location.hash || "").replace("#", "");
-
-    if (TABS.indexOf(hash) !== -1) {
-      switchTab(hash);
-    } else {
-      switchTab("home");
-    }
+  const hash = (location.hash || "").replace("#", "");
+const isMobile = window.matchMedia("(max-width: 900px)").matches;
+if (TABS.indexOf(hash) !== -1) {
+  switchTab(hash);
+} else if (isMobile) {
+  switchTab("today");
+} else {
+  switchTab("home");
+}
   }
 
   window.App = {
