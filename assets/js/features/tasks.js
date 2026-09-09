@@ -483,43 +483,153 @@ toast(window.I18N.t("toast.saved"), "success");
 }
 }
 
- function taskRowHTML(task, compact, dateContext) {
-var today = window.Calendar.todayKey();
-var isRecurring = window.Store.isTaskRecurring(task);
-var contextDate = dateContext || (isRecurring ? today : task.date);
-var done = isRecurring
-? window.Store.isTaskDoneOnDate(task, contextDate)
-: task.done;
+function taskRowHTML(task, compact, dateContext) {
+  var today = window.Calendar.todayKey();
+  var isRecurring = window.Store.isTaskRecurring(task);
+  var contextDate = dateContext || (isRecurring ? today : task.date);
+  var done = isRecurring
+    ? window.Store.isTaskDoneOnDate(task, contextDate)
+    : task.done;
+  var chip = "";
+  if (isRecurring) {
+    chip = '<span class="chip recurring">🔄 ' + window.Store.recurrenceLabel(task) + "</span>";
+  } else if (task.date < today && !done) {
+    chip = '<span class="chip overdue">' + window.I18N.t("common.overdue") + " — " + window.Calendar.keyToJalaliFull(task.date) + "</span>";
+  } else if (task.date === today) {
+    chip = '<span class="chip today">' + window.I18N.t("common.today") + "</span>";
+  } else {
+    chip = '<span class="chip">' + window.Calendar.keyToJalaliFull(task.date) + "</span>";
+  }
 
-var chip = "";
-if (isRecurring) {
-chip = '<span class="chip recurring">🔄 ' + window.Store.recurrenceLabel(task) + "</span>";
-} else if (task.date < today && !done) {
-chip = '<span class="chip overdue">' + window.I18N.t("common.overdue") + " — " + window.Calendar.keyToJalaliFull(task.date) + "</span>";
-} else if (task.date === today) {
-chip = '<span class="chip today">' + window.I18N.t("common.today") + "</span>";
-} else {
-chip = '<span class="chip">' + window.Calendar.keyToJalaliFull(task.date) + "</span>";
+  var projectChip = "";
+  if (task.projectId) {
+    var proj = window.Store.getProjectById(task.projectId);
+    if (proj) {
+      projectChip = '<span class="chip project-chip" style="background:' + proj.color + '22;border-color:' + proj.color + '44;color:' + proj.color + '">' + window.Utils.escapeHtml(proj.name) + "</span>";
+    }
+  }
+
+  var tagsHTML = "";
+  if (task.tags && task.tags.length) {
+    tagsHTML = '<span class="task-tags">' + task.tags.map(function (tag) {
+      return '<span class="tag-chip">' + window.Utils.escapeHtml(tag) + "</span>";
+    }).join("") + "</span>";
+  }
+
+  var subtasksHTML = "";
+  if (!compact && task.subtasks && task.subtasks.length) {
+    var doneCount = task.subtasks.filter(function (s) { return s.done; }).length;
+    subtasksHTML =
+      '<div class="subtasks-inline">' +
+      '<span class="subtasks-progress">' + window.I18N.t("subtasks.progress", { done: window.I18N.faNum(doneCount), total: window.I18N.faNum(task.subtasks.length) }) + "</span>" +
+      '<div class="goal-bar" style="flex:1"><span style="width:' + Math.round((doneCount / task.subtasks.length) * 100) + '%"></span></div>' +
+      "</div>";
+  }
+
+  var checkboxAttrs = 'data-task-id="' + task.id + '"';
+  if (isRecurring) {
+    checkboxAttrs += ' data-task-date="' + contextDate + '"';
+  }
+  return (
+    '<div class="task-item' + (isRecurring ? " recurring-task" : "") + '" style="--pri:' + (PRI_COLOR[task.priority] || PRI_COLOR.med) + '">' +
+    '<input type="checkbox" class="task-checkbox" ' + checkboxAttrs + (done ? " checked" : "") +
+    ' aria-label="' + window.I18N.t("common.done") + " — " + window.Utils.escapeHtml(task.name) + '">' +
+    '<div class="task-content">' +
+    '<span class="task-text' + (done ? " done" : "") + '">' + window.Utils.escapeHtml(task.name) + "</span>" +
+    subtasksHTML +
+    tagsHTML +
+    "</div>" +
+    (compact ? "" : '<span class="chip pri-' + (task.priority || "med") + '">' + window.I18N.t(PRI_KEY[task.priority || "med"]) + "</span>") +
+    projectChip +
+    chip +
+    '<div class="task-actions">' +
+    '<button class="btn-icon" data-action="expand-subtasks" data-id="' + task.id + '" aria-label="' + window.I18N.t("subtasks.title") + '" title="' + window.I18N.t("subtasks.title") + '">📋</button>' +
+    '<button class="btn-icon" data-action="edit-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.edit") + '" title="' + window.I18N.t("common.edit") + '">✏️</button>' +
+    '<button class="btn-icon danger" data-action="delete-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
+    "</div>" +
+    "</div>"
+  );
 }
 
-var checkboxAttrs = 'data-task-id="' + task.id + '"';
-if (isRecurring) {
-checkboxAttrs += ' data-task-date="' + contextDate + '"';
-}
+function openSubtasksModal(taskId) {
+  var task = window.Store.state.tasks.find(function (item) {
+    return String(item.id) === String(taskId);
+  });
+  if (!task || !window.UI || !window.UI.modal) return;
 
-return (
-'<div class="task-item' + (isRecurring ? " recurring-task" : "") + '" style="--pri:' + (PRI_COLOR[task.priority] || PRI_COLOR.med) + '">' +
-'<input type="checkbox" class="task-checkbox" ' + checkboxAttrs + (done ? " checked" : "") +
-' aria-label="' + window.I18N.t("common.done") + " — " + window.Utils.escapeHtml(task.name) + '">' +
-'<span class="task-text' + (done ? " done" : "") + '">' + window.Utils.escapeHtml(task.name) + "</span>" +
-(compact ? "" : '<span class="chip pri-' + (task.priority || "med") + '">' + window.I18N.t(PRI_KEY[task.priority || "med"]) + "</span>") +
-chip +
-'<div class="task-actions">' +
-'<button class="btn-icon" data-action="edit-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.edit") + '" title="' + window.I18N.t("common.edit") + '">✏️</button>' +
-'<button class="btn-icon danger" data-action="delete-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
-"</div>" +
-"</div>"
-);
+  function buildSubtasksHTML() {
+    if (!task.subtasks || !task.subtasks.length) {
+      return '<p style="text-align:center;color:var(--text-3);padding:12px 0">' + window.I18N.t("subtasks.title") + " — " + window.I18N.t("projects.emptySub") + "</p>";
+    }
+    return task.subtasks.map(function (sub) {
+      return (
+        '<div class="modal-item">' +
+        '<div class="item-left">' +
+        '<input type="checkbox" class="task-checkbox" data-subtask-id="' + sub.id + '" data-task-id="' + task.id + '"' + (sub.done ? " checked" : "") + '>' +
+        '<span class="item-name' + (sub.done ? " done" : "") + '">' + window.Utils.escapeHtml(sub.text) + "</span>" +
+        "</div>" +
+        '<button class="btn-icon danger" data-action="delete-subtask" data-id="' + sub.id + '" data-task-id="' + task.id + '">✕</button>' +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  var html =
+    '<div class="modal-section-title">📋 ' + window.I18N.t("subtasks.title") + "</div>" +
+    '<div id="subtasksList">' + buildSubtasksHTML() + "</div>" +
+    '<div class="form-row" style="margin-top:14px">' +
+    '<input type="text" id="newSubtaskInput" class="input" placeholder="' + window.I18N.t("subtasks.placeholder") + '" maxlength="140">' +
+    '<button class="btn btn-primary btn-sm" data-action="add-subtask" data-id="' + task.id + '">' + window.I18N.t("subtasks.add") + "</button>" +
+    "</div>";
+
+  var content = window.UI.modal.open(window.I18N.t("subtasks.title"), html);
+  if (!content) return;
+
+  var listEl = content.querySelector("#subtasksList");
+  var inputEl = content.querySelector("#newSubtaskInput");
+  var addBtn = content.querySelector('[data-action="add-subtask"]');
+
+  function refreshList() {
+    if (listEl) listEl.innerHTML = buildSubtasksHTML();
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener("click", function () {
+      var text = window.Utils.sanitizeText(inputEl ? inputEl.value : "", 140);
+      if (!text) return;
+      window.Store.addSubtask(taskId, text);
+      if (inputEl) inputEl.value = "";
+      refreshList();
+      refreshAll();
+    });
+  }
+
+  if (inputEl) {
+    inputEl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addBtn.click();
+      }
+    });
+  }
+
+  if (content) {
+    content.addEventListener("change", function (e) {
+      if (e.target.dataset && e.target.dataset.subtaskId) {
+        window.Store.toggleSubtask(e.target.dataset.taskId, e.target.dataset.subtaskId);
+        refreshList();
+        refreshAll();
+      }
+    });
+    content.addEventListener("click", function (e) {
+      var delBtn = e.target.closest('[data-action="delete-subtask"]');
+      if (delBtn) {
+        window.Store.removeSubtask(delBtn.dataset.taskId, delBtn.dataset.id);
+        refreshList();
+        refreshAll();
+      }
+    });
+  }
 }
 
 function render() {
@@ -754,6 +864,9 @@ return taskRowHTML(task, true, today);
       const id = actionEl.dataset.id;
 
       if (action === "edit-task") {
+      if (action === "expand-subtasks") {
+  openSubtasksModal(id);
+}
         edit(id);
       }
 
