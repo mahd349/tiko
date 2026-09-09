@@ -233,6 +233,19 @@
 "datepicker.clear": "پاک کردن",
 "datepicker.invalid": "تاریخ واردشده نامعتبر است",
 "datepicker.placeholder": "مثلاً ۱۴۰۴/۱۱/۱۹"
+   "reminder.title": "یادآور روزانه",
+"reminder.enable": "فعال‌سازی یادآور",
+"reminder.time": "ساعت یادآوری",
+"reminder.notification": "اعلان مرورگر",
+"reminder.enableNotification": "🔔 فعال‌سازی اعلان مرورگر",
+"reminder.permGranted": "✅ فعال است",
+"reminder.permDenied": "❌ مسدود شده (از تنظیمات مرورگر باز کن)",
+"reminder.permDefault": "هنوز درخواست نشده",
+"reminder.permUnsupported": "در این مرورگر پشتیبانی نمی‌شود",
+"reminder.permUnknown": "نامشخص",
+"reminder.remaining": "هنوز {tasks} وظیفه و {habits} عادت برای امروز باقی مانده. بیا چند تاشون رو تموم کنیم! 💪",
+"reminder.allDone": "همهٔ کارهای امروز انجام شد! 🎉",
+"reminder.openToday": "مشاهده امروز",
     },
 
     en: {
@@ -459,6 +472,19 @@
 "datepicker.clear": "Clear",
 "datepicker.invalid": "The entered date is invalid",
 "datepicker.placeholder": "e.g. 1404/11/19"
+"reminder.title": "Daily reminder",
+"reminder.enable": "Enable reminder",
+"reminder.time": "Reminder time",
+"reminder.notification": "Browser notification",
+"reminder.enableNotification": "🔔 Enable browser notifications",
+"reminder.permGranted": "✅ Enabled",
+"reminder.permDenied": "❌ Blocked (enable it in browser settings)",
+"reminder.permDefault": "Not requested yet",
+"reminder.permUnsupported": "Not supported in this browser",
+"reminder.permUnknown": "Unknown",
+"reminder.remaining": "You still have {tasks} tasks and {habits} habits left today. Let's knock out a few! 💪",
+"reminder.allDone": "All done for today! 🎉",
+"reminder.openToday": "View today",
     }
   };
 
