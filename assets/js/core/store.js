@@ -193,21 +193,7 @@ return a - b;
 return days.length ? days : allDays;
 }
    
-function normalizeHabit(raw) {
-raw = raw || {};
 
-return {
-id: raw.id != null ? String(raw.id) : window.Utils.uid("habit"),
-name: window.Utils.sanitizeText(raw.name, 80),
-emoji: window.Utils.sanitizeText(raw.emoji || "target", 50),
-category: normalizeCategory(raw.category),
-type: normalizeHabitType(raw.type),
-color: window.Utils.sanitizeText(raw.color || "#8b5cf6", 20),
-goal: Math.max(0, parseFloat(raw.goal) || 0),
-activeDays: normalizeActiveDays(raw.activeDays),
-created: raw.created || new Date().toISOString()
-};
-}
   function normalizeTheme(value) {
     const map = {
       aurora: "aurora",
@@ -252,45 +238,7 @@ endDate: endDate
 };
 }
 
-   function normalizeRecurrence(raw) {
-raw = raw || {};
 
-const freqOptions = ["none", "daily", "weekly", "monthly"];
-const freq = freqOptions.indexOf(raw.freq) !== -1 ? raw.freq : "none";
-
-const allDays = [0, 1, 2, 3, 4, 5, 6];
-let days = allDays;
-
-if (Array.isArray(raw.days)) {
-days = [];
-
-raw.days.forEach(function (day) {
-const n = Number(day);
-
-if (n >= 0 && n <= 6 && days.indexOf(n) === -1) {
-days.push(n);
-}
-});
-
-days.sort(function (a, b) {
-return a - b;
-});
-
-if (!days.length) {
-days = allDays;
-}
-}
-
-const interval = Math.max(1, parseInt(raw.interval) || 1);
-const endDate = window.Utils.isValidDateKey(raw.endDate) ? raw.endDate : null;
-
-return {
-freq: freq,
-days: days,
-interval: interval,
-endDate: endDate
-};
-}
 
 function normalizeOccurrences(raw) {
 const result = {};
@@ -408,26 +356,7 @@ density: raw.density === "compact" ? "compact" : "comfortable",
 reminder: normalizeReminder(raw.reminder)
 };
 }
-   function normalizeReminder(raw) {
-raw = raw || {};
-const timeStr = String(raw.time || "");
-const validTime = /^([01]?\d|2[0-3]):[0-5]\d$/.test(timeStr);
 
-return {
-enabled: !!raw.enabled,
-time: validTime ? (timeStr.length === 4 ? "0" + timeStr : timeStr) : "20:00"
-};
-}
-   function normalizeReminder(raw) {
-raw = raw || {};
-const timeStr = String(raw.time || "");
-const validTime = /^([01]?\d|2[0-3]):[0-5]\d$/.test(timeStr);
-
-return {
-enabled: !!raw.enabled,
-time: validTime ? (timeStr.length === 4 ? "0" + timeStr : timeStr) : "20:00"
-};
-}
 
   function normalizeTrash(raw) {
     raw = raw || {};
@@ -942,28 +871,6 @@ notify("task:toggle");
 return !!(task.occurrences[dateKey] && task.occurrences[dateKey].done);
 }
 
-function toggleTaskOnDate(taskId, dateKey) {
-var task = state.tasks.find(function (item) {
-return String(item.id) === String(taskId);
-});
-if (!task) return false;
-
-if (!isTaskRecurring(task)) {
-return toggleTask(taskId);
-}
-
-if (!task.occurrences) {
-task.occurrences = {};
-}
-if (!task.occurrences[dateKey]) {
-task.occurrences[dateKey] = { done: false };
-}
-
-task.occurrences[dateKey].done = !task.occurrences[dateKey].done;
-saveState();
-notify("task:toggle");
-return task.occurrences[dateKey].done;
-}
 
 function recurrenceLabel(task) {
 if (!isTaskRecurring(task)) return "";
@@ -1457,34 +1364,10 @@ future: future
     };
   }
 
- function importData(raw) {
-const normalized = validateBackup(raw);
-return commitImport(normalized);
+function importData(raw) {
+  const normalized = validateBackup(raw);
+  return commitImport(normalized);
 }
-
-    state.tasks = normalized.tasks;
-    state.habits = normalized.habits;
-    state.logs = normalized.logs;
-    state.settings = normalized.settings;
-    state.trash = normalized.trash;
-    state.meta = normalized.meta;
-
-    saveState();
-
-    if (window.I18N) {
-      window.I18N.setLang(state.settings.lang, false);
-    }
-
-    document.documentElement.setAttribute("data-theme", state.settings.theme);
-
-    notify("import");
-
-    return {
-      tasks: state.tasks.length,
-      habits: state.habits.length,
-      days: Object.keys(state.logs).length
-    };
-  }
 
   function resetAll() {
     state.tasks = [];
@@ -1514,31 +1397,7 @@ patch.reminder
 
 state.settings = normalizeSettings(merged);
 
-saveState();
 
-if (window.I18N && patch.lang) {
-window.I18N.setLang(state.settings.lang, false);
-}
-
-if (patch.theme) {
-document.documentElement.setAttribute("data-theme", state.settings.theme);
-}
-
-notify("settings:update");
-}
-
-    saveState();
-
-    if (window.I18N && patch && patch.lang) {
-      window.I18N.setLang(state.settings.lang, false);
-    }
-
-    if (patch && patch.theme) {
-      document.documentElement.setAttribute("data-theme", state.settings.theme);
-    }
-
-    notify("settings:update");
-  }
 
  function markBackup(type = "manual") {
 state.meta.lastBackupAt = new Date().toISOString();
@@ -1675,11 +1534,6 @@ backupDue,
 daysSinceLastBackup,
 storageSize,
 habitActiveOn,
-isTaskRecurring,
-isTaskActiveOn,
-getTasksForDate,
-isTaskDoneOnDate,
-toggleTaskOnDate,
 pruneOrphanLogs,
 purgeExpiredTrash,
 getTrashSummary
