@@ -1,24 +1,32 @@
 /* ================================================================
 ROUTINE — FEATURES / REMINDER.JS
 Daily reminder engine.
-Works while the app is open. Uses the Notification API when
-permitted, otherwise falls back to an in-app toast.
+Works while the app is open. Uses Notification API when permitted,
+otherwise falls back to an in-app toast.
 ================================================================ */
 (function () {
 "use strict";
 
 const LAST_SHOWN_KEY = "pd_reminder_lastShown";
 
-let checkTimer = null;
+let timer = null;
 let initialized = false;
+let memoryLastShown = "";
 
 function getSettings() {
-return (
-(window.Store && window.Store.state.settings.reminder) || {
+const settings =
+window.Store && window.Store.state
+? window.Store.state.settings
+: null;
+
+if (settings && window.Utils.isPlainObject(settings.reminder)) {
+return settings.reminder;
+}
+
+return {
 enabled: false,
 time: "20:00"
-}
-);
+};
 }
 
 function todayKey() {
@@ -27,15 +35,17 @@ return window.Calendar ? window.Calendar.todayKey() : "";
 
 function lastShown() {
 try {
-return localStorage.getItem(LAST_SHOWN_KEY) || "";
+return localStorage.getItem(LAST_SHOWN_KEY) || memoryLastShown;
 } catch (error) {
-return "";
+return memoryLastShown;
 }
 }
 
 function markShown() {
+memoryLastShown = todayKey();
+
 try {
-localStorage.setItem(LAST_SHOWN_KEY, todayKey());
+localStorage.setItem(LAST_SHOWN_KEY, memoryLastShown);
 } catch (error) {
 // ignore
 }
@@ -47,14 +57,15 @@ return lastShown() === todayKey();
 
 function nowHHMM() {
 const d = new Date();
-const h = String(d.getHours()).padStart(2, "0");
-const m = String(d.getMinutes()).padStart(2, "0");
-return h + ":" + m;
+return window.Utils.pad2(d.getHours()) + ":" + window.Utils.pad2(d.getMinutes());
 }
 
 function remainingToday() {
 if (!window.Store) {
-return { tasks: 0, habits: 0 };
+return {
+tasks: 0,
+habits: 0
+};
 }
 
 const today = todayKey();
@@ -67,7 +78,10 @@ const habits = window.Store.state.habits.filter(function (habit) {
 return !window.Store.habitDone(habit);
 }).length;
 
-return { tasks: tasks, habits: habits };
+return {
+tasks: tasks,
+habits: habits
+};
 }
 
 function buildMessage() {
@@ -88,6 +102,7 @@ new Notification(window.I18N.t("app.name"), {
 body: message,
 tag: "routine-daily-reminder"
 });
+
 return true;
 } catch (error) {
 return false;
@@ -128,29 +143,29 @@ const settings = getSettings();
 
 if (!settings.enabled) return;
 if (alreadyShownToday()) return;
+if (nowHHMM() < settings.time) return;
 
-/* Fire once the clock passes the configured time (handles opening late). */
-if (nowHHMM() >= settings.time) {
 const remaining = remainingToday();
 
-if (remaining.tasks + remaining.habits > 0) {
-fire();
-} else {
-/* Nothing left to do; stay quiet but don't nag later. */
+if (remaining.tasks + remaining.habits === 0) {
 markShown();
+return;
 }
-}
+
+fire();
 }
 
 function start() {
-if (checkTimer) return;
-checkTimer = setInterval(check, 30000);
+if (timer) return;
+
+timer = setInterval(check, 30000);
+check();
 }
 
 function stop() {
-if (checkTimer) {
-clearInterval(checkTimer);
-checkTimer = null;
+if (timer) {
+clearInterval(timer);
+timer = null;
 }
 }
 
@@ -170,15 +185,41 @@ if (callback) callback("granted");
 return;
 }
 
-Notification.requestPermission().then(function (permission) {
-if (callback) callback(permission);
+try {
+const promise = Notification.requestPermission();
+
+if (promise && typeof promise.then === "function") {
+promise
+.then(function (result) {
+if (callback) callback(result);
+})
+.catch(function () {
+if (callback) callback(Notification.permission);
 });
+
+return;
+}
+
+Notification.requestPermission(function (result) {
+if (callback) callback(result);
+});
+} catch (error) {
+if (callback) callback(Notification.permission);
+}
 }
 
 function init() {
 if (initialized) return;
+
 initialized = true;
+
 start();
+
+document.addEventListener("visibilitychange", function () {
+if (!document.hidden) {
+check();
+}
+});
 }
 
 window.Reminder = {
@@ -186,7 +227,6 @@ init: init,
 start: start,
 stop: stop,
 check: check,
-fire: fire,
 requestPermission: requestPermission,
 permissionState: permissionState
 };
