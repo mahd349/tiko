@@ -966,30 +966,43 @@
      Tools / Help
   ------------------------------ */
 
-  function openToolsModal() {
-    if (!window.UI || !window.UI.modal) return;
+function openToolsModal() {
+if (!window.UI || !window.UI.modal) return;
 
-    const lang = window.I18N.lang;
+const lang = window.I18N.lang;
 
-    const html =
-      '<div class="modal-section-title">🌐 ' + window.I18N.t("common.language") + "</div>" +
-      '<div style="display:flex;gap:8px;margin-bottom:18px">' +
-      '<button class="btn ' + (lang === "fa" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="fa" style="flex:1">فارسی</button>' +
-      '<button class="btn ' + (lang === "en" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="en" style="flex:1">English</button>' +
-      "</div>" +
+const trashSummary =
+window.Store.getTrashSummary
+? window.Store.getTrashSummary()
+: {
+total: 0
+};
 
-      '<div class="modal-section-title">⚙️ ' + window.I18N.t("common.tools") + "</div>" +
-      '<div style="display:grid;gap:8px">' +
-      '<button class="btn btn-ghost" data-action="open-share">🔥 ' + window.I18N.t("common.streakCard") + "</button>" +
-      '<button class="btn btn-ghost" data-action="backup">📥 ' + window.I18N.t("common.backup") + "</button>" +
-      '<button class="btn btn-ghost" data-action="restore">📤 ' + window.I18N.t("common.restore") + "</button>" +
-      '<button class="btn btn-danger" data-action="reset">🗑️ ' + window.I18N.t("common.reset") + "</button>" +
-      '<button class="btn btn-ghost" data-action="open-help">❓ ' + window.I18N.t("common.help") + "</button>" +
-      '<a class="btn btn-ghost" href="rahnama/">📚 ' + window.I18N.t("common.articles") + "</a>" +
-      "</div>";
+const trashLabel =
+window.I18N.t("trash.title") +
+(trashSummary.total
+? " (" + window.I18N.faNum(trashSummary.total) + ")"
+: "");
 
-    window.UI.modal.open(window.I18N.t("common.tools"), html);
-  }
+const html =
+'<div class="modal-section-title">🌐 ' + window.I18N.t("common.language") + "</div>" +
+'<div style="display:flex;gap:8px;margin-bottom:18px">' +
+'<button class="btn ' + (lang === "fa" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="fa" style="flex:1">فارسی</button>' +
+'<button class="btn ' + (lang === "en" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="en" style="flex:1">English</button>' +
+"</div>" +
+'<div class="modal-section-title">⚙️ ' + window.I18N.t("common.tools") + "</div>" +
+'<div style="display:grid;gap:8px">' +
+'<button class="btn btn-ghost" data-action="open-share">🔥 ' + window.I18N.t("common.streakCard") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-trash">🗑️ ' + trashLabel + "</button>" +
+'<button class="btn btn-ghost" data-action="backup">📥 ' + window.I18N.t("common.backup") + "</button>" +
+'<button class="btn btn-ghost" data-action="restore">📤 ' + window.I18N.t("common.restore") + "</button>" +
+'<button class="btn btn-danger" data-action="reset">🗑️ ' + window.I18N.t("common.reset") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-help">❓ ' + window.I18N.t("common.help") + "</button>" +
+'<a class="btn btn-ghost" href="rahnama/">📚 ' + window.I18N.t("common.articles") + "</a>" +
+"</div>";
+
+window.UI.modal.open(window.I18N.t("common.tools"), html);
+}
 
   function openHelpModal() {
     if (!window.UI || !window.UI.modal) return;
@@ -1309,6 +1322,146 @@
     }
   }
 
+   /* ------------------------------
+Trash + backup reminder
+------------------------------ */
+function maybeShowBackupReminder() {
+if (!window.Store || !window.UI || !window.UI.toast) return;
+
+if (!window.Store.backupDue || !window.Store.backupDue(7)) return;
+
+const hasData =
+window.Store.state.tasks.length ||
+window.Store.state.habits.length ||
+Object.keys(window.Store.state.logs || {}).length;
+
+if (!hasData) return;
+
+try {
+if (sessionStorage.getItem("pd_backup_reminder_shown")) return;
+sessionStorage.setItem("pd_backup_reminder_shown", "1");
+} catch (error) {
+// ignore
+}
+
+window.UI.toast(window.I18N.t("backup.reminder"), "info", {
+duration: 7000,
+action: {
+label: window.I18N.t("backup.reminderAction"),
+onClick: function () {
+if (window.Stats && window.Stats.exportBackup) {
+window.Stats.exportBackup();
+}
+}
+}
+});
+}
+
+function openTrashModal() {
+if (!window.UI || !window.UI.modal || !window.Store) return;
+
+const trash = window.Store.state.trash || {
+tasks: [],
+habits: []
+};
+
+if (!trash.tasks.length && !trash.habits.length) {
+const emptyHtml =
+'<div class="empty-state">' +
+'<div class="empty-state-icon">🗑️</div>' +
+'<div class="empty-state-text">' + window.I18N.t("trash.empty") + "</div>" +
+"</div>";
+
+window.UI.modal.open(window.I18N.t("trash.title"), emptyHtml);
+return;
+}
+
+let html = "";
+
+if (trash.tasks.length) {
+html += '<div class="modal-section-title">📋 ' + window.I18N.t("trash.tasks") + "</div>";
+
+html += trash.tasks
+.slice()
+.sort(function (a, b) {
+return (Date.parse(b.deletedAt) || 0) - (Date.parse(a.deletedAt) || 0);
+})
+.map(function (task) {
+return (
+'<div class="modal-item">' +
+'<div class="item-left">' +
+"<span>📋</span>" +
+'<span class="item-name">' + window.Utils.escapeHtml(task.name) + "</span>" +
+"</div>" +
+'<button class="btn btn-ghost btn-sm" data-action="restore-trash-task" data-id="' + task.id + '">' +
+window.I18N.t("trash.restore") +
+"</button>" +
+"</div>"
+);
+})
+.join("");
+}
+
+if (trash.habits.length) {
+html += '<div class="modal-section-title">🔥 ' + window.I18N.t("trash.habits") + "</div>";
+
+html += trash.habits
+.slice()
+.sort(function (a, b) {
+return (Date.parse(b.deletedAt) || 0) - (Date.parse(a.deletedAt) || 0);
+})
+.map(function (habit) {
+const icon =
+window.Habits && window.Habits.iconHTML
+? window.Habits.iconHTML(habit.emoji, 18)
+: "🔥";
+
+return (
+'<div class="modal-item">' +
+'<div class="item-left">' +
+'<span style="display:flex;color:' + habit.color + '">' + icon + "</span>" +
+'<span class="item-name">' + window.Utils.escapeHtml(habit.name) + "</span>" +
+"</div>" +
+'<button class="btn btn-ghost btn-sm" data-action="restore-trash-habit" data-id="' + habit.id + '">' +
+window.I18N.t("trash.restore") +
+"</button>" +
+"</div>"
+);
+})
+.join("");
+}
+
+html +=
+'<div class="sc-actions" style="margin-top:18px">' +
+'<button class="btn btn-danger" data-action="empty-trash">' +
+window.I18N.t("trash.emptyTrash") +
+"</button>" +
+'<button class="btn btn-ghost" data-action="close-modal">' +
+window.I18N.t("common.close") +
+"</button>" +
+"</div>";
+
+window.UI.modal.open(window.I18N.t("trash.title"), html);
+}
+
+function confirmEmptyTrash() {
+if (!window.UI || !window.UI.modal) return;
+
+const html =
+'<p style="text-align:center;color:var(--text-2);line-height:2">' +
+window.I18N.t("trash.confirmEmpty") +
+"</p>" +
+'<div class="sc-actions" style="margin-top:18px">' +
+'<button class="btn btn-danger" data-action="confirm-empty-trash">' +
+window.I18N.t("trash.emptyTrash") +
+"</button>" +
+'<button class="btn btn-ghost" data-action="close-modal">' +
+window.I18N.t("common.cancel") +
+"</button>" +
+"</div>";
+
+window.UI.modal.open(window.I18N.t("trash.emptyTrash"), html);
+}
   /* ------------------------------
      Events
   ------------------------------ */
@@ -1399,6 +1552,69 @@
           resetBtn.click();
         }
       }
+
+       if (action === "open-trash") {
+window.UI.modal.close();
+openTrashModal();
+return;
+}
+
+if (action === "restore-trash-task") {
+if (window.Store.restoreTask) {
+window.Store.restoreTask(id);
+window.UI.modal.close();
+openTrashModal();
+
+if (window.UI && window.UI.toast) {
+window.UI.toast(window.I18N.t("toast.restored"), "success");
+}
+
+if (window.App && window.App.renderAll) {
+window.App.renderAll();
+}
+}
+return;
+}
+
+if (action === "restore-trash-habit") {
+if (window.Store.restoreHabit) {
+window.Store.restoreHabit(id);
+window.UI.modal.close();
+openTrashModal();
+
+if (window.UI && window.UI.toast) {
+window.UI.toast(window.I18N.t("toast.restored"), "success");
+}
+
+if (window.App && window.App.renderAll) {
+window.App.renderAll();
+}
+}
+return;
+}
+
+if (action === "empty-trash") {
+window.UI.modal.close();
+confirmEmptyTrash();
+return;
+}
+
+if (action === "confirm-empty-trash") {
+if (window.Store.emptyTrash) {
+window.Store.emptyTrash();
+window.UI.modal.close();
+openTrashModal();
+
+if (window.UI && window.UI.toast) {
+window.UI.toast(window.I18N.t("trash.empty"), "info");
+}
+
+if (window.App && window.App.renderAll) {
+window.App.renderAll();
+}
+}
+return;
+}
 
       if (action === "close-modal") {
         window.UI.modal.close();
@@ -1559,6 +1775,7 @@
 
     applyStaticTranslations();
     renderAll();
+     maybeShowBackupReminder();
 
     clockTimer = setInterval(renderClock, 1000);
 
