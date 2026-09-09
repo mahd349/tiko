@@ -132,6 +132,10 @@ el("taskPriority").value = "med";
 resetRecurrence();
 refreshAll();
 toast(window.I18N.t("toast.taskAdded"), "success");
+toast(window.I18N.t("toast.taskAdded"), "success");
+if (window.App && window.App.closeMobileTaskForm) {
+  window.App.closeMobileTaskForm();
+}
 input.focus();
 }
 
