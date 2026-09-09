@@ -251,9 +251,72 @@ interval: interval,
 endDate: endDate
 };
 }
-   
- function normalizeTask(raw) {
+
+   function normalizeRecurrence(raw) {
 raw = raw || {};
+
+const freqOptions = ["none", "daily", "weekly", "monthly"];
+const freq = freqOptions.indexOf(raw.freq) !== -1 ? raw.freq : "none";
+
+const allDays = [0, 1, 2, 3, 4, 5, 6];
+let days = allDays;
+
+if (Array.isArray(raw.days)) {
+days = [];
+
+raw.days.forEach(function (day) {
+const n = Number(day);
+
+if (n >= 0 && n <= 6 && days.indexOf(n) === -1) {
+days.push(n);
+}
+});
+
+days.sort(function (a, b) {
+return a - b;
+});
+
+if (!days.length) {
+days = allDays;
+}
+}
+
+const interval = Math.max(1, parseInt(raw.interval) || 1);
+const endDate = window.Utils.isValidDateKey(raw.endDate) ? raw.endDate : null;
+
+return {
+freq: freq,
+days: days,
+interval: interval,
+endDate: endDate
+};
+}
+
+function normalizeOccurrences(raw) {
+const result = {};
+
+if (!window.Utils.isPlainObject(raw)) {
+return result;
+}
+
+Object.keys(raw).forEach(function (dateKey) {
+if (!window.Utils.isValidDateKey(dateKey)) return;
+
+const occurrence = raw[dateKey];
+
+if (window.Utils.isPlainObject(occurrence) && occurrence.done) {
+result[dateKey] = {
+done: true
+};
+}
+});
+
+return result;
+}
+   
+function normalizeTask(raw) {
+raw = raw || {};
+
 return {
 id: raw.id != null ? String(raw.id) : window.Utils.uid("task"),
 name: window.Utils.sanitizeText(raw.name, 160),
@@ -262,9 +325,7 @@ priority: normalizePriority(raw.priority),
 done: !!raw.done,
 created: raw.created || new Date().toISOString(),
 recurrence: normalizeRecurrence(raw.recurrence),
-occurrences: raw.occurrences && window.Utils.isPlainObject(raw.occurrences)
-? raw.occurrences
-: {}
+occurrences: normalizeOccurrences(raw.occurrences)
 };
 }
 
@@ -717,77 +778,116 @@ saveState();
     return true;
   }
 
- function clearDoneTasks() {
-var doneTasks = state.tasks.filter(function (task) {
-if (isTaskRecurring(task)) return false;
-return task.done;
+function clearDoneTasks() {
+const doneTasks = state.tasks.filter(function (task) {
+return !isTaskRecurring(task) && task.done;
 });
+
 if (!doneTasks.length) return 0;
+
 state.tasks = state.tasks.filter(function (task) {
-if (isTaskRecurring(task)) return true;
-return !task.done;
+return isTaskRecurring(task) || !task.done;
 });
+
 doneTasks.forEach(function (task) {
 task.deletedAt = new Date().toISOString();
 state.trash.tasks.push(task);
 });
+
 saveState();
 notify("tasks:clearDone");
+
 return doneTasks.length;
 }
 
 /* ------------------------------
-Task Recurrence
+Task recurrence
 ------------------------------ */
 function isTaskRecurring(task) {
-return !!(task.recurrence && task.recurrence.freq !== "none");
+return !!(task && task.recurrence && task.recurrence.freq !== "none");
 }
 
 function isTaskActiveOn(task, dateKey) {
+if (!task) return false;
+
 if (!isTaskRecurring(task)) {
 return task.date === dateKey;
 }
+
+if (!window.Utils.isValidDateKey(dateKey)) return false;
 
 if (dateKey < task.date) {
 return false;
 }
 
-if (task.recurrence.endDate && dateKey > task.recurrence.endDate) {
+const recurrence = task.recurrence;
+
+if (recurrence.endDate && dateKey > recurrence.endDate) {
 return false;
 }
 
-var date = window.Calendar.keyToDate(dateKey);
-var startDate = window.Calendar.keyToDate(task.date);
-var diffMs = date.getTime() - startDate.getTime();
-var diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+const startDate = window.Calendar.keyToDate(task.date);
+const targetDate = window.Calendar.keyToDate(dateKey);
 
-if (task.recurrence.freq === "daily") {
-return diffDays >= 0 && diffDays % task.recurrence.interval === 0;
+startDate.setHours(12, 0, 0, 0);
+targetDate.setHours(12, 0, 0, 0);
+
+const diffDays = Math.round(
+(targetDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)
+);
+
+if (recurrence.freq === "daily") {
+return diffDays >= 0 && diffDays % recurrence.interval === 0;
 }
 
-if (task.recurrence.freq === "weekly") {
-var weekday = window.Calendar.getDayOfWeek(date, "fa");
-if (task.recurrence.days.indexOf(weekday) === -1) {
+if (recurrence.freq === "weekly") {
+const weekday = window.Calendar.getDayOfWeek(targetDate, "fa");
+
+if (recurrence.days.indexOf(weekday) === -1) {
 return false;
 }
-if (task.recurrence.interval > 1) {
-var diffWeeks = Math.floor(diffDays / 7);
-return diffWeeks % task.recurrence.interval === 0;
-}
+
+if (recurrence.interval <= 1) {
 return true;
 }
 
-if (task.recurrence.freq === "monthly") {
-if (date.getDate() !== startDate.getDate()) {
+const diffWeeks = Math.floor(diffDays / 7);
+return diffWeeks % recurrence.interval === 0;
+}
+
+if (recurrence.freq === "monthly") {
+const startJalali = window.Calendar.gregorianToJalali(
+startDate.getFullYear(),
+startDate.getMonth() + 1,
+startDate.getDate()
+);
+
+const targetJalali = window.Calendar.gregorianToJalali(
+targetDate.getFullYear(),
+targetDate.getMonth() + 1,
+targetDate.getDate()
+);
+
+const startDay = startJalali[2];
+const targetDay = targetJalali[2];
+const targetMonthDays = window.Calendar.getJalaliMonthDays(
+targetJalali[0],
+targetJalali[1]
+);
+
+const dayMatches =
+targetDay === startDay ||
+(startDay > targetMonthDays && targetDay === targetMonthDays);
+
+if (!dayMatches) {
 return false;
 }
-if (task.recurrence.interval > 1) {
-var monthDiff =
-(date.getFullYear() - startDate.getFullYear()) * 12 +
-(date.getMonth() - startDate.getMonth());
-return monthDiff >= 0 && monthDiff % task.recurrence.interval === 0;
-}
-return true;
+
+const monthDiff =
+(targetJalali[0] - startJalali[0]) * 12 +
+(targetJalali[1] - startJalali[1]);
+
+return monthDiff >= 0 && monthDiff % recurrence.interval === 0;
 }
 
 return false;
@@ -800,14 +900,46 @@ return isTaskActiveOn(task, dateKey);
 }
 
 function isTaskDoneOnDate(task, dateKey) {
+if (!task) return false;
+
 if (!isTaskRecurring(task)) {
-return task.done;
+return !!task.done;
 }
+
 return !!(
 task.occurrences &&
 task.occurrences[dateKey] &&
 task.occurrences[dateKey].done
 );
+}
+
+function toggleTaskOnDate(taskId, dateKey) {
+const task = state.tasks.find(function (item) {
+return String(item.id) === String(taskId);
+});
+
+if (!task) return false;
+
+if (!isTaskRecurring(task)) {
+return toggleTask(taskId);
+}
+
+if (!task.occurrences) {
+task.occurrences = {};
+}
+
+if (task.occurrences[dateKey] && task.occurrences[dateKey].done) {
+delete task.occurrences[dateKey];
+} else {
+task.occurrences[dateKey] = {
+done: true
+};
+}
+
+saveState();
+notify("task:toggle");
+
+return !!(task.occurrences[dateKey] && task.occurrences[dateKey].done);
 }
 
 function toggleTaskOnDate(taskId, dateKey) {
@@ -1212,25 +1344,30 @@ best: best
 }
 
 function dayScore(dateKey) {
-var key = dateKey || window.Calendar.todayKey();
-var today = window.Calendar.todayKey();
-var future = key > today;
+const key = dateKey || window.Calendar.todayKey();
+const today = window.Calendar.todayKey();
+const future = key > today;
 
-var dayTasks = getTasksForDate(key);
+const dayTasks = getTasksForDate(key);
 
-var dayHabits = future
+const dayHabits = future
 ? []
 : state.habits.filter(function (habit) {
 return habitExistedOn(habit, key) && habitActiveOn(habit, key);
 });
 
-var total = dayTasks.length + dayHabits.length;
+const total = dayTasks.length + dayHabits.length;
 
 if (!total) {
-return { pct: 0, done: 0, total: 0, future: future };
+return {
+pct: 0,
+done: 0,
+total: 0,
+future: future
+};
 }
 
-var done = dayTasks.filter(function (task) {
+let done = dayTasks.filter(function (task) {
 return isTaskDoneOnDate(task, key);
 }).length;
 
@@ -1538,6 +1675,11 @@ backupDue,
 daysSinceLastBackup,
 storageSize,
 habitActiveOn,
+isTaskRecurring,
+isTaskActiveOn,
+getTasksForDate,
+isTaskDoneOnDate,
+toggleTaskOnDate,
 pruneOrphanLogs,
 purgeExpiredTrash,
 getTrashSummary
