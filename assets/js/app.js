@@ -282,10 +282,13 @@
       return task.done;
     }).length;
 
-    const doneHabits = window.Store.state.habits.filter(function (habit) {
-      return window.Store.habitDone(habit);
-    }).length;
+   const activeHabits = window.Store.state.habits.filter(function (habit) {
+return !window.Store.habitActiveOn || window.Store.habitActiveOn(habit, today);
+});
 
+const doneHabits = activeHabits.filter(function (habit) {
+return window.Store.habitDone(habit);
+}).length;
     const focusSeconds = window.Store.state.habits
       .filter(function (habit) {
         return habit.type === "timer";
@@ -308,7 +311,7 @@
       {
         icon: "🔥",
         label: window.I18N.t("nav.habits"),
-        value: window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(window.Store.state.habits.length),
+       value: window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(activeHabits.length),
         sub: window.I18N.t("common.today")
       },
       {
@@ -629,10 +632,13 @@
       return task.done;
     }).length;
 
-    const doneHabits = window.Store.state.habits.filter(function (habit) {
-      return window.Store.habitDone(habit);
-    }).length;
+   const activeHabits = window.Store.state.habits.filter(function (habit) {
+return !window.Store.habitActiveOn || window.Store.habitActiveOn(habit, today);
+});
 
+const doneHabits = activeHabits.filter(function (habit) {
+return window.Store.habitDone(habit);
+}).length;
     const focusMinutes = Math.round(
       window.Store.state.habits
         .filter(function (habit) {
@@ -657,14 +663,14 @@
       },
       {
         emoji: "🔥",
-        value: window.I18N.faNum(window.Store.state.habits.length),
+        value: window.I18N.faNum(activeHabits.length),
         label: window.I18N.t("nav.habits")
       },
       {
         emoji: "🎯",
-        value: window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(window.Store.state.habits.length),
+        value: window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(activeHabits.length),
         label: L("کامل شده", "Completed"),
-        ok: window.Store.state.habits.length > 0 && doneHabits === window.Store.state.habits.length
+        ok: activeHabits.length > 0 && doneHabits === activeHabits.length
       },
       {
         emoji: "⏱️",
