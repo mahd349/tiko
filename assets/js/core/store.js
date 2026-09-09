@@ -66,12 +66,16 @@
     habits: [],
     logs: {},
     settings: {
-      theme: "aurora",
-      lang: "fa",
-      animations: true,
-      sounds: false,
-      density: "comfortable"
-    },
+theme: "aurora",
+lang: "fa",
+animations: true,
+sounds: false,
+density: "comfortable",
+reminder: {
+enabled: false,
+time: "20:00"
+}
+},
     trash: {
       tasks: [],
       habits: []
@@ -256,17 +260,27 @@
     return result;
   }
 
-  function normalizeSettings(raw) {
-    raw = raw || {};
+ function normalizeSettings(raw) {
+raw = raw || {};
+return {
+theme: normalizeTheme(raw.theme),
+lang: raw.lang === "en" ? "en" : "fa",
+animations: raw.animations !== false,
+sounds: !!raw.sounds,
+density: raw.density === "compact" ? "compact" : "comfortable",
+reminder: normalizeReminder(raw.reminder)
+};
+}
+   function normalizeReminder(raw) {
+raw = raw || {};
+const timeStr = String(raw.time || "");
+const validTime = /^([01]?\d|2[0-3]):[0-5]\d$/.test(timeStr);
 
-    return {
-      theme: normalizeTheme(raw.theme),
-      lang: raw.lang === "en" ? "en" : "fa",
-      animations: raw.animations !== false,
-      sounds: !!raw.sounds,
-      density: raw.density === "compact" ? "compact" : "comfortable"
-    };
-  }
+return {
+enabled: !!raw.enabled,
+time: validTime ? (timeStr.length === 4 ? "0" + timeStr : timeStr) : "20:00"
+};
+}
    function normalizeReminder(raw) {
 raw = raw || {};
 const timeStr = String(raw.time || "");
