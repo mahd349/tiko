@@ -75,6 +75,13 @@ return task.date === today && !task.done;
 }).length;
 
 const habits = window.Store.state.habits.filter(function (habit) {
+if (
+window.Store.habitActiveOn &&
+!window.Store.habitActiveOn(habit, today)
+) {
+return false;
+}
+
 return !window.Store.habitDone(habit);
 }).length;
 
