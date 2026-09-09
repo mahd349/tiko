@@ -290,42 +290,212 @@
   }
 
   function normalizeMeta(raw) {
-    raw = raw || {};
+raw = raw || {};
+     return {
+        schemaVersion: 3,
+createdAt: raw.createdAt || new Date().toISOString(),
+lastBackupAt: raw.lastBackupAt || null,
+lastBackupType: raw.lastBackupType || null,
+appId: raw.appId || "routine",
+migratedAt: raw.migratedAt || null
+};
+}
 
-    return {
-      schemaVersion: Number(raw.schemaVersion) || 3,
-      createdAt: raw.createdAt || new Date().toISOString(),
-      lastBackupAt: raw.lastBackupAt || null,
-      appId: raw.appId || "routine"
-    };
-  }
+   /* ------------------------------
+Schema migrations
+------------------------------ */
+function migrateV1toV2() {
+if (!window.Utils.isPlainObject(state.trash)) {
+state.trash = {
+tasks: [],
+habits: []
+};
+}
+}
 
+function migrateV2toV3() {
+if (!state.meta.lastBackupType) {
+state.meta.lastBackupType = null;
+}
+if (!state.meta.migratedAt) {
+state.meta.migratedAt = null;
+}
+}
+
+function runMigrations(oldVersion) {
+let version = Number(oldVersion) || 1;
+
+while (version < 3) {
+if (version === 1) {
+migrateV1toV2();
+} else if (version === 2) {
+migrateV2toV3();
+} else {
+break;
+}
+version += 1;
+}
+
+state.meta.schemaVersion = 3;
+state.meta.migratedAt = new Date().toISOString();
+saveState();
+notify("meta:migrated");
+}
+
+/* ------------------------------
+Trash maintenance
+------------------------------ */
+function purgeExpiredTrash(maxDays = 30) {
+const cutoff = Date.now() - maxDays * 24 * 60 * 60 * 1000;
+let changed = false;
+const expiredHabitIds = new Set();
+
+state.trash.tasks = state.trash.tasks.filter(function (task) {
+const ts = Date.parse(task.deletedAt);
+if (!task.deletedAt || isNaN(ts) || ts >= cutoff) {
+return true;
+}
+changed = true;
+return false;
+});
+
+state.trash.habits = state.trash.habits.filter(function (habit) {
+const ts = Date.parse(habit.deletedAt);
+if (!habit.deletedAt || isNaN(ts) || ts >= cutoff) {
+return true;
+}
+changed = true;
+expiredHabitIds.add(String(habit.id));
+return false;
+});
+
+if (expiredHabitIds.size) {
+Object.keys(state.logs).forEach(function (dateKey) {
+const day = state.logs[dateKey];
+if (!window.Utils.isPlainObject(day)) return;
+
+expiredHabitIds.forEach(function (habitId) {
+if (day[habitId]) {
+delete day[habitId];
+changed = true;
+}
+});
+
+if (!Object.keys(day).length) {
+delete state.logs[dateKey];
+}
+});
+}
+
+if (changed) {
+saveState();
+notify("trash:purged");
+}
+
+return changed;
+}
+
+function getTrashSummary() {
+return {
+tasks: state.trash.tasks.length,
+habits: state.trash.habits.length,
+total: state.trash.tasks.length + state.trash.habits.length
+};
+}
+
+/* ------------------------------
+Backup helpers
+------------------------------ */
+function daysSinceLastBackup() {
+if (!state.meta.lastBackupAt) return Infinity;
+const ts = Date.parse(state.meta.lastBackupAt);
+if (isNaN(ts)) return Infinity;
+return Math.floor((Date.now() - ts) / (24 * 60 * 60 * 1000));
+}
+
+function backupDue(thresholdDays = 7) {
+const days = daysSinceLastBackup();
+return days >= thresholdDays;
+}
+
+function previewImport(raw) {
+const normalized = validateBackup(raw);
+
+return {
+normalized: normalized,
+file: {
+tasks: normalized.tasks.length,
+habits: normalized.habits.length,
+days: Object.keys(normalized.logs).length,
+trashTasks: normalized.trash.tasks.length,
+trashHabits: normalized.trash.habits.length
+},
+current: {
+tasks: state.tasks.length,
+habits: state.habits.length,
+days: Object.keys(state.logs).length,
+trashTasks: state.trash.tasks.length,
+trashHabits: state.trash.habits.length
+}
+};
+}
+
+function commitImport(normalized) {
+state.tasks = clone(normalized.tasks);
+state.habits = clone(normalized.habits);
+state.logs = clone(normalized.logs);
+state.settings = clone(normalized.settings);
+state.trash = clone(normalized.trash);
+state.meta = normalizeMeta(normalized.meta);
+
+saveState();
+
+if (window.I18N) {
+window.I18N.setLang(state.settings.lang, false);
+}
+
+document.documentElement.setAttribute("data-theme", state.settings.theme);
+notify("import");
+
+return {
+tasks: state.tasks.length,
+habits: state.habits.length,
+days: Object.keys(state.logs).length
+};
+}
   /* ------------------------------
      Load / Save
   ------------------------------ */
 
-  function loadState() {
-    state.tasks = (loadJson(KEYS.tasks, []) || [])
-      .filter(function (item) {
-        return item && window.Utils.sanitizeText(item.name, 1).length > 0;
-      })
-      .map(normalizeTask);
+function loadState() {
+const rawMeta = loadJson(KEYS.meta, {});
+const oldSchemaVersion = Number(rawMeta.schemaVersion) || 1;
 
-    state.habits = (loadJson(KEYS.habits, []) || [])
-      .filter(function (item) {
-        return item && window.Utils.sanitizeText(item.name, 1).length > 0;
-      })
-      .map(normalizeHabit);
+state.tasks = (loadJson(KEYS.tasks, []) || [])
+.filter(function (item) {
+return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+})
+.map(normalizeTask);
 
-    state.logs = normalizeLogs(loadJson(KEYS.logs, {}));
-    state.settings = normalizeSettings(loadJson(KEYS.settings, {}));
-    state.trash = normalizeTrash(loadJson(KEYS.trash, {}));
-    state.meta = normalizeMeta(loadJson(KEYS.meta, {}));
+state.habits = (loadJson(KEYS.habits, []) || [])
+.filter(function (item) {
+return item && window.Utils.sanitizeText(item.name, 1).length > 0;
+})
+.map(normalizeHabit);
 
-    if (!storage.get(KEYS.settings)) {
-      saveState();
-    }
-  }
+state.logs = normalizeLogs(loadJson(KEYS.logs, {}));
+state.settings = normalizeSettings(loadJson(KEYS.settings, {}));
+state.trash = normalizeTrash(loadJson(KEYS.trash, {}));
+state.meta = normalizeMeta(rawMeta);
+
+if (oldSchemaVersion < 3) {
+runMigrations(oldSchemaVersion);
+}
+
+if (!storage.get(KEYS.settings)) {
+saveState();
+}
+}
 
   function saveState() {
     saveJson(KEYS.tasks, state.tasks);
@@ -927,8 +1097,10 @@
     };
   }
 
-  function importData(raw) {
-    const normalized = validateBackup(raw);
+ function importData(raw) {
+const normalized = validateBackup(raw);
+return commitImport(normalized);
+}
 
     state.tasks = normalized.tasks;
     state.habits = normalized.habits;
@@ -985,11 +1157,12 @@
     notify("settings:update");
   }
 
-  function markBackup() {
-    state.meta.lastBackupAt = new Date().toISOString();
-    saveState();
-    notify("meta:backup");
-  }
+ function markBackup(type = "manual") {
+state.meta.lastBackupAt = new Date().toISOString();
+state.meta.lastBackupType = type;
+saveState();
+notify("meta:backup");
+}
 
   function storageSize() {
     let bytes = 0;
@@ -1049,64 +1222,69 @@
   ------------------------------ */
 
   loadState();
-  pruneOrphanLogs();
+pruneOrphanLogs();
+purgeExpiredTrash();
 
-  document.documentElement.setAttribute("data-theme", state.settings.theme);
+document.documentElement.setAttribute("data-theme", state.settings.theme);
 
+if (window.I18N) {
+window.I18N.setLang(state.settings.lang, false);
+}
+
+window.setInterval(function () {
+purgeExpiredTrash();
+}, 6 * 60 * 60 * 1000);
   if (window.I18N) {
     window.I18N.setLang(state.settings.lang, false);
   }
 
   window.Store = {
-    KEYS,
-    state,
-    storagePersistent: storage.persistent,
-
-    subscribe,
-    notify,
-    saveState,
-
-    snapshot,
-    restoreSnapshot,
-
-    addTask,
-    updateTask,
-    toggleTask,
-    deleteTask,
-    restoreTask,
-    clearDoneTasks,
-
-    addHabit,
-    updateHabit,
-    deleteHabit,
-    restoreHabit,
-    emptyTrash,
-
-    getLog,
-    setLog,
-    toggleHabitCheck,
-    setHabitValue,
-    bumpHabit,
-
-    liveSeconds,
-    isRunning,
-    startTimer,
-    stopTimer,
-
-    habitDone,
-    habitProgress,
-    habitExistedOn,
-    habitStreaks,
-    dayScore,
-    focusSeconds,
-
-    exportData,
-    validateBackup,
-    importData,
-    resetAll,
-    updateSettings,
-    markBackup,
-    storageSize,
-    pruneOrphanLogs
-  };
-})();
+KEYS,
+state,
+storagePersistent: storage.persistent,
+subscribe,
+notify,
+saveState,
+snapshot,
+restoreSnapshot,
+addTask,
+updateTask,
+toggleTask,
+deleteTask,
+restoreTask,
+clearDoneTasks,
+addHabit,
+updateHabit,
+deleteHabit,
+restoreHabit,
+emptyTrash,
+getLog,
+setLog,
+toggleHabitCheck,
+setHabitValue,
+bumpHabit,
+liveSeconds,
+isRunning,
+startTimer,
+stopTimer,
+habitDone,
+habitProgress,
+habitExistedOn,
+habitStreaks,
+dayScore,
+focusSeconds,
+exportData,
+validateBackup,
+importData,
+previewImport,
+commitImport,
+resetAll,
+updateSettings,
+markBackup,
+backupDue,
+daysSinceLastBackup,
+storageSize,
+pruneOrphanLogs,
+purgeExpiredTrash,
+getTrashSummary
+};
