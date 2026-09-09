@@ -14,6 +14,31 @@
     query: ""
   };
 
+   let newHabitActiveDays = [0, 1, 2, 3, 4, 5, 6];
+
+const WEEKDAY_SHORT_FA = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
+const WEEKDAY_SHORT_EN = ["Sa", "Su", "Mo", "Tu", "We", "Th", "Fr"];
+
+const WEEKDAY_FULL_FA = [
+"شنبه",
+"یکشنبه",
+"دوشنبه",
+"سه‌شنبه",
+"چهارشنبه",
+"پنجشنبه",
+"جمعه"
+];
+
+const WEEKDAY_FULL_EN = [
+"Saturday",
+"Sunday",
+"Monday",
+"Tuesday",
+"Wednesday",
+"Thursday",
+"Friday"
+];
+
   const CATEGORIES = [
     "health",
     "fitness",
@@ -251,6 +276,111 @@
     select.value = "health";
   }
 
+   function weekdayShort(index) {
+return window.I18N.lang === "en"
+? WEEKDAY_SHORT_EN[index]
+: WEEKDAY_SHORT_FA[index];
+}
+
+function fullWeekdayLabel(index) {
+return window.I18N.lang === "en"
+? WEEKDAY_FULL_EN[index]
+: WEEKDAY_FULL_FA[index];
+}
+
+function activeDaysMetaHTML(habit) {
+if (
+!Array.isArray(habit.activeDays) ||
+habit.activeDays.length === 0 ||
+habit.activeDays.length === 7
+) {
+return "";
+}
+
+const separator = window.I18N.lang === "fa" ? "، " : ", ";
+
+const labels = habit.activeDays
+.map(function (day) {
+return weekdayShort(day);
+})
+.join(separator);
+
+return "<span>🗓️ " + window.Utils.escapeHtml(labels) + "</span>";
+}
+
+function renderNewActiveDays() {
+const box = el("habitActiveDays");
+if (!box) return;
+
+box.innerHTML = [0, 1, 2, 3, 4, 5, 6]
+.map(function (day) {
+const active = newHabitActiveDays.indexOf(day) !== -1;
+
+return (
+'<button type="button" class="weekday-chip' +
+(active ? " active" : "") +
+'" data-day="' + day +
+'" aria-pressed="' + active +
+'" title="' + window.Utils.escapeHtml(fullWeekdayLabel(day)) + '">' +
+window.Utils.escapeHtml(weekdayShort(day)) +
+"</button>"
+);
+})
+.join("");
+}
+
+function toggleNewActiveDay(day) {
+const index = newHabitActiveDays.indexOf(day);
+
+if (index === -1) {
+newHabitActiveDays.push(day);
+newHabitActiveDays.sort(function (a, b) {
+return a - b;
+});
+} else {
+if (newHabitActiveDays.length === 1) {
+return;
+}
+
+newHabitActiveDays.splice(index, 1);
+}
+
+renderNewActiveDays();
+}
+
+function initActiveDaysPicker() {
+const form = el("habitForm");
+
+if (!form || el("habitActiveDays")) return;
+
+const block = document.createElement("div");
+block.className = "active-days-block";
+
+block.innerHTML =
+"<label>" + window.I18N.t("habits.activeDaysTitle") + "</label>" +
+'<div id="habitActiveDays" class="weekday-picker" role="group" aria-label="' +
+window.I18N.t("habits.activeDaysTitle") +
+'"></div>' +
+'<p class="form-hint">' +
+window.I18N.t("habits.activeDaysHint") +
+"</p>";
+
+form.insertAdjacentElement("afterend", block);
+
+const box = el("habitActiveDays");
+
+if (box) {
+box.addEventListener("click", function (event) {
+const chip = event.target.closest(".weekday-chip");
+if (!chip) return;
+
+toggleNewActiveDay(Number(chip.dataset.day));
+});
+}
+
+renderNewActiveDays();
+}
+
   function initIconPicker() {
     const btn = el("habitIconBtn");
     const pop = el("habitIconPop");
@@ -333,34 +463,41 @@
     paint();
   }
 
-  function add() {
-    const nameInput = el("habitName");
-    const name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 80);
+function add() {
+const nameInput = el("habitName");
+const name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 80);
 
-    if (!name) {
-      toast(window.I18N.t("toast.enterHabitName"), "error");
-      if (nameInput) nameInput.focus();
-      return;
-    }
+if (!name) {
+toast(window.I18N.t("toast.enterHabitName"), "error");
+if (nameInput) nameInput.focus();
+return;
+}
 
-    window.Store.addHabit({
-      name: name,
-      emoji: el("habitEmoji") ? el("habitEmoji").value : DEFAULT_ICON,
-      category: el("habitCategory") ? el("habitCategory").value : "personal",
-      type: el("habitType") ? el("habitType").value : "checkbox",
-      goal: parseFloat(el("habitGoal") ? el("habitGoal").value : 0) || 0,
-      color: el("habitColor") ? el("habitColor").value : "#8b5cf6"
-    });
+window.Store.addHabit({
+name: name,
+emoji: el("habitEmoji") ? el("habitEmoji").value : DEFAULT_ICON,
+category: el("habitCategory") ? el("habitCategory").value : "personal",
+type: el("habitType") ? el("habitType").value : "checkbox",
+goal: parseFloat(el("habitGoal") ? el("habitGoal").value : 0) || 0,
+color: el("habitColor") ? el("habitColor").value : "#8b5cf6",
+activeDays: newHabitActiveDays.slice()
+});
 
-    if (nameInput) nameInput.value = "";
-    if (el("habitGoal")) el("habitGoal").value = "";
-    if (window.resetHabitIconPicker) window.resetHabitIconPicker();
+if (nameInput) nameInput.value = "";
+if (el("habitGoal")) el("habitGoal").value = "";
 
-    renderCatFilters();
-    refreshAll();
+if (window.resetHabitIconPicker) {
+window.resetHabitIconPicker();
+}
 
-    toast(window.I18N.t("toast.habitAdded"), "success");
-  }
+newHabitActiveDays = [0, 1, 2, 3, 4, 5, 6];
+renderNewActiveDays();
+
+renderCatFilters();
+refreshAll();
+
+toast(window.I18N.t("toast.habitAdded"), "success");
+}
 
   function toggleCheck(id) {
     const checked = window.Store.toggleHabitCheck(id);
@@ -499,6 +636,12 @@
       "<label>" + window.I18N.t("common.icon") + "</label>" +
       '<div class="icon-picker-pop open" id="ehIcons" role="listbox" style="position:static;display:grid;width:100%;max-height:220px"></div>' +
       "</div>" +
+       '<div class="form-row" style="flex-direction:column;align-items:stretch;gap:8px">' +
+"<label>" + window.I18N.t("habits.activeDaysTitle") + "</label>" +
+'<div id="ehActiveDays" class="weekday-picker" role="group" aria-label="' +
+window.I18N.t("habits.activeDaysTitle") +
+'"></div>' +
+"</div>" +
       '<input type="hidden" id="ehEmoji" value="' + selectedIcon + '">' +
       '<button class="btn btn-primary" data-action="save-habit-edit" data-id="' + habit.id + '" style="width:100%;margin-top:12px">' +
       window.I18N.t("common.save") +
@@ -514,6 +657,61 @@
     const hiddenIcon = content.querySelector("#ehEmoji");
     const iconGrid = content.querySelector("#ehIcons");
     const saveBtn = content.querySelector('[data-action="save-habit-edit"]');
+
+     let selectedDays =
+Array.isArray(habit.activeDays) && habit.activeDays.length
+? habit.activeDays.slice()
+: [0, 1, 2, 3, 4, 5, 6];
+
+function renderEditActiveDays() {
+const grid = content.querySelector("#ehActiveDays");
+if (!grid) return;
+
+grid.innerHTML = [0, 1, 2, 3, 4, 5, 6]
+.map(function (day) {
+const active = selectedDays.indexOf(day) !== -1;
+
+return (
+'<button type="button" class="weekday-chip' +
+(active ? " active" : "") +
+'" data-day="' + day +
+'" aria-pressed="' + active +
+'" title="' + window.Utils.escapeHtml(fullWeekdayLabel(day)) + '">' +
+window.Utils.escapeHtml(weekdayShort(day)) +
+"</button>"
+);
+})
+.join("");
+}
+
+const activeDaysGrid = content.querySelector("#ehActiveDays");
+
+if (activeDaysGrid) {
+activeDaysGrid.addEventListener("click", function (event) {
+const chip = event.target.closest(".weekday-chip");
+if (!chip) return;
+
+const day = Number(chip.dataset.day);
+const index = selectedDays.indexOf(day);
+
+if (index === -1) {
+selectedDays.push(day);
+selectedDays.sort(function (a, b) {
+return a - b;
+});
+} else {
+if (selectedDays.length === 1) {
+return;
+}
+
+selectedDays.splice(index, 1);
+}
+
+renderEditActiveDays();
+});
+
+renderEditActiveDays();
+}
 
     if (iconGrid) {
       iconGrid.innerHTML = ICON_LIST.map(function (item) {
@@ -551,14 +749,14 @@
           return;
         }
 
-        window.Store.updateHabit(id, {
-          name: name,
-          category: catSelect ? catSelect.value : habit.category,
-          goal: parseFloat(goalInput ? goalInput.value : 0) || 0,
-          color: colorInput ? colorInput.value : habit.color,
-          emoji: hiddenIcon ? hiddenIcon.value : habit.emoji
-        });
-
+     window.Store.updateHabit(id, {
+name: name,
+category: catSelect ? catSelect.value : habit.category,
+goal: parseFloat(goalInput ? goalInput.value : 0) || 0,
+color: colorInput ? colorInput.value : habit.color,
+emoji: hiddenIcon ? hiddenIcon.value : habit.emoji,
+activeDays: selectedDays.slice()
+});
         window.UI.modal.close();
         renderCatFilters();
         refreshAll();
@@ -619,8 +817,9 @@
       '<div class="habit-name">' + window.Utils.escapeHtml(habit.name) + "</div>" +
       '<div class="habit-meta">' +
       '<span style="color:' + habit.color + '">●</span> ' +
-      window.Utils.escapeHtml(categoryLabel(habit.category)) +
-      streakHTML +
+     window.Utils.escapeHtml(categoryLabel(habit.category)) +
+activeDaysMetaHTML(habit) +
+streakHTML +
       (streaks.best > 0
         ? "<span>" + window.I18N.t("habits.record") + " " + window.I18N.faNum(streaks.best) + "</span>"
         : "") +
@@ -689,16 +888,20 @@
       });
     }
 
-    const doneCount = window.Store.state.habits.filter(function (habit) {
-      return window.Store.habitDone(habit);
-    }).length;
+   const activeHabits = window.Store.state.habits.filter(function (habit) {
+return !window.Store.habitActiveOn || window.Store.habitActiveOn(habit, window.Calendar.todayKey());
+});
 
-    const counter = el("habitCounter");
+const doneCount = activeHabits.filter(function (habit) {
+return window.Store.habitDone(habit);
+}).length;
 
-    if (counter) {
-      counter.textContent =
-        window.I18N.faNum(doneCount) + " / " + window.I18N.faNum(window.Store.state.habits.length);
-    }
+const counter = el("habitCounter");
+
+if (counter) {
+counter.textContent =
+window.I18N.faNum(doneCount) + " / " + window.I18N.faNum(activeHabits.length);
+}
 
     if (!items.length) {
       list.innerHTML =
@@ -775,10 +978,16 @@
       return;
     }
 
-    const remaining = habits.filter(function (habit) {
-      return !window.Store.habitDone(habit);
-    });
+   const remaining = habits.filter(function (habit) {
+if (
+window.Store.habitActiveOn &&
+!window.Store.habitActiveOn(habit, window.Calendar.todayKey())
+) {
+return false;
+}
 
+return !window.Store.habitDone(habit);
+});
     if (!remaining.length) {
       box.innerHTML =
         '<div class="empty-state">' +
@@ -928,31 +1137,25 @@
     });
   }
 
-  function init() {
-    if (initialized) return;
-    initialized = true;
+function init() {
+if (initialized) return;
 
-    buildCategoryOptions();
-    initIconPicker();
-    bind();
-    renderCatFilters();
-    startDayWatcher();
-    ensureTick();
-  }
+initialized = true;
 
-  window.Habits = {
-    init: init,
-    render: render,
-    renderHome: renderHome,
-    renderToday: renderToday,
-    renderCatFilters: renderCatFilters,
-    iconHTML: iconHTML,
-    normalizeIcon: normalizeIcon,
-    add: add,
-    edit: edit,
-    remove: remove,
-    ensureTick: ensureTick
-  };
+buildCategoryOptions();
+initIconPicker();
+initActiveDaysPicker();
+bind();
+renderCatFilters();
+startDayWatcher();
+ensureTick();
+
+document.addEventListener("i18n:changed", function () {
+renderNewActiveDays();
+renderCatFilters();
+render();
+});
+}
 
   window.Utils.onDomReady(init);
 })();
