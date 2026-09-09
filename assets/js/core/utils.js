@@ -186,7 +186,74 @@
       fn();
     }
   }
+function makeSwipeable(element, handlers) {
+  if (!element || !handlers) return;
+  let startX = 0;
+  let startY = 0;
+  let isDragging = false;
+  let isHorizontal = null;
+  let currentX = 0;
 
+  function reset() {
+    isDragging = false;
+    isHorizontal = null;
+    currentX = 0;
+    element.classList.remove("swiping-left", "swiping-right");
+    element.style.transform = "";
+  }
+
+  element.addEventListener("touchstart", function (e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    isHorizontal = null;
+    currentX = 0;
+  }, { passive: true });
+
+  element.addEventListener("touchmove", function (e) {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+
+    if (isHorizontal === null) {
+      isHorizontal = Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10;
+    }
+
+    if (!isHorizontal) return;
+
+    currentX = dx;
+    const threshold = window.innerWidth * 0.35;
+    const clampedX = Math.max(-threshold, Math.min(threshold, dx));
+    element.style.transform = "translateX(" + clampedX + "px)";
+    element.style.transition = "none";
+
+    if (dx > 0) {
+      element.classList.add("swiping-right");
+      element.classList.remove("swiping-left");
+    } else {
+      element.classList.add("swiping-left");
+      element.classList.remove("swiping-right");
+    }
+  }, { passive: true });
+
+  element.addEventListener("touchend", function () {
+    if (!isDragging) return;
+    const threshold = 80;
+    const wasSwiping = isHorizontal;
+    
+    if (wasSwiping && Math.abs(currentX) > threshold) {
+      if (currentX > 0 && handlers.onSwipeRight) {
+        handlers.onSwipeRight();
+      } else if (currentX < 0 && handlers.onSwipeLeft) {
+        handlers.onSwipeLeft();
+      }
+    }
+    reset();
+  }, { passive: true });
+
+  element.addEventListener("touchcancel", reset, { passive: true });
+}
+   
   window.Utils = {
     FA_DIGITS,
     toFa,
@@ -207,6 +274,7 @@
     downloadText,
     copyText,
     getCssVar,
+   makeSwipeable,
     onDomReady
   };
 })();
