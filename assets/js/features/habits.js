@@ -497,6 +497,10 @@ renderCatFilters();
 refreshAll();
 
 toast(window.I18N.t("toast.habitAdded"), "success");
+toast(window.I18N.t("toast.habitAdded"), "success");
+if (window.App && window.App.closeMobileHabitForm) {
+  window.App.closeMobileHabitForm();
+}
 }
 
   function toggleCheck(id) {
