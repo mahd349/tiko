@@ -29,7 +29,16 @@
     med: 1,
     low: 2
   };
+let newTaskRecurrence = {
+freq: "none",
+days: [0, 1, 2, 3, 4, 5, 6],
+interval: 1,
+endDate: null
+};
 
+const WEEKDAY_SHORT_FA = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
+const WEEKDAY_SHORT_EN = ["Sa", "Su", "Mo", "Tu", "We", "Th", "Fr"];
+   
   function el(id) {
     return document.getElementById(id);
   }
@@ -93,13 +102,11 @@ return;
 
 labelEl.textContent = "—";
 }
- function add() {
-const input = el("taskInput");
-
+function add() {
+var input = el("taskInput");
 if (!input) return;
 
-const name = window.Utils.sanitizeText(input.value, 160);
-
+var name = window.Utils.sanitizeText(input.value, 160);
 if (!name) {
 toast(window.I18N.t("toast.enterTaskName"), "error");
 input.focus();
@@ -109,36 +116,140 @@ return;
 window.Store.addTask({
 name: name,
 date: getCurrentDateKey(true),
-priority: el("taskPriority") ? el("taskPriority").value || "med" : "med"
+priority: el("taskPriority") ? el("taskPriority").value || "med" : "med",
+recurrence: {
+freq: newTaskRecurrence.freq,
+days: newTaskRecurrence.days.slice(),
+interval: newTaskRecurrence.interval,
+endDate: newTaskRecurrence.endDate
+}
 });
 
 input.value = "";
-
 if (el("taskPriority")) {
 el("taskPriority").value = "med";
 }
-
+resetRecurrence();
 refreshAll();
 toast(window.I18N.t("toast.taskAdded"), "success");
 input.focus();
 }
-    window.Store.addTask({
-      name: name,
-      date: el("taskDate") ? el("taskDate").value || window.Calendar.todayKey() : window.Calendar.todayKey(),
-      priority: el("taskPriority") ? el("taskPriority").value || "med" : "med"
-    });
 
-    input.value = "";
+function recurrenceFreqLabel() {
+if (newTaskRecurrence.freq === "daily") {
+return window.I18N.t("tasks.recEvery") + " " + window.I18N.faNum(newTaskRecurrence.interval) + " " + window.I18N.t("tasks.recDayUnit");
+}
+if (newTaskRecurrence.freq === "weekly") {
+return window.I18N.t("tasks.recEvery") + " " + window.I18N.faNum(newTaskRecurrence.interval) + " " + window.I18N.t("tasks.recWeekUnit");
+}
+if (newTaskRecurrence.freq === "monthly") {
+return window.I18N.t("tasks.recEvery") + " " + window.I18N.faNum(newTaskRecurrence.interval) + " " + window.I18N.t("tasks.recMonthUnit");
+}
+return "";
+}
 
-    if (el("taskPriority")) {
-      el("taskPriority").value = "med";
-    }
+function renderRecurrencePicker() {
+var container = el("recurrencePicker");
+if (!container) return;
 
-    refreshAll();
-    toast(window.I18N.t("toast.taskAdded"), "success");
-    input.focus();
-  }
+var freq = newTaskRecurrence.freq;
 
+var html = '<select id="taskRecurrenceFreq" class="input input-sm" aria-label="' + window.I18N.t("tasks.recurrence") + '">';
+html += '<option value="none"' + (freq === "none" ? " selected" : "") + '>' + window.I18N.t("tasks.recNone") + "</option>";
+html += '<option value="daily"' + (freq === "daily" ? " selected" : "") + '>' + window.I18N.t("tasks.recDaily") + "</option>";
+html += '<option value="weekly"' + (freq === "weekly" ? " selected" : "") + '>' + window.I18N.t("tasks.recWeekly") + "</option>";
+html += '<option value="monthly"' + (freq === "monthly" ? " selected" : "") + '>' + window.I18N.t("tasks.recMonthly") + "</option>";
+html += "</select>";
+
+if (freq !== "none") {
+html += '<div class="rec-options">';
+
+if (freq === "weekly") {
+html += '<div class="weekday-picker" id="recDays">';
+for (var d = 0; d < 7; d++) {
+var active = newTaskRecurrence.days.indexOf(d) !== -1;
+html += '<button type="button" class="weekday-chip' + (active ? " active" : "") + '" data-day="' + d + '" aria-pressed="' + active + '">';
+html += window.Utils.escapeHtml(window.I18N.lang === "en" ? WEEKDAY_SHORT_EN[d] : WEEKDAY_SHORT_FA[d]);
+html += "</button>";
+}
+html += "</div>";
+}
+
+html += '<div class="rec-interval">';
+html += '<label>' + window.I18N.t("tasks.recEvery") + '</label>';
+html += '<input type="number" id="taskRecInterval" class="input input-sm" min="1" max="30" value="' + newTaskRecurrence.interval + '" style="width:70px">';
+var unitLabel = freq === "daily" ? window.I18N.t("tasks.recDayUnit") : freq === "weekly" ? window.I18N.t("tasks.recWeekUnit") : window.I18N.t("tasks.recMonthUnit");
+html += '<span>' + unitLabel + "</span>";
+html += "</div>";
+
+html += '<div class="rec-end">';
+html += '<label>' + window.I18N.t("tasks.recEndDate") + '</label>';
+html += '<input type="text" id="taskRecEndDate" class="input input-sm" data-datepicker placeholder="' + window.I18N.t("datepicker.placeholder") + '" value="' + (newTaskRecurrence.endDate ? window.Calendar.keyToJalaliFull(newTaskRecurrence.endDate) : "") + '" data-value="' + (newTaskRecurrence.endDate || "") + '">';
+html += "</div>";
+
+html += "</div>";
+}
+
+container.innerHTML = html;
+
+var freqSelect = container.querySelector("#taskRecurrenceFreq");
+if (freqSelect) {
+freqSelect.addEventListener("change", function () {
+newTaskRecurrence.freq = freqSelect.value;
+renderRecurrencePicker();
+});
+}
+
+var daysContainer = container.querySelector("#recDays");
+if (daysContainer) {
+daysContainer.addEventListener("click", function (event) {
+var chip = event.target.closest(".weekday-chip");
+if (!chip) return;
+var day = Number(chip.dataset.day);
+var idx = newTaskRecurrence.days.indexOf(day);
+if (idx === -1) {
+newTaskRecurrence.days.push(day);
+newTaskRecurrence.days.sort(function (a, b) { return a - b; });
+} else {
+if (newTaskRecurrence.days.length === 1) return;
+newTaskRecurrence.days.splice(idx, 1);
+}
+renderRecurrencePicker();
+});
+}
+
+var intervalInput = container.querySelector("#taskRecInterval");
+if (intervalInput) {
+intervalInput.addEventListener("change", function () {
+newTaskRecurrence.interval = Math.max(1, parseInt(intervalInput.value) || 1);
+});
+}
+
+var endDateInput = container.querySelector("#taskRecEndDate");
+if (endDateInput) {
+endDateInput.addEventListener("change", function () {
+var val = endDateInput.dataset.value || "";
+newTaskRecurrence.endDate = window.Utils.isValidDateKey(val) ? val : null;
+});
+}
+}
+
+function initRecurrencePicker() {
+var container = el("recurrencePicker");
+if (!container) return;
+renderRecurrencePicker();
+}
+
+function resetRecurrence() {
+newTaskRecurrence = {
+freq: "none",
+days: [0, 1, 2, 3, 4, 5, 6],
+interval: 1,
+endDate: null
+};
+renderRecurrencePicker();
+}
+ 
   function toggle(id) {
     const done = window.Store.toggleTask(id);
     refreshAll();
@@ -194,15 +305,15 @@ input.focus();
   }
 
 function edit(id) {
-const task = window.Store.state.tasks.find(function (item) {
+var task = window.Store.state.tasks.find(function (item) {
 return String(item.id) === String(id);
 });
-
 if (!task) return;
-
 if (!window.UI || !window.UI.modal) return;
 
-const html =
+var rec = task.recurrence || { freq: "none", days: [0,1,2,3,4,5,6], interval: 1, endDate: null };
+
+var html =
 '<div class="form-row">' +
 '<label for="etName">' + window.I18N.t("common.name") + "</label>" +
 '<input id="etName" class="input" maxlength="160" value="' + window.Utils.escapeHtml(task.name) + '">' +
@@ -217,39 +328,128 @@ window.Utils.escapeHtml(window.Calendar.keyToJalaliFull(task.date)) +
 '<div class="form-row">' +
 '<label for="etPri">' + window.I18N.t("common.priority") + "</label>" +
 '<select id="etPri" class="input">' +
-["high", "med", "low"]
-.map(function (p) {
-return (
-'<option value="' + p + '"' +
-(task.priority === p ? " selected" : "") +
-">" +
-window.I18N.t(PRI_KEY[p]) +
-"</option>"
-);
-})
-.join("") +
+["high", "med", "low"].map(function (p) {
+return '<option value="' + p + '"' + (task.priority === p ? " selected" : "") + ">" +
+window.I18N.t(PRI_KEY[p]) + "</option>";
+}).join("") +
 "</select>" +
 "</div>" +
 "</div>" +
+'<div class="form-row">' +
+'<label for="etRecFreq">' + window.I18N.t("tasks.recurrence") + "</label>" +
+'<select id="etRecFreq" class="input">' +
+'<option value="none"' + (rec.freq === "none" ? " selected" : "") + ">" + window.I18N.t("tasks.recNone") + "</option>" +
+'<option value="daily"' + (rec.freq === "daily" ? " selected" : "") + ">" + window.I18N.t("tasks.recDaily") + "</option>" +
+'<option value="weekly"' + (rec.freq === "weekly" ? " selected" : "") + ">" + window.I18N.t("tasks.recWeekly") + "</option>" +
+'<option value="monthly"' + (rec.freq === "monthly" ? " selected" : "") + ">" + window.I18N.t("tasks.recMonthly") + "</option>" +
+"</select>" +
+"</div>" +
+'<div id="etRecOptions"></div>' +
 '<button class="btn btn-primary" data-action="save-task-edit" data-id="' + task.id + '" style="width:100%;margin-top:12px">' +
 window.I18N.t("common.save") +
 "</button>";
 
-const content = window.UI.modal.open(window.I18N.t("modal.editTask"), html);
-
+var content = window.UI.modal.open(window.I18N.t("modal.editTask"), html);
 if (!content) return;
 
-const nameInput = content.querySelector("#etName");
-const dateInput = content.querySelector("#etDate");
-const priorityInput = content.querySelector("#etPri");
-const saveBtn = content.querySelector('[data-action="save-task-edit"]');
+var nameInput = content.querySelector("#etName");
+var dateInput = content.querySelector("#etDate");
+var priorityInput = content.querySelector("#etPri");
+var recFreqSelect = content.querySelector("#etRecFreq");
+var recOptionsContainer = content.querySelector("#etRecOptions");
+var saveBtn = content.querySelector('[data-action="save-task-edit"]');
+
+var editRecurrence = {
+freq: rec.freq,
+days: rec.days ? rec.days.slice() : [0,1,2,3,4,5,6],
+interval: rec.interval || 1,
+endDate: rec.endDate || null
+};
+
+function renderEditRecOptions() {
+if (!recOptionsContainer) return;
+var freq = editRecurrence.freq;
+if (freq === "none") {
+recOptionsContainer.innerHTML = "";
+return;
+}
+
+var h = '<div class="rec-options">';
+
+if (freq === "weekly") {
+h += '<div class="weekday-picker" id="etRecDays">';
+for (var d = 0; d < 7; d++) {
+var active = editRecurrence.days.indexOf(d) !== -1;
+h += '<button type="button" class="weekday-chip' + (active ? " active" : "") + '" data-day="' + d + '">';
+h += window.Utils.escapeHtml(window.I18N.lang === "en" ? WEEKDAY_SHORT_EN[d] : WEEKDAY_SHORT_FA[d]);
+h += "</button>";
+}
+h += "</div>";
+}
+
+h += '<div class="rec-interval">';
+h += '<label>' + window.I18N.t("tasks.recEvery") + '</label>';
+h += '<input type="number" id="etRecInterval" class="input input-sm" min="1" max="30" value="' + editRecurrence.interval + '" style="width:70px">';
+var unit = freq === "daily" ? window.I18N.t("tasks.recDayUnit") : freq === "weekly" ? window.I18N.t("tasks.recWeekUnit") : window.I18N.t("tasks.recMonthUnit");
+h += '<span>' + unit + "</span>";
+h += "</div>";
+
+h += '<div class="rec-end">';
+h += '<label>' + window.I18N.t("tasks.recEndDate") + '</label>';
+h += '<input type="text" id="etRecEndDate" class="input input-sm" data-datepicker placeholder="' + window.I18N.t("datepicker.placeholder") + '" value="' + (editRecurrence.endDate ? window.Calendar.keyToJalaliFull(editRecurrence.endDate) : "") + '" data-value="' + (editRecurrence.endDate || "") + '">';
+h += "</div>";
+
+h += "</div>";
+recOptionsContainer.innerHTML = h;
+
+var daysEl = recOptionsContainer.querySelector("#etRecDays");
+if (daysEl) {
+daysEl.addEventListener("click", function (event) {
+var chip = event.target.closest(".weekday-chip");
+if (!chip) return;
+var day = Number(chip.dataset.day);
+var idx = editRecurrence.days.indexOf(day);
+if (idx === -1) {
+editRecurrence.days.push(day);
+editRecurrence.days.sort(function (a, b) { return a - b; });
+} else {
+if (editRecurrence.days.length === 1) return;
+editRecurrence.days.splice(idx, 1);
+}
+renderEditRecOptions();
+});
+}
+
+var intervalEl = recOptionsContainer.querySelector("#etRecInterval");
+if (intervalEl) {
+intervalEl.addEventListener("change", function () {
+editRecurrence.interval = Math.max(1, parseInt(intervalEl.value) || 1);
+});
+}
+
+var endDateEl = recOptionsContainer.querySelector("#etRecEndDate");
+if (endDateEl) {
+endDateEl.addEventListener("change", function () {
+var val = endDateEl.dataset.value || "";
+editRecurrence.endDate = window.Utils.isValidDateKey(val) ? val : null;
+});
+}
+}
+
+renderEditRecOptions();
+
+if (recFreqSelect) {
+recFreqSelect.addEventListener("change", function () {
+editRecurrence.freq = recFreqSelect.value;
+renderEditRecOptions();
+});
+}
 
 if (nameInput) nameInput.focus();
 
 if (saveBtn) {
 saveBtn.addEventListener("click", function () {
-const name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 160);
-
+var name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 160);
 if (!name) {
 toast(window.I18N.t("toast.enterTaskName"), "error");
 if (nameInput) nameInput.focus();
@@ -260,14 +460,20 @@ if (dateInput && window.DatePicker && window.DatePicker.parse) {
 window.DatePicker.parse(dateInput);
 }
 
-const dateValue = dateInput
+var dateValue = dateInput
 ? dateInput.dataset.value || dateInput.value
 : task.date;
 
 window.Store.updateTask(id, {
 name: name,
 date: window.Utils.isValidDateKey(dateValue) ? dateValue : task.date,
-priority: priorityInput ? priorityInput.value : task.priority
+priority: priorityInput ? priorityInput.value : task.priority,
+recurrence: {
+freq: editRecurrence.freq,
+days: editRecurrence.days.slice(),
+interval: editRecurrence.interval,
+endDate: editRecurrence.endDate
+}
 });
 
 window.UI.modal.close();
@@ -277,194 +483,200 @@ toast(window.I18N.t("toast.saved"), "success");
 }
 }
 
-  function taskRowHTML(task, compact) {
-    const today = window.Calendar.todayKey();
-    let chip = "";
+ function taskRowHTML(task, compact, dateContext) {
+var today = window.Calendar.todayKey();
+var isRecurring = window.Store.isTaskRecurring(task);
+var contextDate = dateContext || (isRecurring ? today : task.date);
+var done = isRecurring
+? window.Store.isTaskDoneOnDate(task, contextDate)
+: task.done;
 
-    if (task.date < today && !task.done) {
-      chip =
-        '<span class="chip overdue">' +
-        window.I18N.t("common.overdue") + " — " + window.Calendar.keyToJalaliFull(task.date) +
-        "</span>";
-    } else if (task.date === today) {
-      chip = '<span class="chip today">' + window.I18N.t("common.today") + "</span>";
-    } else {
-      chip = '<span class="chip">' + window.Calendar.keyToJalaliFull(task.date) + "</span>";
-    }
+var chip = "";
+if (isRecurring) {
+chip = '<span class="chip recurring">🔄 ' + window.Store.recurrenceLabel(task) + "</span>";
+} else if (task.date < today && !done) {
+chip = '<span class="chip overdue">' + window.I18N.t("common.overdue") + " — " + window.Calendar.keyToJalaliFull(task.date) + "</span>";
+} else if (task.date === today) {
+chip = '<span class="chip today">' + window.I18N.t("common.today") + "</span>";
+} else {
+chip = '<span class="chip">' + window.Calendar.keyToJalaliFull(task.date) + "</span>";
+}
 
-    return (
-      '<div class="task-item" style="--pri:' + (PRI_COLOR[task.priority] || PRI_COLOR.med) + '">' +
-      '<input type="checkbox" class="task-checkbox" data-task-id="' + task.id + '"' +
-      (task.done ? " checked" : "") +
-      ' aria-label="' + window.I18N.t("common.done") + " — " + window.Utils.escapeHtml(task.name) + '">' +
-      '<span class="task-text' + (task.done ? " done" : "") + '">' + window.Utils.escapeHtml(task.name) + "</span>" +
-      (compact
-        ? ""
-        : '<span class="chip pri-' + (task.priority || "med") + '">' + window.I18N.t(PRI_KEY[task.priority || "med"]) + "</span>") +
-      chip +
-      '<div class="task-actions">' +
-      '<button class="btn-icon" data-action="edit-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.edit") + '" title="' + window.I18N.t("common.edit") + '">✏️</button>' +
-      '<button class="btn-icon danger" data-action="delete-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
-      "</div>" +
-      "</div>"
-    );
-  }
+var checkboxAttrs = 'data-task-id="' + task.id + '"';
+if (isRecurring) {
+checkboxAttrs += ' data-task-date="' + contextDate + '"';
+}
 
-  function render() {
-    const list = el("taskList");
-    if (!list) return;
+return (
+'<div class="task-item' + (isRecurring ? " recurring-task" : "") + '" style="--pri:' + (PRI_COLOR[task.priority] || PRI_COLOR.med) + '">' +
+'<input type="checkbox" class="task-checkbox" ' + checkboxAttrs + (done ? " checked" : "") +
+' aria-label="' + window.I18N.t("common.done") + " — " + window.Utils.escapeHtml(task.name) + '">' +
+'<span class="task-text' + (done ? " done" : "") + '">' + window.Utils.escapeHtml(task.name) + "</span>" +
+(compact ? "" : '<span class="chip pri-' + (task.priority || "med") + '">' + window.I18N.t(PRI_KEY[task.priority || "med"]) + "</span>") +
+chip +
+'<div class="task-actions">' +
+'<button class="btn-icon" data-action="edit-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.edit") + '" title="' + window.I18N.t("common.edit") + '">✏️</button>' +
+'<button class="btn-icon danger" data-action="delete-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
+"</div>" +
+"</div>"
+);
+}
 
-    const today = window.Calendar.todayKey();
-    let items = window.Store.state.tasks.slice().sort(function (a, b) {
-      return (
-        (a.done - b.done) ||
-        a.date.localeCompare(b.date) ||
-        ((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
-          (PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
-      );
-    });
+function render() {
+var list = el("taskList");
+if (!list) return;
 
-    if (state.query) {
-      items = items.filter(function (task) {
-        return task.name.toLowerCase().includes(state.query);
-      });
-    }
+var today = window.Calendar.todayKey();
+var items = window.Store.state.tasks.slice().sort(function (a, b) {
+return (
+(a.done - b.done) ||
+a.date.localeCompare(b.date) ||
+((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
+(PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
+);
+});
 
-    if (state.filter === "pending") {
-      items = items.filter(function (task) {
-        return !task.done;
-      });
-    }
+if (state.query) {
+items = items.filter(function (task) {
+return task.name.toLowerCase().includes(state.query);
+});
+}
 
-    if (state.filter === "done") {
-      items = items.filter(function (task) {
-        return task.done;
-      });
-    }
+if (state.filter === "pending") {
+items = items.filter(function (task) {
+if (window.Store.isTaskRecurring(task)) {
+return window.Store.isTaskActiveOn(task, today) && !window.Store.isTaskDoneOnDate(task, today);
+}
+return !task.done;
+});
+}
 
-    if (state.filter === "today") {
-      items = items.filter(function (task) {
-        return task.date === today;
-      });
-    }
+if (state.filter === "done") {
+items = items.filter(function (task) {
+if (window.Store.isTaskRecurring(task)) {
+return window.Store.isTaskActiveOn(task, today) && window.Store.isTaskDoneOnDate(task, today);
+}
+return task.done;
+});
+}
 
-    if (state.filter === "overdue") {
-      items = items.filter(function (task) {
-        return !task.done && task.date < today;
-      });
-    }
+if (state.filter === "today") {
+items = items.filter(function (task) {
+return window.Store.isTaskActiveOn(task, today);
+});
+}
 
-    const openCount = window.Store.state.tasks.filter(function (task) {
-      return !task.done;
-    }).length;
+if (state.filter === "overdue") {
+items = items.filter(function (task) {
+if (window.Store.isTaskRecurring(task)) return false;
+return !task.done && task.date < today;
+});
+}
 
-    const counter = el("taskCounter");
+var openCount = window.Store.state.tasks.filter(function (task) {
+return !task.done && !window.Store.isTaskRecurring(task);
+}).length;
 
-    if (counter) {
-      counter.textContent =
-        window.I18N.faNum(openCount) + " / " + window.I18N.faNum(window.Store.state.tasks.length);
-    }
+var counter = el("taskCounter");
+if (counter) {
+counter.textContent = window.I18N.faNum(openCount) + " / " + window.I18N.faNum(window.Store.state.tasks.length);
+}
 
-    if (!items.length) {
-      list.innerHTML =
-        '<div class="empty-state">' +
-        '<div class="empty-state-icon">📭</div>' +
-        '<div class="empty-state-text">' + window.I18N.t("tasks.emptyTitle") + "</div>" +
-        '<div class="empty-state-sub">' + window.I18N.t("tasks.emptySub") + "</div>" +
-        "</div>";
-      return;
-    }
+if (!items.length) {
+list.innerHTML =
+'<div class="empty-state">' +
+'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-text">' + window.I18N.t("tasks.emptyTitle") + "</div>" +
+'<div class="empty-state-sub">' + window.I18N.t("tasks.emptySub") + "</div>" +
+"</div>";
+return;
+}
 
-    list.innerHTML = items
-      .map(function (task) {
-        return taskRowHTML(task, false);
-      })
-      .join("");
-  }
+list.innerHTML = items
+.map(function (task) {
+return taskRowHTML(task, false, today);
+})
+.join("");
+}
 
-  function renderHome() {
-    const box = el("homeTaskList");
-    if (!box) return;
+function renderHome() {
+var box = el("homeTaskList");
+if (!box) return;
 
-    const today = window.Calendar.todayKey();
+var today = window.Calendar.todayKey();
+var items = window.Store.getTasksForDate(today).sort(function (a, b) {
+var aDone = window.Store.isTaskDoneOnDate(a, today) ? 1 : 0;
+var bDone = window.Store.isTaskDoneOnDate(b, today) ? 1 : 0;
+return (
+(aDone - bDone) ||
+((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
+(PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
+);
+});
 
-    const items = window.Store.state.tasks
-      .filter(function (task) {
-        return task.date === today;
-      })
-      .sort(function (a, b) {
-        return (
-          (a.done - b.done) ||
-          ((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
-            (PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
-        );
-      });
+if (!items.length) {
+box.innerHTML =
+'<div class="empty-state">' +
+'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
+'<div class="empty-state-sub">' + window.I18N.t("today.tasksEmptySub") + "</div>" +
+"</div>";
+return;
+}
 
-    if (!items.length) {
-      box.innerHTML =
-        '<div class="empty-state">' +
-        '<div class="empty-state-icon">📭</div>' +
-        '<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
-        '<div class="empty-state-sub">' + window.I18N.t("today.tasksEmptySub") + "</div>" +
-        "</div>";
-      return;
-    }
+box.innerHTML =
+'<div class="home-list">' +
+items
+.slice(0, 6)
+.map(function (task) {
+var done = window.Store.isTaskDoneOnDate(task, today);
+return (
+'<div class="home-row">' +
+'<input type="checkbox" class="task-checkbox" data-task-id="' + task.id + '" data-task-date="' + today + '"' +
+(done ? " checked" : "") +
+' aria-label="' + window.Utils.escapeHtml(task.name) + '">' +
+'<span class="main">' + window.Utils.escapeHtml(task.name) + "</span>" +
+'<span class="meta">' +
+(done ? window.I18N.t("common.done") : window.I18N.t("common.open")) +
+"</span>" +
+"</div>"
+);
+})
+.join("") +
+"</div>";
+}
 
-    box.innerHTML =
-      '<div class="home-list">' +
-      items
-        .slice(0, 6)
-        .map(function (task) {
-          return (
-            '<div class="home-row">' +
-            '<input type="checkbox" class="task-checkbox" data-task-id="' + task.id + '"' +
-            (task.done ? " checked" : "") +
-            ' aria-label="' + window.Utils.escapeHtml(task.name) + '">' +
-            '<span class="main">' + window.Utils.escapeHtml(task.name) + "</span>" +
-            '<span class="meta">' +
-            (task.done ? window.I18N.t("common.done") : window.I18N.t("common.open")) +
-            "</span>" +
-            "</div>"
-          );
-        })
-        .join("") +
-      "</div>";
-  }
+function renderToday() {
+var box = el("todayTasks");
+if (!box) return;
 
-  function renderToday() {
-    const box = el("todayTasks");
-    if (!box) return;
+var today = window.Calendar.todayKey();
+var items = window.Store.getTasksForDate(today).sort(function (a, b) {
+var aDone = window.Store.isTaskDoneOnDate(a, today) ? 1 : 0;
+var bDone = window.Store.isTaskDoneOnDate(b, today) ? 1 : 0;
+return (
+(aDone - bDone) ||
+((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
+(PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
+);
+});
 
-    const today = window.Calendar.todayKey();
+if (!items.length) {
+box.innerHTML =
+'<div class="empty-state">' +
+'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
+'<div class="empty-state-sub">' + window.I18N.t("today.tasksEmptySub") + "</div>" +
+"</div>";
+return;
+}
 
-    const items = window.Store.state.tasks
-      .filter(function (task) {
-        return task.date === today;
-      })
-      .sort(function (a, b) {
-        return (
-          (a.done - b.done) ||
-          ((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
-            (PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
-        );
-      });
-
-    if (!items.length) {
-      box.innerHTML =
-        '<div class="empty-state">' +
-        '<div class="empty-state-icon">📭</div>' +
-        '<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
-        '<div class="empty-state-sub">' + window.I18N.t("today.tasksEmptySub") + "</div>" +
-        "</div>";
-      return;
-    }
-
-    box.innerHTML = items
-      .map(function (task) {
-        return taskRowHTML(task, true);
-      })
-      .join("");
-  }
+box.innerHTML = items
+.map(function (task) {
+return taskRowHTML(task, true, today);
+})
+.join("");
+}
 
   function bind() {
     const addBtn = el("addTaskBtn");
@@ -554,49 +766,35 @@ toast(window.I18N.t("toast.saved"), "success");
       }
     });
 
-    document.addEventListener("change", function (event) {
-      if (event.target.classList.contains("task-checkbox")) {
-        toggle(event.target.dataset.taskId);
-      }
-    });
-  }
-
+   document.addEventListener("change", function (event) {
+if (event.target.classList.contains("task-checkbox")) {
+var taskId = event.target.dataset.taskId;
+var dateContext = event.target.dataset.taskDate;
+if (dateContext) {
+window.Store.toggleTaskOnDate(taskId, dateContext);
+var done = window.Store.isTaskDoneOnDate(
+window.Store.state.tasks.find(function (t) { return String(t.id) === String(taskId); }),
+dateContext
+);
+refreshAll();
+if (done) {
+toast(window.I18N.t("toast.nice"), "success");
+}
+} else {
+toggle(taskId);
+}
+}
+});
 function init() {
 if (initialized) return;
-
 initialized = true;
 
 bind();
+initRecurrencePicker();
 
-const dateEl = el("taskDate");
-
-if (dateEl) {
-dateEl.type = "text";
-dateEl.setAttribute("data-datepicker", "");
-dateEl.autocomplete = "off";
-dateEl.classList.add("input-datepicker");
-
-if (!window.Utils.isValidDateKey(dateEl.dataset.value)) {
-dateEl.dataset.value = window.Calendar.todayKey();
+var dateEl = el("taskDate");
+if (dateEl && !dateEl.value) {
+dateEl.value = window.Calendar.todayKey();
 }
-
-dateEl.value = window.Calendar.keyToJalaliFull(dateEl.dataset.value);
-}
-
 syncDateLabel();
 }
-
-  window.Tasks = {
-    init: init,
-    render: render,
-    renderHome: renderHome,
-    renderToday: renderToday,
-    add: add,
-    toggle: toggle,
-    remove: remove,
-    clearDone: clearDone,
-    edit: edit
-  };
-
-  window.Utils.onDomReady(init);
-})();
