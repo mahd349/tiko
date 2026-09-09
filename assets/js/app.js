@@ -2004,6 +2004,12 @@ if (action === "fab-habit") {
     openToolsModal: openToolsModal,
     openHelpModal: openHelpModal,
     cycleTheme: cycleTheme
+   toggleFabMenu: toggleFabMenu,
+closeFabMenu: closeFabMenu,
+openMobileTaskForm: openMobileTaskForm,
+closeMobileTaskForm: closeMobileTaskForm,
+openMobileHabitForm: openMobileHabitForm,
+closeMobileHabitForm: closeMobileHabitForm,
   };
 
   window.Utils.onDomReady(init);
