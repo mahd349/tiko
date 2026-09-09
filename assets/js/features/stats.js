@@ -6,6 +6,7 @@
   "use strict";
 
   let initialized = false;
+   let pendingImport = null;
 
   function el(id) {
     return document.getElementById(id);
@@ -390,46 +391,158 @@
     window.Store.markBackup();
 
     toast(window.I18N.t("common.backup") + " ✅", "success");
+     function openBackupPreview(preview) {
+if (!window.UI || !window.UI.modal) return;
+
+const file = preview.file;
+const current = preview.current;
+
+function row(label, fileValue, currentValue) {
+return (
+'<div class="modal-item">' +
+'<div style="min-width:0">' +
+'<div style="font-weight:800">' + label + "</div>" +
+'<div style="font-size:12px;color:var(--text-2);margin-top:4px">' +
+window.I18N.t("backup.file") + ": " + window.I18N.faNum(fileValue) +
+" · " +
+window.I18N.t("backup.current") + ": " + window.I18N.faNum(currentValue) +
+"</div>" +
+"</div>" +
+"</div>"
+);
+}
+
+const html =
+'<div class="modal-section-title">📤 ' + window.I18N.t("backup.previewTitle") + "</div>" +
+row(window.I18N.t("backup.tasks"), file.tasks, current.tasks) +
+row(window.I18N.t("backup.habits"), file.habits, current.habits) +
+row(window.I18N.t("backup.days"), file.days, current.days) +
+row(window.I18N.t("backup.trash"), file.trashTasks + file.trashHabits, current.trashTasks + current.trashHabits) +
+'<p style="margin-top:14px;color:var(--warning);font-size:13px;font-weight:700;line-height:1.9">' +
+"⚠️ " + window.I18N.t("backup.warning") +
+"</p>" +
+'<div class="sc-actions" style="margin-top:18px">' +
+'<button class="btn btn-ghost" data-action="backup-preview-backup">' +
+window.I18N.t("backup.backupFirst") +
+"</button>" +
+'<button class="btn btn-primary" data-action="backup-preview-restore">' +
+window.I18N.t("backup.restoreNow") +
+"</button>" +
+'<button class="btn btn-ghost" data-action="close-modal">' +
+window.I18N.t("common.cancel") +
+"</button>" +
+"</div>";
+
+const content = window.UI.modal.open(window.I18N.t("backup.previewTitle"), html);
+if (!content) return;
+
+const backupFirstBtn = content.querySelector('[data-action="backup-preview-backup"]');
+const restoreBtn = content.querySelector('[data-action="backup-preview-restore"]');
+const cancelBtn = content.querySelector('[data-action="close-modal"]');
+
+if (backupFirstBtn) {
+backupFirstBtn.addEventListener("click", function () {
+restoreFromPreview(true);
+});
+}
+
+if (restoreBtn) {
+restoreBtn.addEventListener("click", function () {
+restoreFromPreview(false);
+});
+}
+
+if (cancelBtn) {
+cancelBtn.addEventListener("click", function () {
+pendingImport = null;
+window.UI.modal.close();
+});
+}
+}
+
+function restoreFromPreview(withBackup) {
+if (!pendingImport) return;
+
+const snap = window.Store.snapshot();
+
+if (withBackup) {
+exportBackup();
+}
+
+if (window.Store.commitImport) {
+window.Store.commitImport(pendingImport);
+} else {
+window.Store.importData(pendingImport);
+}
+
+pendingImport = null;
+window.UI.modal.close();
+refreshAll();
+
+toast(window.I18N.t("toast.dataRestored"), "success", {
+action: {
+label: window.I18N.t("common.restore"),
+onClick: function () {
+window.Store.restoreSnapshot(snap);
+refreshAll();
+toast(window.I18N.t("toast.restored"), "success");
+}
+}
+});
+}
   }
 
-  function handleImport(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
+function handleImport(event) {
+const file = event.target.files && event.target.files[0];
+if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast(window.I18N.t("toast.invalidFile"), "error");
-      event.target.value = "";
-      return;
-    }
+if (file.size > 10 * 1024 * 1024) {
+toast(window.I18N.t("toast.invalidFile"), "error");
+event.target.value = "";
+return;
+}
 
-    const reader = new FileReader();
+const reader = new FileReader();
 
-    reader.onload = function (loadEvent) {
-      try {
-        const parsed = JSON.parse(loadEvent.target.result);
-        const snap = window.Store.snapshot();
+reader.onload = function (loadEvent) {
+let parsed = null;
 
-        window.Store.importData(parsed);
-        refreshAll();
+try {
+parsed = JSON.parse(loadEvent.target.result);
+} catch (error) {
+toast(window.I18N.t("toast.invalidFile"), "error");
+return;
+}
 
-        toast(window.I18N.t("toast.dataRestored"), "success", {
-          action: {
-            label: window.I18N.t("common.restore"),
-            onClick: function () {
-              window.Store.restoreSnapshot(snap);
-              refreshAll();
-              toast(window.I18N.t("toast.restored"), "success");
-            }
-          }
-        });
-      } catch (error) {
-        toast(window.I18N.t("toast.invalidFile"), "error");
-      }
-    };
+try {
+if (window.Store.previewImport) {
+const preview = window.Store.previewImport(parsed);
+pendingImport = preview.normalized;
+openBackupPreview(preview);
+} else {
+const snap = window.Store.snapshot();
+window.Store.importData(parsed);
+refreshAll();
 
-    reader.readAsText(file);
-    event.target.value = "";
-  }
+toast(window.I18N.t("toast.dataRestored"), "success", {
+action: {
+label: window.I18N.t("common.restore"),
+onClick: function () {
+window.Store.restoreSnapshot(snap);
+refreshAll();
+toast(window.I18N.t("toast.restored"), "success");
+}
+}
+});
+}
+} catch (error) {
+toast(window.I18N.t("toast.invalidFile"), "error");
+}
+};
+
+reader.readAsText(file);
+event.target.value = "";
+}
 
   function confirmReset() {
     if (!window.UI || !window.UI.modal) return;
