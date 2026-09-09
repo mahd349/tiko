@@ -1129,7 +1129,69 @@ const html =
 window.UI.modal.open(window.I18N.t("common.tools"), html);
 }
 
+/* ------------------------------
+Mobile FAB
+------------------------------ */
+function toggleFabMenu() {
+  const fab = el("mobileFab");
+  const menu = el("fabMenu");
+  if (!fab || !menu) return;
+  const isOpen = fab.classList.toggle("open");
+  fab.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  menu.hidden = !isOpen;
+  menu.classList.toggle("open", isOpen);
+}
 
+function closeFabMenu() {
+  const fab = el("mobileFab");
+  const menu = el("fabMenu");
+  if (!fab || !menu) return;
+  fab.classList.remove("open");
+  fab.setAttribute("aria-expanded", "false");
+  menu.hidden = true;
+  menu.classList.remove("open");
+}
+
+function openMobileTaskForm() {
+  const formCard = document.querySelector("#tab-tasks .form-card");
+  if (formCard) {
+    formCard.classList.add("open");
+    document.body.style.overflow = "hidden";
+    const input = el("taskInput");
+    if (input) {
+      setTimeout(function () { input.focus(); }, 100);
+    }
+  }
+}
+
+function closeMobileTaskForm() {
+  const formCard = document.querySelector("#tab-tasks .form-card");
+  if (formCard) {
+    formCard.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+}
+
+function openMobileHabitForm() {
+  const formCard = document.querySelector("#tab-habits .form-card");
+  if (formCard) {
+    formCard.classList.add("open");
+    document.body.style.overflow = "hidden";
+    const input = el("habitName");
+    if (input) {
+      setTimeout(function () { input.focus(); }, 100);
+    }
+  }
+}
+
+function closeMobileHabitForm() {
+  const formCard = document.querySelector("#tab-habits .form-card");
+  if (formCard) {
+    formCard.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+}
+ 
   /* ------------------------------
      Render all
   ------------------------------ */
@@ -1555,6 +1617,16 @@ window.UI.modal.open(window.I18N.t("trash.emptyTrash"), html);
 
   function bindGlobalClicks() {
     document.addEventListener("click", function (event) {
+      const fabMenu = el("fabMenu");
+if (
+  fabMenu &&
+  fabMenu.classList.contains("open") &&
+  !event.target.closest("#mobileFab") &&
+  !event.target.closest("#fabMenu")
+) {
+  closeFabMenu();
+  return;
+}
       const dateTarget = event.target.closest("[data-date]");
 
       if (
@@ -1743,6 +1815,17 @@ return;
       if (action === "close-modal") {
         window.UI.modal.close();
       }
+if (action === "fab-toggle") {
+  toggleFabMenu();
+}
+if (action === "fab-task") {
+  closeFabMenu();
+  openMobileTaskForm();
+}
+if (action === "fab-habit") {
+  closeFabMenu();
+  openMobileHabitForm();
+}
     });
   }
 
