@@ -2035,6 +2035,62 @@ border-radius: 22px 22px 0 0;
 padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
 }
 
+   /* ============================
+ACTIVE DAYS PICKER
+============================ */
+.active-days-block {
+margin: 0 0 12px;
+}
+
+.active-days-block label {
+display: block;
+margin-bottom: 8px;
+}
+
+.weekday-picker {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+}
+
+.weekday-chip {
+width: 40px;
+height: 40px;
+flex: 0 0 auto;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+border-radius: 12px;
+border: 1px solid var(--border);
+background: var(--surface-2);
+color: var(--text-2);
+font-size: 13px;
+font-weight: 900;
+cursor: pointer;
+transition: all 0.2s var(--ease);
+}
+
+.weekday-chip:hover {
+border-color: var(--accent-line);
+color: var(--accent);
+background: var(--accent-soft);
+transform: translateY(-1px);
+}
+
+.weekday-chip.active {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff;
+border-color: transparent;
+box-shadow: 0 8px 18px var(--accent-glow);
+}
+
+@media (max-width: 560px) {
+.weekday-chip {
+width: 36px;
+height: 36px;
+}
+}
+
 .dp-day {
 min-height: 42px;
 }
