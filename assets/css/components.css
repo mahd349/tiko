@@ -1896,4 +1896,147 @@ label {
   .modal-title {
     padding-inline: 34px;
   }
+   /* ============================
+DATE PICKER
+============================ */
+.input-datepicker {
+cursor: pointer;
+}
+
+.datepicker-popup {
+position: absolute;
+z-index: 1300;
+width: 300px;
+max-width: calc(100vw - 24px);
+background: var(--popover);
+border: 1px solid var(--border-strong);
+border-radius: 18px;
+box-shadow: var(--shadow-lg);
+padding: 12px;
+display: none;
+backdrop-filter: blur(18px);
+-webkit-backdrop-filter: blur(18px);
+}
+
+.dp-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 8px;
+margin-bottom: 10px;
+}
+
+.dp-title {
+flex: 1;
+text-align: center;
+font-size: 14px;
+font-weight: 900;
+color: var(--text);
+}
+
+.dp-nav {
+width: 36px;
+height: 36px;
+flex: 0 0 auto;
+display: grid;
+place-items: center;
+border-radius: 10px;
+border: 1px solid var(--border);
+background: var(--surface-2);
+color: var(--text-2);
+font-size: 13px;
+font-weight: 900;
+cursor: pointer;
+transition: all 0.2s var(--ease);
+}
+
+.dp-nav:hover {
+color: var(--accent);
+border-color: var(--accent-line);
+background: var(--accent-soft);
+}
+
+.dp-weekdays {
+display: grid;
+grid-template-columns: repeat(7, minmax(0, 1fr));
+gap: 4px;
+margin-bottom: 6px;
+}
+
+.dp-wd {
+text-align: center;
+font-size: 11px;
+color: var(--text-3);
+font-weight: 800;
+}
+
+.dp-days {
+display: grid;
+grid-template-columns: repeat(7, minmax(0, 1fr));
+gap: 4px;
+}
+
+.dp-day {
+min-height: 36px;
+display: flex;
+align-items: center;
+justify-content: center;
+border: 1px solid transparent;
+background: transparent;
+border-radius: 10px;
+color: var(--text-2);
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.18s var(--ease);
+}
+
+.dp-day:hover {
+background: var(--accent-soft);
+color: var(--accent);
+}
+
+.dp-day.empty {
+pointer-events: none;
+}
+
+.dp-day.today {
+border-color: var(--accent-line);
+color: var(--accent);
+}
+
+.dp-day.selected {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff;
+box-shadow: 0 8px 18px var(--accent-glow);
+}
+
+.dp-footer {
+display: flex;
+gap: 8px;
+margin-top: 10px;
+}
+
+.dp-footer .btn {
+flex: 1;
+min-height: 38px;
+}
+
+@media (max-width: 640px) {
+.datepicker-popup.is-bottom {
+position: fixed;
+top: auto !important;
+left: 0 !important;
+right: 0;
+bottom: 0;
+width: 100%;
+max-width: 100%;
+border-radius: 22px 22px 0 0;
+padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+.dp-day {
+min-height: 42px;
+}
+}
 }
