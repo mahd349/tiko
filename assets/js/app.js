@@ -274,13 +274,10 @@
 
     const today = window.Calendar.todayKey();
 
-    const todayTasks = window.Store.state.tasks.filter(function (task) {
-      return task.date === today;
-    });
-
-    const doneTasks = todayTasks.filter(function (task) {
-      return task.done;
-    }).length;
+  var todayTasks = window.Store.getTasksForDate(today);
+var doneTasks = todayTasks.filter(function (task) {
+return window.Store.isTaskDoneOnDate(task, today);
+}).length;
 
    const activeHabits = window.Store.state.habits.filter(function (habit) {
 return !window.Store.habitActiveOn || window.Store.habitActiveOn(habit, today);
@@ -344,55 +341,48 @@ return window.Store.habitDone(habit);
       .join("");
   }
 
-  function renderHomeTaskList() {
-    const box = el("homeTaskList");
-    if (!box) return;
+function renderHomeTaskList() {
+var box = el("homeTaskList");
+if (!box) return;
 
-    const today = window.Calendar.todayKey();
+var today = window.Calendar.todayKey();
+var items = window.Store.getTasksForDate(today).sort(function (a, b) {
+var aDone = window.Store.isTaskDoneOnDate(a, today) ? 1 : 0;
+var bDone = window.Store.isTaskDoneOnDate(b, today) ? 1 : 0;
+return (
+(aDone - bDone) ||
+((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
+(PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
+);
+}).slice(0, 6);
 
-    const items = window.Store.state.tasks
-      .filter(function (task) {
-        return task.date === today;
-      })
-      .sort(function (a, b) {
-        return (
-          (a.done - b.done) ||
-          ((PRI_ORDER[a.priority] == null ? 1 : PRI_ORDER[a.priority]) -
-            (PRI_ORDER[b.priority] == null ? 1 : PRI_ORDER[b.priority]))
-        );
-      })
-      .slice(0, 6);
+if (!items.length) {
+box.innerHTML =
+'<div class="empty-state">' +
+'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
+"</div>";
+return;
+}
 
-    if (!items.length) {
-      box.innerHTML =
-        '<div class="empty-state">' +
-        '<div class="empty-state-icon">📭</div>' +
-        '<div class="empty-state-text">' +
-        window.I18N.t("today.tasksEmptyTitle") +
-        "</div>" +
-        "</div>";
-      return;
-    }
-
-    box.innerHTML =
-      '<div class="home-list">' +
-      items
-        .map(function (task) {
-          return (
-            '<div class="home-row">' +
-            '<input type="checkbox" class="task-checkbox" data-task-id="' + task.id + '"' +
-            (task.done ? " checked" : "") +
-            ' aria-label="' + window.Utils.escapeHtml(task.name) + '">' +
-            '<span class="main">' + window.Utils.escapeHtml(task.name) + "</span>" +
-            '<span class="meta">' +
-            (task.done ? window.I18N.t("common.done") : window.I18N.t("common.open")) +
-            "</span>" +
-            "</div>"
-          );
-        })
-        .join("") +
-      "</div>";
-  }
+box.innerHTML =
+'<div class="home-list">' +
+items.map(function (task) {
+var done = window.Store.isTaskDoneOnDate(task, today);
+return (
+'<div class="home-row">' +
+'<input type="checkbox" class="task-checkbox" data-task-id="' + task.id + '" data-task-date="' + today + '"' +
+(done ? " checked" : "") +
+' aria-label="' + window.Utils.escapeHtml(task.name) + '">' +
+'<span class="main">' + window.Utils.escapeHtml(task.name) + "</span>" +
+'<span class="meta">' +
+(done ? window.I18N.t("common.done") : window.I18N.t("common.open")) +
+"</span>" +
+"</div>"
+);
+}).join("") +
+"</div>";
+}
 
   function renderHomeHabitList() {
     const box = el("homeHabitList");
@@ -624,13 +614,10 @@ return window.Store.habitDone(habit);
 
     percentText.textContent = window.I18N.percent(percent);
 
-    const todayTasks = window.Store.state.tasks.filter(function (task) {
-      return task.date === today;
-    });
-
-    const doneTasks = todayTasks.filter(function (task) {
-      return task.done;
-    }).length;
+ var todayTasks = window.Store.getTasksForDate(today);
+var doneTasks = todayTasks.filter(function (task) {
+return window.Store.isTaskDoneOnDate(task, today);
+}).length;
 
    const activeHabits = window.Store.state.habits.filter(function (habit) {
 return !window.Store.habitActiveOn || window.Store.habitActiveOn(habit, today);
@@ -861,9 +848,7 @@ return window.Store.habitDone(habit);
   function openDayModal(dateKey) {
     if (!window.UI || !window.UI.modal) return;
 
-    const dayTasks = window.Store.state.tasks.filter(function (task) {
-      return task.date === dateKey;
-    });
+ var dayTasks = window.Store.getTasksForDate(dateKey);
 
     const dayHabits = window.Store.state.habits
       .filter(function (habit) {
@@ -899,11 +884,12 @@ return window.Store.habitDone(habit);
       html += '<div class="modal-section-title">📋 ' + window.I18N.t("nav.tasks") + "</div>";
 
       html += dayTasks
-        .map(function (task) {
-          return (
-            '<div class="modal-item">' +
-            '<div class="item-left">' +
-            "<span>" + (task.done ? "✅" : "⬜") + "</span>" +
+.map(function (task) {
+var taskDone = window.Store.isTaskDoneOnDate(task, dateKey);
+return (
+'<div class="modal-item">' +
+'<div class="item-left">' +
+"<span>" + (taskDone ? "✅" : "⬜") + "</span>" +
             '<span class="item-name' + (task.done ? " done" : "") + '">' +
             window.Utils.escapeHtml(task.name) +
             "</span>" +
