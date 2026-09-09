@@ -267,6 +267,16 @@
       density: raw.density === "compact" ? "compact" : "comfortable"
     };
   }
+   function normalizeReminder(raw) {
+raw = raw || {};
+const timeStr = String(raw.time || "");
+const validTime = /^([01]?\d|2[0-3]):[0-5]\d$/.test(timeStr);
+
+return {
+enabled: !!raw.enabled,
+time: validTime ? (timeStr.length === 4 ? "0" + timeStr : timeStr) : "20:00"
+};
+}
 
   function normalizeTrash(raw) {
     raw = raw || {};
