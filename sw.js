@@ -22,6 +22,7 @@ const CORE = [
   "/assets/js/features/stats.js",
   "/assets/js/features/share-card.js",
   "/assets/js/features/auth.js",
+   "/assets/js/features/reminder.js",
   "/assets/js/ui/modal.js",
   "/assets/js/ui/toast.js",
   "/assets/js/app.js",
