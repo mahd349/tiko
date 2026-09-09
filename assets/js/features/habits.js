@@ -874,6 +874,38 @@ streakHTML +
     bar.innerHTML = html;
   }
 
+   function enableHabitSwipe(container) {
+  if (!container || !window.Utils.makeSwipeable) return;
+  const items = container.querySelectorAll(".habit-row");
+  items.forEach(function (item) {
+    const editBtn = item.querySelector('[data-action="edit-habit"]');
+    if (!editBtn) return;
+    const id = editBtn.dataset.id;
+    window.Utils.makeSwipeable(item, {
+      onSwipeRight: function () {
+        const habit = window.Store.state.habits.find(function (h) {
+          return String(h.id) === String(id);
+        });
+        if (!habit) return;
+        if (habit.type === "checkbox") {
+          toggleCheck(id);
+        } else if (habit.type === "number") {
+          bump(id, 1);
+        } else if (habit.type === "timer") {
+          if (window.Store.isRunning(id)) {
+            stopTimer(id);
+          } else {
+            startTimer(id);
+          }
+        }
+      },
+      onSwipeLeft: function () {
+        remove(id);
+      }
+    });
+  });
+}
+   
   function render() {
     const list = el("habitList");
     if (!list) return;
@@ -918,6 +950,8 @@ window.I18N.faNum(doneCount) + " / " + window.I18N.faNum(activeHabits.length);
     }
 
     list.innerHTML = items.map(habitRowHTML).join("");
+     list.innerHTML = items.map(habitRowHTML).join("");
+enableHabitSwipe(list);
     ensureTick();
   }
 
@@ -1002,6 +1036,8 @@ return !window.Store.habitDone(habit);
     }
 
     box.innerHTML = remaining.map(habitRowHTML).join("");
+     box.innerHTML = remaining.map(habitRowHTML).join("");
+enableHabitSwipe(box);
     ensureTick();
   }
 
