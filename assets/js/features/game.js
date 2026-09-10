@@ -11,7 +11,8 @@ taskMed: 5,
 taskHigh: 10,
 habit: 8,
 perfectDay: 20,
-challenge: 50
+challenge: 50,
+pomodoro: 15
 };
 var HISTORY_DAYS = 730;
 var cache = { dirty: true, data: null };
@@ -96,6 +97,13 @@ window.Store.state.habits.forEach(function (habit) {
 var s = window.Store.habitStreaks(habit);
 if (s.best > bestStreak) bestStreak = s.best;
 });
+var pomoToday = 0;
+try {
+pomoToday = parseInt(sessionStorage.getItem("pd_pomo_day_" + window.Calendar.todayKey()) || "0", 10) || 0;
+} catch (error) {
+pomoToday = 0;
+}
+points += pomoToday * POINTS.pomodoro;
 game().challenges.forEach(function (ch) {
 if (ch.completedAt) points += POINTS.challenge;
 });
