@@ -583,8 +583,51 @@ return (
       '<div class="fd-legend">' + legend + "</div>";
   }
 
+  function nextStepItem() {
+const today = window.Calendar.todayKey();
+const openTasks = window.Store.getTasksForDate(today).filter(function (task) {
+return !window.Store.isTaskDoneOnDate(task, today);
+});
+if (openTasks.length) {
+return { type: "task", id: openTasks[0].id, name: openTasks[0].name };
+}
+const openHabits = window.Store.state.habits.filter(function (habit) {
+if (window.Store.habitActiveOn && !window.Store.habitActiveOn(habit, today)) return false;
+return !window.Store.habitDone(habit);
+});
+if (openHabits.length) {
+return { type: "habit", id: openHabits[0].id, name: openHabits[0].name };
+}
+return null;
+}
+function renderNextStep() {
+const card = el("nextStepCard");
+const label = el("nextStepLabel");
+const text = el("nextStepText");
+const btn = el("nextStepBtn");
+if (!card || !text) return;
+if (label) {
+label.textContent = L("قدم بعدی", "Next step");
+}
+const item = nextStepItem();
+if (!item) {
+card.classList.add("is-done");
+text.textContent = L("همهٔ کارهای امروز انجام شد! 🎉", "All done for today! 🎉");
+if (btn) btn.style.display = "none";
+return;
+}
+card.classList.remove("is-done");
+text.textContent = item.name;
+if (btn) {
+btn.style.display = "";
+btn.dataset.id = item.id;
+btn.dataset.type = item.type;
+}
+}
+   
   function renderHome() {
-    renderHomeSummary();
+renderNextStep();
+renderHomeSummary();
     renderHomeTaskList();
     renderHomeHabitList();
     renderHomeBars();
@@ -1639,6 +1682,29 @@ if (
         cycleTheme();
       }
 
+     if (action === "next-step") {
+const id = actionButton.dataset.id;
+const type = actionButton.dataset.type;
+if (type === "task") {
+window.Store.toggleTask(id);
+} else if (type === "habit") {
+const habit = window.Store.state.habits.find(function (item) {
+return String(item.id) === String(id);
+});
+if (habit) {
+if (habit.type === "checkbox") {
+window.Store.toggleHabitCheck(id);
+} else if (habit.type === "number") {
+window.Store.bumpHabit(id, 1);
+} else {
+window.Store.startTimer(id);
+}
+}
+}
+renderAll();
+return;
+}
+       
       if (action === "menu") {
         openToolsModal();
       }
