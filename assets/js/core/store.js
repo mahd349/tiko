@@ -319,7 +319,12 @@ function normalizeHabitType(value) {
 if (value === "timer" || value === "number") return value;
 return "checkbox";
 }
-   
+
+
+function normalizeHabitType(value) {
+if (value === "timer" || value === "number") return value;
+return "checkbox";
+}
 function normalizeHabit(raw) {
   raw = raw || {};
   return {
@@ -1547,6 +1552,19 @@ document.documentElement.setAttribute("data-theme", state.settings.theme);
 }
 notify("settings:update");
 }
+
+   function resetAll() {
+state.tasks = [];
+state.habits = [];
+state.logs = {};
+state.trash = {
+tasks: [],
+habits: []
+};
+saveState();
+notify("reset");
+}
+   
 function markBackup(type = "manual") {
 state.meta.lastBackupAt = new Date().toISOString();
 state.meta.lastBackupType = type;
