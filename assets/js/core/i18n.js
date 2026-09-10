@@ -290,6 +290,7 @@
 "filter.tag": "برچسب",
 "filter.allProjects": "همه پروژه‌ها",
 "filter.allTags": "همه برچسب‌ها"
+       "transfer.title": "انتقال به دستگاه دیگر"
     },
 
     en: {
@@ -573,6 +574,7 @@
 "filter.tag": "Tag",
 "filter.allProjects": "All projects",
 "filter.allTags": "All tags"
+   "transfer.title": "Transfer to another device"
     }
   };
 
