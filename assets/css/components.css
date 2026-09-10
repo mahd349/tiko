@@ -2091,7 +2091,39 @@ height: 36px;
 }
 }
 
+/* ============================
+RANGE BAR + INSIGHTS (P10)
+============================ */
+.range-bar {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-bottom: 14px;
+}
+.insights-wrap {
+margin-top: 14px;
+display: grid;
+gap: 8px;
+}
+.insight-card {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 12px 14px;
+border: 1px solid var(--border);
+background: var(--surface-2);
+border-radius: 12px;
+font-size: 13px;
+font-weight: 700;
+color: var(--text-2);
+line-height: 1.8;
+}
+.insight-icon {
+font-size: 18px;
+flex: 0 0 auto;
+}
 
+   
    /* ============================
 SUBTASKS, TAGS, PROJECTS
 ============================ */
