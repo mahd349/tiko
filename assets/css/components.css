@@ -2335,6 +2335,45 @@ color: var(--success);
 .empty-state .btn {
 margin-top: 14px;
 }
+
+
+/* ============================
+TRANSFER MODAL (P9)
+============================ */
+.transfer-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  background: var(--surface);
+  padding: 4px;
+  border-radius: 12px;
+}
+.transfer-tab {
+  flex: 1;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.transfer-tab.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.transfer-hint {
+  font-size: 13px;
+  color: var(--text-3);
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+
+
+
    
    /* ============================
 RECURRENCE PICKER
