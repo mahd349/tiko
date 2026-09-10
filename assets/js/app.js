@@ -1337,6 +1337,41 @@ window.Stats.exportBackup();
 });
 }
 
+function openHelpModal() {
+if (!window.UI || !window.UI.modal) return;
+const rows = [
+["N", L("وظیفهٔ جدید", "New task")],
+["H", L("تب عادت‌ها", "Habits tab")],
+["T", L("تغییر پوسته", "Cycle theme")],
+["S", L("کارت استریک", "Streak card")],
+["L", L("تغییر زبان", "Toggle language")],
+["M", L("ابزارها", "Tools")],
+["/", L("جستجو", "Search")],
+["1-6", L("رفتن به تب‌ها", "Switch tabs")]
+];
+const html =
+'<div class="modal-section-title">⌨️ ' + L("کلیدهای میان‌بر", "Keyboard shortcuts") + "</div>" +
+rows.map(function (row) {
+return (
+'<div class="modal-item">' +
+'<div class="item-left"><span class="modal-tag">' + row[0] + "</span></div>" +
+'<span class="item-name">' + row[1] + "</span>" +
+"</div>"
+);
+}).join("") +
+'<div class="sc-actions" style="margin-top:18px">' +
+'<button class="btn btn-ghost" data-action="close-modal">' + window.I18N.t("common.close") + "</button>" +
+"</div>";
+const content = window.UI.modal.open(window.I18N.t("common.help"), html);
+if (!content) return;
+const closeBtn = content.querySelector('[data-action="close-modal"]');
+if (closeBtn) {
+closeBtn.addEventListener("click", function () {
+window.UI.modal.close();
+});
+}
+}
+   
 function openTrashModal() {
 if (!window.UI || !window.UI.modal || !window.Store) return;
 
@@ -1588,36 +1623,6 @@ window.App.renderAll();
 }
 return;
 }
-window.UI.modal.close();
-openTrashModal();
-
-if (window.UI && window.UI.toast) {
-window.UI.toast(window.I18N.t("toast.restored"), "success");
-}
-
-if (window.App && window.App.renderAll) {
-window.App.renderAll();
-}
-}
-return;
-}
-
-if (action === "restore-trash-habit") {
-if (window.Store.restoreHabit) {
-window.Store.restoreHabit(id);
-window.UI.modal.close();
-openTrashModal();
-
-if (window.UI && window.UI.toast) {
-window.UI.toast(window.I18N.t("toast.restored"), "success");
-}
-
-if (window.App && window.App.renderAll) {
-window.App.renderAll();
-}
-}
-return;
-}
 
 if (action === "empty-trash") {
 window.UI.modal.close();
@@ -1835,8 +1840,8 @@ if (TABS.indexOf(hash) !== -1) {
     openDayModal: openDayModal,
     openToolsModal: openToolsModal,
     openHelpModal: openHelpModal,
-    cycleTheme: cycleTheme
-   toggleFabMenu: toggleFabMenu,
+cycleTheme: cycleTheme,
+toggleFabMenu: toggleFabMenu,
 closeFabMenu: closeFabMenu,
 openMobileTaskForm: openMobileTaskForm,
 closeMobileTaskForm: closeMobileTaskForm,
