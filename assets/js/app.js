@@ -723,11 +723,11 @@ return window.Store.habitDone(habit);
   }
 
   function renderToday() {
-    renderTodayStats();
-
-    if (window.Tasks) window.Tasks.renderToday();
-    if (window.Habits) window.Habits.renderToday();
-  }
+  renderTodayStats();
+  if (window.Tasks) window.Tasks.renderToday();
+  if (window.Habits) window.Habits.renderToday();
+  if (window.Notes) window.Notes.renderToday();
+}
 
   /* ------------------------------
      Calendar
@@ -984,17 +984,19 @@ return (
         .join("");
     }
 
-    if (!dayTasks.length && !dayHabits.length) {
-      html +=
-        '<div class="empty-state">' +
-        '<div class="empty-state-icon">😴</div>' +
-        '<div class="empty-state-text">' +
-        window.I18N.t("calendar.emptyDay") +
-        "</div>" +
-        "</div>";
-    }
-
+   if (!dayTasks.length && !dayHabits.length) {
+  html +=
+    '<div class="empty-state">' +
+    '<div class="empty-state-icon">😴</div>' +
+    '<div class="empty-state-text">' +
+    window.I18N.t("calendar.emptyDay") +
+    "</div>" +
+    "</div>";
+}
+html += '<div class="modal-section-title">📝 ' + L("یادداشت", "Note") + "</div>";
+html += '<div id="calendarNoteView"></div>';
     window.UI.modal.open(window.Calendar.keyToJalaliFull(dateKey), html);
+     if (window.Notes) window.Notes.renderCalendarNote(dateKey);
   }
 
   /* ------------------------------
