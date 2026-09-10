@@ -958,7 +958,118 @@ return (
      Tools / Help
   ------------------------------ */
 
-
+function reminderPermLabel(state) {
+if (state === "granted") return window.I18N.t("reminder.permGranted");
+if (state === "denied") return window.I18N.t("reminder.permDenied");
+if (state === "default") return window.I18N.t("reminder.permDefault");
+if (state === "unsupported") return window.I18N.t("reminder.permUnsupported");
+return window.I18N.t("reminder.permUnknown");
+}
+function openToolsModal() {
+if (!window.UI || !window.UI.modal) return;
+const lang = window.I18N.lang;
+const reminder =
+window.Store.state.settings.reminder || { enabled: false, time: "20:00" };
+const trashSummary = window.Store.getTrashSummary
+? window.Store.getTrashSummary()
+: { total: 0 };
+const trashLabel =
+window.I18N.t("trash.title") +
+(trashSummary.total ? " (" + window.I18N.faNum(trashSummary.total) + ")" : "");
+const permState = window.Reminder ? window.Reminder.permissionState() : "unsupported";
+const html =
+'<div class="modal-section-title">🌐 ' + window.I18N.t("common.language") + "</div>" +
+'<div style="display:flex;gap:8px;margin-bottom:18px">' +
+'<button class="btn ' + (lang === "fa" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="fa" style="flex:1">فارسی</button>' +
+'<button class="btn ' + (lang === "en" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="en" style="flex:1">English</button>' +
+"</div>" +
+'<div class="modal-section-title">🔔 ' + window.I18N.t("reminder.title") + "</div>" +
+'<div class="modal-item">' +
+'<div class="item-left"><label for="reminderToggle" style="cursor:pointer">' + window.I18N.t("reminder.enable") + "</label></div>" +
+'<input type="checkbox" id="reminderToggle"' + (reminder.enabled ? " checked" : "") + ' style="width:22px;height:22px;accent-color:var(--accent);cursor:pointer">' +
+"</div>" +
+'<div class="modal-item">' +
+'<div class="item-left"><label for="reminderTime">' + window.I18N.t("reminder.time") + "</label></div>" +
+'<input type="time" id="reminderTime" class="input" value="' + reminder.time + '" style="min-height:40px;width:130px">' +
+"</div>" +
+'<div class="modal-item">' +
+'<div class="item-left"><span style="font-size:13px;font-weight:700">' + window.I18N.t("reminder.notification") + "</span></div>" +
+'<span id="reminderPermStatus" style="font-size:12px;color:var(--text-3);font-weight:700">' + reminderPermLabel(permState) + "</span>" +
+"</div>" +
+'<button class="btn btn-ghost btn-sm" data-action="reminder-permission" style="width:100%;margin:4px 0 14px">' + window.I18N.t("reminder.enableNotification") + "</button>" +
+'<div class="modal-section-title">⚙️ ' + window.I18N.t("common.tools") + "</div>" +
+'<div style="display:grid;gap:8px">' +
+'<button class="btn btn-ghost" data-action="open-share">🔥 ' + window.I18N.t("common.streakCard") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-trash">🗑️ ' + trashLabel + "</button>" +
+'<button class="btn btn-ghost" data-action="backup">📥 ' + window.I18N.t("common.backup") + "</button>" +
+'<button class="btn btn-ghost" data-action="restore">📤 ' + window.I18N.t("common.restore") + "</button>" +
+'<button class="btn btn-danger" data-action="reset">🗑️ ' + window.I18N.t("common.reset") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-help">❓ ' + window.I18N.t("common.help") + "</button>" +
+'<a class="btn btn-ghost" href="rahnama/">📚 ' + window.I18N.t("common.articles") + "</a>" +
+"</div>";
+const content = window.UI.modal.open(window.I18N.t("common.tools"), html);
+if (!content) return;
+const toggle = content.querySelector("#reminderToggle");
+const timeInput = content.querySelector("#reminderTime");
+if (toggle) {
+toggle.addEventListener("change", function () {
+const current =
+window.Store.state.settings.reminder || { enabled: false, time: "20:00" };
+window.Store.updateSettings({
+reminder: { enabled: toggle.checked, time: current.time }
+});
+if (toggle.checked && window.Reminder) {
+window.Reminder.requestPermission(function (result) {
+const statusEl = document.getElementById("reminderPermStatus");
+if (statusEl) statusEl.textContent = reminderPermLabel(result);
+});
+}
+});
+}
+if (timeInput) {
+timeInput.addEventListener("change", function () {
+const current =
+window.Store.state.settings.reminder || { enabled: false, time: "20:00" };
+window.Store.updateSettings({
+reminder: { enabled: current.enabled, time: timeInput.value || "20:00" }
+});
+});
+}
+}
+function openHelpModal() {
+if (!window.UI || !window.UI.modal) return;
+const rows = [
+["N", L("وظیفهٔ جدید", "New task")],
+["H", L("تب عادت‌ها", "Habits tab")],
+["T", L("تغییر پوسته", "Cycle theme")],
+["S", L("کارت استریک", "Streak card")],
+["L", L("تغییر زبان", "Toggle language")],
+["M", L("ابزارها", "Tools")],
+["/", L("جستجو", "Search")],
+["1-6", L("رفتن به تب‌ها", "Switch tabs")]
+];
+const html =
+'<div class="modal-section-title">⌨️ ' + L("کلیدهای میان‌بر", "Keyboard shortcuts") + "</div>" +
+rows.map(function (row) {
+return (
+'<div class="modal-item">' +
+'<div class="item-left"><span class="modal-tag">' + row[0] + "</span></div>" +
+'<span class="item-name">' + row[1] + "</span>" +
+"</div>"
+);
+}).join("") +
+'<div class="sc-actions" style="margin-top:18px">' +
+'<button class="btn btn-ghost" data-action="close-modal">' + window.I18N.t("common.close") + "</button>" +
+"</div>";
+const content = window.UI.modal.open(window.I18N.t("common.help"), html);
+if (!content) return;
+const closeBtn = content.querySelector('[data-action="close-modal"]');
+if (closeBtn) {
+closeBtn.addEventListener("click", function () {
+window.UI.modal.close();
+});
+}
+}
 
 /* ------------------------------
 Mobile FAB
