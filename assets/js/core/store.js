@@ -1625,6 +1625,18 @@ notify("meta:backup");
     }
   }
 
+function resetAll() {
+state.tasks = [];
+state.habits = [];
+state.logs = {};
+state.trash = {
+tasks: [],
+habits: []
+};
+saveState();
+notify("reset");
+}
+   
   /* ------------------------------
      Init + expose
   ------------------------------ */
@@ -1712,3 +1724,4 @@ pruneOrphanLogs,
 purgeExpiredTrash,
 getTrashSummary
 };
+})();
