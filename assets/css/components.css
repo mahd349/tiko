@@ -1263,7 +1263,7 @@ label {
 }
 
 .line-chart-dot:hover {
-  r: 7;
+r: 7px;
 }
 
 .chart-tooltip {
