@@ -1048,6 +1048,7 @@ const html =
 '<button class="btn btn-ghost" data-action="restore">📤 ' + window.I18N.t("common.restore") + "</button>" +
 '<button class="btn btn-danger" data-action="reset">🗑️ ' + window.I18N.t("common.reset") + "</button>" +
 '<button class="btn btn-ghost" data-action="open-transfer">🔗 ' + window.I18N.t("transfer.title") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-pomodoro">🍅 ' + window.I18N.t("pomodoro.title") + "</button>" +
 '<button class="btn btn-ghost" data-action="open-help">❓ ' + window.I18N.t("common.help") + "</button>" +
 '<a class="btn btn-ghost" href="rahnama/">📚 ' + window.I18N.t("common.articles") + "</a>" +
 "</div>";
@@ -1726,7 +1727,10 @@ return;
     if (action === "open-transfer") {
   if (window.Transfer && window.Transfer.open) window.Transfer.open();
 }
-       
+       if (action === "open-pomodoro") {
+  window.UI.modal.close();
+  if (window.Pomodoro && window.Pomodoro.open) window.Pomodoro.open();
+}
       if (action === "open-help") {
         window.UI.modal.close();
         openHelpModal();
@@ -1842,6 +1846,10 @@ if (action === "fab-task") {
 if (action === "fab-habit") {
   closeFabMenu();
   openMobileHabitForm();
+}
+       if (action === "fab-pomodoro") {
+  closeFabMenu();
+  if (window.Pomodoro && window.Pomodoro.open) window.Pomodoro.open();
 }
     });
   }
