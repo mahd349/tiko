@@ -724,6 +724,7 @@ list.innerHTML =
 '<div class="empty-state-icon">📭</div>' +
 '<div class="empty-state-text">' + window.I18N.t("tasks.emptyTitle") + "</div>" +
 '<div class="empty-state-sub">' + window.I18N.t("tasks.emptySub") + "</div>" +
+'<button class="btn btn-primary btn-sm" data-action="focus-task-form">' + window.I18N.t("tasks.newBtn") + "</button>" +
 "</div>";
 return;
 }
@@ -912,6 +913,11 @@ enableTaskSwipe(box);
         remove(id);
       }
 
+      if (action === "focus-task-form") {
+var taskInput = el("taskInput");
+if (taskInput) taskInput.focus();
+}
+       
       if (action === "clear-done") {
         clearDone();
       }
