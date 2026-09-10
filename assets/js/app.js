@@ -1070,6 +1070,9 @@ if (statusEl) statusEl.textContent = reminderPermLabel(result);
 });
 }
 });
+   if (window.WaveBg && window.WaveBg.injectIntoToolsModal) {
+window.WaveBg.injectIntoToolsModal(content);
+}
 }
 if (timeInput) {
 timeInput.addEventListener("change", function () {
@@ -1453,6 +1456,12 @@ function closeMobileHabitForm() {
    setText(".faq-section h2", "landing.faq");
 
     /* Auth */
+     if (window.WaveBg && window.WaveBg.injectIntoToolsModal) {
+var modalContent = document.getElementById("modalContent");
+if (modalContent && modalContent.offsetParent !== null) {
+window.WaveBg.injectIntoToolsModal(modalContent);
+}
+}
     if (window.Auth && window.Auth.render) {
       window.Auth.render();
     }
