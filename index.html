@@ -607,6 +607,8 @@
       <p class="data-info">حجم فعلی: <strong id="storageSize">—</strong>. داده‌ها فقط در همین مرورگر ذخیره می‌شوند.</p>
       <div class="data-actions">
         <button class="btn btn-ghost btn-sm" id="csvBtn">📄 خروجی CSV</button>
+        <button class="btn btn-ghost btn-sm" id="reportCardBtn">🖼️ کارت گزارش</button>
+<button class="btn btn-ghost btn-sm" id="printReportBtn">🖨️ گزارش چاپی (PDF)</button>
         <button class="btn btn-ghost btn-sm" id="exportBtn">📥 دانلود پشتیبان</button>
         <button class="btn btn-ghost btn-sm" id="importBtn">📤 بازیابی</button>
         <button class="btn btn-danger btn-sm" id="resetBtn">🗑️ پاک‌کردن همه</button>
@@ -614,7 +616,7 @@
       <input type="file" id="importFile" accept=".json" style="display:none" aria-hidden="true">
     </div>
   </section>
-
+<div id="printReport" aria-hidden="true"></div>
   <!-- ===== FEEDBACK SECTION ===== -->
   <section class="feedback-section" aria-labelledby="feedbackHeading">
     <h2 id="feedbackHeading">نظرت را بگو</h2>
@@ -773,6 +775,7 @@
 <script src="assets/js/features/habits.js" defer></script>
 <script src="assets/js/features/stats.js" defer></script>
 <script src="assets/js/features/share-card.js" defer></script>
+<script src="assets/js/features/report-card.js" defer></script>
 <script src="assets/js/features/auth.js" defer></script>
 <script src="assets/js/features/transfer.js" defer></script>
 <script src="assets/js/features/reminder.js" defer></script>
