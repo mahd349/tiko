@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v7";
+const CACHE = "routine-v8";
 
 const CORE = [
   "/",
@@ -34,6 +34,16 @@ const CORE = [
    "/assets/js/features/notes.js",
   "/rahnama/styles.css",
   "/rahnama/index.html",
+   "/rahnama/chand-rooz-adat/",
+"/rahnama/ghanoon-do-daghighe/",
+"/rahnama/esterik-chist/",
+"/rahnama/barnamerizi-rooz-shamsi/",
+"/rahnama/technique-pomodoro/",
+"/rahnama/si-ideh-adat/",
+"/rahnama/khab-e-zood/",
+"/rahnama/ahmal-kari/",
+"/rahnama/afzayesh-tamarkoz/",
+"/rahnama/kholase-adat-haye-atomi/",
   "/en/index.html"
 ];
 
