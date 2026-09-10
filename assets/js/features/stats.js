@@ -532,12 +532,177 @@ drawTrend(keys, values);
     sizeEl.textContent = window.Utils.formatBytes(window.Store.storageSize());
   }
 
+   /* ------------------------------
+Breakdown + CSV (P10-2)
+------------------------------ */
+function rangeKeysSafe() {
+if (typeof rangeKeys === "function") return rangeKeys();
+const keys = [];
+for (let i = 29; i >= 0; i -= 1) {
+keys.push(window.Calendar.keyShift(-i));
+}
+return keys;
+}
+function computeHabitBreakdown(groupFn) {
+const keys = rangeKeysSafe();
+const groups = {};
+window.Store.state.habits.forEach(function (habit) {
+groups[groupFn(habit)] = { done: 0, total: 0 };
+});
+window.Store.state.habits.forEach(function (habit) {
+const g = groups[groupFn(habit)];
+keys.forEach(function (key) {
+if (!window.Store.habitExistedOn(habit, key)) return;
+if (window.Store.habitActiveOn && !window.Store.habitActiveOn(habit, key)) return;
+g.total += 1;
+if (window.Store.habitDone(habit, key)) g.done += 1;
+});
+});
+return groups;
+}
+function computeTaskBreakdown(groupFn) {
+const keySet = {};
+rangeKeysSafe().forEach(function (k) {
+keySet[k] = true;
+});
+const groups = {};
+window.Store.state.tasks.forEach(function (task) {
+if (!keySet[task.date]) return;
+const g = groupFn(task);
+if (!groups[g]) groups[g] = { done: 0, total: 0 };
+groups[g].total += 1;
+if (window.Store.isTaskDoneOnDate(task, task.date)) groups[g].done += 1;
+});
+return groups;
+}
+function breakdownRowsHTML(title, groups) {
+const entries = Object.keys(groups)
+.map(function (name) {
+return { name: name, done: groups[name].done, total: groups[name].total };
+})
+.filter(function (item) {
+return item.total > 0;
+})
+.sort(function (a, b) {
+return b.total - a.total;
+});
+if (!entries.length) return "";
+return (
+'<div class="bd-block">' +
+'<div class="bd-title">' + title + "</div>" +
+entries
+.map(function (item) {
+const pct = Math.round((item.done / item.total) * 100);
+return (
+'<div class="bd-row">' +
+'<span class="bd-name">' + window.Utils.escapeHtml(item.name) + "</span>" +
+'<div class="bd-bar"><span style="width:' + pct + '%"></span></div>' +
+'<span class="bd-val">' + window.I18N.percent(pct) + " (" + window.I18N.faNum(item.done) + "/" + window.I18N.faNum(item.total) + ")</span>" +
+"</div>"
+);
+})
+.join("") +
+"</div>"
+);
+}
+function renderBreakdown() {
+const wrap = el("statsBreakdown");
+if (!wrap) return;
+const habits = window.Store.state.habits;
+const tasks = window.Store.state.tasks;
+if (!habits.length && !tasks.length) {
+wrap.innerHTML = "";
+return;
+}
+let html = "";
+if (habits.length) {
+html += breakdownRowsHTML(
+L("به تفکیک دستهٔ عادت", "By habit category"),
+computeHabitBreakdown(function (h) {
+return window.I18N.t("category." + h.category);
+})
+);
+html += breakdownRowsHTML(
+L("به تفکیک نوع عادت", "By habit type"),
+computeHabitBreakdown(function (h) {
+return window.I18N.t(h.type === "checkbox" ? "habits.typeCheckbox" : h.type === "timer" ? "habits.typeTimer" : "habits.typeNumber");
+})
+);
+}
+if (tasks.length) {
+html += breakdownRowsHTML(
+L("به تفکیک پروژه (وظایف)", "By project (tasks)"),
+computeTaskBreakdown(function (task) {
+const p = task.projectId && window.Store.getProjectById ? window.Store.getProjectById(task.projectId) : null;
+return p ? p.name : L("بدون پروژه", "No project");
+})
+);
+html += breakdownRowsHTML(
+L("به تفکیک برچسب (وظایف)", "By tag (tasks)"),
+computeTaskBreakdown(function (task) {
+return task.tags && task.tags.length ? task.tags.join("، ") : L("بدون برچسب", "No tag");
+})
+);
+}
+wrap.innerHTML = html || '<p class="chart-total">' + L("داده‌ای برای تفکیک نیست", "No data to break down") + "</p>";
+}
+function csvEscape(value) {
+const text = String(value == null ? "" : value);
+if (/[",\n]/.test(text)) {
+return '"' + text.split('"').join('""') + '"';
+}
+return text;
+}
+function exportCSV() {
+const rows = [];
+rows.push(["# ROUTINE CSV EXPORT", window.Calendar.todayKey()]);
+rows.push([]);
+rows.push(["[tasks]"]);
+rows.push(["id", "name", "date", "priority", "done", "project", "tags"]);
+window.Store.state.tasks.forEach(function (task) {
+const p = task.projectId && window.Store.getProjectById ? window.Store.getProjectById(task.projectId) : null;
+rows.push([task.id, task.name, task.date, task.priority, task.done ? 1 : 0, p ? p.name : "", (task.tags || []).join("|")]);
+});
+rows.push([]);
+rows.push(["[habits]"]);
+rows.push(["id", "name", "category", "type", "goal", "project", "tags"]);
+window.Store.state.habits.forEach(function (habit) {
+const p = habit.projectId && window.Store.getProjectById ? window.Store.getProjectById(habit.projectId) : null;
+rows.push([habit.id, habit.name, habit.category, habit.type, habit.goal, p ? p.name : "", (habit.tags || []).join("|")]);
+});
+rows.push([]);
+rows.push(["[logs]"]);
+rows.push(["date", "habitId", "habitName", "checked", "value", "seconds"]);
+Object.keys(window.Store.state.logs)
+.sort()
+.forEach(function (dateKey) {
+const day = window.Store.state.logs[dateKey];
+Object.keys(day).forEach(function (habitId) {
+const log = day[habitId];
+const habit = window.Store.state.habits.find(function (h) {
+return String(h.id) === String(habitId);
+});
+rows.push([dateKey, habitId, habit ? habit.name : "", log.checked ? 1 : 0, log.value || 0, log.seconds || 0]);
+});
+});
+const csv =
+"\uFEFF" +
+rows
+.map(function (row) {
+return row.map(csvEscape).join(",");
+})
+.join("\r\n");
+window.Utils.downloadText("routine-export-" + window.Calendar.todayKey() + ".csv", csv, "text/csv");
+toast(L("📄 خروجی CSV دانلود شد", "📄 CSV exported"), "success");
+}
+   
  function render() {
 renderRangeBar();
 renderStatsGrid();
 renderInsights();
-    renderWeeklyChart();
-    renderTrendChart();
+    renderBreakdown();
+renderWeeklyChart();
+renderTrendChart();
     renderIndividualCharts();
     renderStorageSize();
   }
@@ -786,6 +951,10 @@ event.target.value = "";
     if (resetBtn) {
       resetBtn.addEventListener("click", confirmReset);
     }
+     const csvBtn = el("csvBtn");
+if (csvBtn) {
+csvBtn.addEventListener("click", exportCSV);
+}
      const rangeBar = el("statsRange");
 if (rangeBar) {
 rangeBar.addEventListener("click", function (event) {
