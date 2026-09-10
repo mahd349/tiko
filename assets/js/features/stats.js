@@ -735,11 +735,11 @@ function restoreFromPreview(withBackup) {
 }
 
 function exportBackup() {
-const filename = "routine-backup-" + window.Calendar.todayKey() + ".json";
-const data = JSON.stringify(window.Store.exportData(), null, 2);
-window.Utils.downloadText(filename, data, "application/json");
-window.Store.markBackup();
-toast(window.I18N.t("common.backup") + " ✅", "success");
+  const filename = "routine-backup-" + window.Calendar.todayKey() + ".json";
+  const data = JSON.stringify(window.Store.exportData(), null, 2);
+  window.Utils.downloadText(filename, data, "application/json");
+  window.Store.markBackup();
+  toast(window.I18N.t("common.backup") + " ✅", "success");
 }
 function openBackupPreview(preview) {
 if (!window.UI || !window.UI.modal) return;
