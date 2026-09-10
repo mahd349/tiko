@@ -580,14 +580,6 @@ state.settings = clone(normalized.settings);
 state.trash = clone(normalized.trash);
 state.meta = normalizeMeta(normalized.meta);
 state.projects = clone(normalized.projects || []);
-saveState();
-
-if (window.I18N) {
-window.I18N.setLang(state.settings.lang, false);
-}
-
-document.documentElement.setAttribute("data-theme", state.settings.theme);
-notify("import");
 
 return {
 tasks: state.tasks.length,
@@ -1521,18 +1513,6 @@ function importData(raw) {
   return commitImport(normalized);
 }
 
-  function resetAll() {
-    state.tasks = [];
-    state.habits = [];
-    state.logs = {};
-    state.trash = {
-      tasks: [],
-      habits: []
-    };
-
-    saveState();
-    notify("reset");
-  }
 
  function updateSettings(patch) {
 patch = patch || {};
