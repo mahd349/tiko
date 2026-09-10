@@ -98,7 +98,10 @@
       );
     }
   }
-
+function applyAnimationsPref() {
+const on = !window.Store || window.Store.state.settings.animations !== false;
+document.documentElement.setAttribute("data-animations", on ? "on" : "off");
+}
   function applyTheme(theme) {
     if (THEMES.indexOf(theme) === -1) {
       theme = "aurora";
@@ -2011,7 +2014,13 @@ if (action === "fab-habit") {
   ------------------------------ */
 
   function init() {
-    applyTheme(window.Store.state.settings.theme);
+    applyAnimationsPref();
+applyTheme(window.Store.state.settings.theme);
+window.Store.subscribe(function (action) {
+if (action === "settings:update" || action === "import") {
+applyAnimationsPref();
+}
+});
 
     bindSidebar();
     bindGlobalClicks();
