@@ -286,8 +286,9 @@ html[data-theme="dark"] {
 }
 
 html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
+scroll-behavior: smooth;
+text-size-adjust: 100%;
+-webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -415,39 +416,23 @@ ol {
 }
 
 .orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.9;
-  animation: orbFloat 18s ease-in-out infinite alternate;
+position: absolute;
+border-radius: 50%;
+opacity: 0.85;
+will-change: transform;
+backface-visibility: hidden;
+animation: orbFloat 22s ease-in-out infinite alternate;
 }
 
 .orb-1 {
-  width: 360px;
-  height: 360px;
-  background: var(--orb-1);
-  top: -80px;
-  inset-inline-start: -70px;
+background: radial-gradient(circle at 50% 50%, var(--orb-1) 0%, rgba(0, 0, 0, 0) 70%);
 }
-
 .orb-2 {
-  width: 300px;
-  height: 300px;
-  background: var(--orb-2);
-  top: 18%;
-  inset-inline-end: -60px;
-  animation-delay: -4s;
+background: radial-gradient(circle at 50% 50%, var(--orb-2) 0%, rgba(0, 0, 0, 0) 70%);
 }
-
 .orb-3 {
-  width: 340px;
-  height: 340px;
-  background: var(--orb-3);
-  bottom: -100px;
-  inset-inline-start: 32%;
-  animation-delay: -8s;
+background: radial-gradient(circle at 50% 50%, var(--orb-3) 0%, rgba(0, 0, 0, 0) 70%);
 }
-
 @keyframes orbFloat {
   0% {
     transform: translate3d(0, 0, 0) scale(1);
@@ -1407,6 +1392,14 @@ html[dir="ltr"] .nav-item:hover {
   .site-footer {
     padding-bottom: calc(28px + env(safe-area-inset-bottom));
   }
+}
+/* کلید خاموش‌کردن انیمیشن‌های بی‌پایان */
+html[data-animations="off"] .orb,
+html[data-animations="off"] .hero-bg,
+html[data-animations="off"] .bg-grid,
+html[data-animations="off"] .animated-bg-canvas {
+animation: none !important;
+transition: none !important;
 }
 /* ==== COMPACT DENSITY PATCH ==== */
 :root { --sidebar-width: 240px; }
