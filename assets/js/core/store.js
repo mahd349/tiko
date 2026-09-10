@@ -314,6 +314,11 @@ function getProjectById(id) {
     return String(p.id) === String(id);
   }) || null;
 }
+
+function normalizeHabitType(value) {
+if (value === "timer" || value === "number") return value;
+return "checkbox";
+}
    
 function normalizeHabit(raw) {
   raw = raw || {};
@@ -580,7 +585,12 @@ state.settings = clone(normalized.settings);
 state.trash = clone(normalized.trash);
 state.meta = normalizeMeta(normalized.meta);
 state.projects = clone(normalized.projects || []);
-
+saveState();
+if (window.I18N) {
+window.I18N.setLang(state.settings.lang, false);
+}
+document.documentElement.setAttribute("data-theme", state.settings.theme);
+notify("import");
 return {
 tasks: state.tasks.length,
 habits: state.habits.length,
@@ -1505,9 +1515,9 @@ return {
     .filter(function (item) {
       return item && window.Utils.sanitizeText(item.name, 1).length > 0;
     })
-    .map(normalizeProject)
+.map(normalizeProject)
 };
-
+}
 function importData(raw) {
   const normalized = validateBackup(raw);
   return commitImport(normalized);
@@ -1528,10 +1538,16 @@ patch.reminder
 }
 
 state.settings = normalizeSettings(merged);
-
-
-
- function markBackup(type = "manual") {
+saveState();
+if (window.I18N && patch.lang) {
+window.I18N.setLang(state.settings.lang, false);
+}
+if (patch.theme) {
+document.documentElement.setAttribute("data-theme", state.settings.theme);
+}
+notify("settings:update");
+}
+function markBackup(type = "manual") {
 state.meta.lastBackupAt = new Date().toISOString();
 state.meta.lastBackupType = type;
 saveState();
