@@ -945,7 +945,8 @@ window.I18N.faNum(doneCount) + " / " + window.I18N.faNum(activeHabits.length);
         '<div class="empty-state-icon">🔥</div>' +
         '<div class="empty-state-text">' + window.I18N.t("habits.emptyTitle") + "</div>" +
         '<div class="empty-state-sub">' + window.I18N.t("habits.emptySub") + "</div>" +
-        "</div>";
+'<button class="btn btn-primary btn-sm" data-action="focus-habit-form">' + window.I18N.t("habits.formTitle") + "</button>" +
+"</div>";
       return;
     }
 
@@ -1164,6 +1165,11 @@ enableHabitSwipe(box);
         edit(id);
       }
 
+     if (action === "focus-habit-form") {
+var habitInput = el("habitName");
+if (habitInput) habitInput.focus();
+}
+       
       if (action === "delete-habit") {
         remove(id);
       }
