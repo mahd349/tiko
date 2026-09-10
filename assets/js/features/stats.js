@@ -704,7 +704,8 @@ renderInsights();
 renderWeeklyChart();
 renderTrendChart();
     renderIndividualCharts();
-    renderStorageSize();
+renderStorageSize();
+renderReportButtons();
   }
 
 function restoreFromPreview(withBackup) {
@@ -927,7 +928,85 @@ event.target.value = "";
       });
     }
   }
-
+/* ------------------------------
+Print report (P10-3)
+------------------------------ */
+function renderReportButtons() {
+const rc = el("reportCardBtn");
+const pr = el("printReportBtn");
+if (rc) rc.textContent = "🖼️ " + L("کارت گزارش", "Report card");
+if (pr) pr.textContent = "🖨️ " + L("گزارش چاپی (PDF)", "Print report (PDF)");
+}
+function renderPrintReport() {
+const wrap = el("printReport");
+if (!wrap) return;
+const keys = typeof rangeKeysSafe === "function"
+? rangeKeysSafe()
+: (function () {
+const out = [];
+for (let i = 29; i >= 0; i -= 1) out.push(window.Calendar.keyShift(-i));
+return out;
+})();
+const keySet = {};
+keys.forEach(function (k) {
+keySet[k] = true;
+});
+const tasks = window.Store.state.tasks.filter(function (t) {
+return keySet[t.date];
+});
+const doneTasks = tasks.filter(function (t) {
+return window.Store.isTaskDoneOnDate(t, t.date);
+}).length;
+let pctSum = 0;
+let pctDays = 0;
+let activeDays = 0;
+keys.forEach(function (key) {
+const score = window.Store.dayScore(key);
+if (score.total > 0) {
+pctSum += score.pct;
+pctDays += 1;
+}
+const day = window.Store.state.logs[key];
+if (day && Object.keys(day).length) activeDays += 1;
+});
+const completion = pctDays ? Math.round((pctSum / pctDays) * 100) : 0;
+let html =
+"<h1>" + window.I18N.t("app.name") + " — " + L("گزارش بازه", "Range report") + "</h1>" +
+"<p>" + L("بازه: ", "Range: ") + window.I18N.faNum(keys.length) + L(" روز تا ", " days up to ") + window.Calendar.keyToJalaliFull(window.Calendar.todayKey()) + "</p>" +
+"<h2>" + L("خلاصه", "Summary") + "</h2>" +
+"<ul>" +
+"<li>" + L("نرخ تکمیل میانگین: ", "Average completion: ") + window.I18N.percent(completion) + "</li>" +
+"<li>" + L("روزهای فعال: ", "Active days: ") + window.I18N.faNum(activeDays) + "</li>" +
+"<li>" + L("وظایف انجام‌شده: ", "Tasks done: ") + window.I18N.faNum(doneTasks) + " / " + window.I18N.faNum(tasks.length) + "</li>" +
+"</ul>" +
+"<h2>" + L("عملکرد عادت‌ها", "Habit performance") + "</h2>" +
+"<table><thead><tr>" +
+"<th>" + window.I18N.t("common.name") + "</th>" +
+"<th>" + window.I18N.t("common.category") + "</th>" +
+"<th>" + L("انجام", "Done") + "</th>" +
+"<th>" + L("روز فعال", "Active days") + "</th>" +
+"<th>" + window.I18N.t("stats.completion") + "</th>" +
+"</tr></thead><tbody>";
+window.Store.state.habits.forEach(function (habit) {
+let active = 0;
+let done = 0;
+keys.forEach(function (key) {
+if (!window.Store.habitExistedOn(habit, key)) return;
+if (window.Store.habitActiveOn && !window.Store.habitActiveOn(habit, key)) return;
+active += 1;
+if (window.Store.habitDone(habit, key)) done += 1;
+});
+if (!active) return;
+html +=
+"<tr><td>" + window.Utils.escapeHtml(habit.name) + "</td>" +
+"<td>" + window.Utils.escapeHtml(window.I18N.t("category." + habit.category)) + "</td>" +
+"<td>" + window.I18N.faNum(done) + "</td>" +
+"<td>" + window.I18N.faNum(active) + "</td>" +
+"<td>" + window.I18N.percent(Math.round((done / active) * 100)) + "</td></tr>";
+});
+html += "</tbody></table>";
+wrap.innerHTML = html;
+}
   function bind() {
     const exportBtn = el("exportBtn");
     const importBtn = el("importBtn");
@@ -951,6 +1030,13 @@ event.target.value = "";
     if (resetBtn) {
       resetBtn.addEventListener("click", confirmReset);
     }
+     const printBtn = el("printReportBtn");
+if (printBtn) {
+printBtn.addEventListener("click", function () {
+renderPrintReport();
+window.print();
+});
+}
      const csvBtn = el("csvBtn");
 if (csvBtn) {
 csvBtn.addEventListener("click", exportCSV);
