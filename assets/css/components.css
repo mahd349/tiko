@@ -2462,7 +2462,57 @@ TRANSFER MODAL (P9)
 
 
 
-
+/* ============================
+PRINT REPORT (P10-3)
+============================ */
+#printReport {
+display: none;
+}
+@media print {
+body * {
+visibility: hidden;
+}
+#printReport,
+#printReport * {
+visibility: visible;
+}
+#printReport {
+display: block;
+position: absolute;
+inset: 0;
+padding: 28px;
+background: #fff;
+color: #000;
+}
+#printReport h1 {
+font-size: 22px;
+margin-bottom: 6px;
+}
+#printReport h2 {
+font-size: 16px;
+margin: 18px 0 8px;
+}
+#printReport p,
+#printReport li {
+font-size: 13px;
+line-height: 1.9;
+}
+#printReport ul {
+list-style: disc;
+padding-inline-start: 18px;
+}
+#printReport table {
+width: 100%;
+border-collapse: collapse;
+font-size: 12px;
+}
+#printReport th,
+#printReport td {
+border: 1px solid #999;
+padding: 6px 8px;
+text-align: center;
+}
+}
    
    /* ============================
 RECURRENCE PICKER
