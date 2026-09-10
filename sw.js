@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v3";
+const CACHE = "routine-v4";
 
 const CORE = [
   "/",
@@ -22,6 +22,7 @@ const CORE = [
   "/assets/js/features/stats.js",
   "/assets/js/features/share-card.js",
    "/assets/js/features/game.js",
+   "/assets/js/features/pomodoro.js",
    "/assets/js/features/report-card.js",
   "/assets/js/features/auth.js",
    "/assets/js/features/reminder.js",
