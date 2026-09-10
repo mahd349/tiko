@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v4";
+const CACHE = "routine-v5";
 
 const CORE = [
   "/",
@@ -29,6 +29,7 @@ const CORE = [
   "/assets/js/ui/modal.js",
   "/assets/js/ui/toast.js",
   "/assets/js/app.js",
+   "/assets/js/features/wave-bg.js",
   "/rahnama/styles.css",
   "/rahnama/index.html",
   "/en/index.html"
