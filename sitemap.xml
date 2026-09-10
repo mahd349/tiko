@@ -1,135 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-
-  <!-- ===== صفحهٔ اصلی ===== -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://en-five-zeta.vercel.app/</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>daily</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="fa" href="https://en-five-zeta.vercel.app/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://en-five-zeta.vercel.app/en/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://en-five-zeta.vercel.app/"/>
   </url>
-
-  <!-- ===== بخش‌های اصلی اپ ===== -->
   <url>
-    <loc>https://en-five-zeta.vercel.app/#home</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>daily</changefreq>
+    <loc>https://en-five-zeta.vercel.app/en/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://en-five-zeta.vercel.app/rahnama/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://en-five-zeta.vercel.app/#tasks</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://en-five-zeta.vercel.app/#habits</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://en-five-zeta.vercel.app/#today</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://en-five-zeta.vercel.app/#calendar</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://en-five-zeta.vercel.app/#stats</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- ===== مقاله‌های آموزشی ===== -->
-  <url>
-    <loc>https://en-five-zeta.vercel.app/rahnama/</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://en-five-zeta.vercel.app/rahnama/chand-rooz-adat/</loc>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://en-five-zeta.vercel.app/rahnama/chand-rooz-adat/</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://en-five-zeta.vercel.app/rahnama/ghanoon-do-daghighe/</loc>
-    <lastmod>2026-01-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://en-five-zeta.vercel.app/rahnama/esterik-chist/</loc>
-    <lastmod>2026-01-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://en-five-zeta.vercel.app/rahnama/technique-pomodoro/</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://en-five-zeta.vercel.app/rahnama/barnamerizi-rooz-shamsi/</loc>
-    <lastmod>2026-01-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://en-five-zeta.vercel.app/rahnama/technique-pomodoro/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://en-five-zeta.vercel.app/rahnama/si-ideh-adat/</loc>
-    <lastmod>2026-01-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
-
-  <!-- ===== صفحات اطلاعاتی ===== -->
+  <url>
+    <loc>https://en-five-zeta.vercel.app/rahnama/khab-e-zood/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://en-five-zeta.vercel.app/rahnama/ahmal-kari/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://en-five-zeta.vercel.app/rahnama/afzayesh-tamarkoz/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://en-five-zeta.vercel.app/rahnama/kholase-adat-haye-atomi/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://en-five-zeta.vercel.app/about/</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://en-five-zeta.vercel.app/privacy/</loc>
-    <lastmod>2026-01-05</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://en-five-zeta.vercel.app/terms/</loc>
-    <lastmod>2026-01-05</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://en-five-zeta.vercel.app/contact/</loc>
-    <lastmod>2026-01-05</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
+    <priority>0.3</priority>
   </url>
-
-  <!-- ===== نسخهٔ انگلیسی (برای بخش ۴ ساخته می‌شود) ===== -->
-  <url>
-    <loc>https://en-five-zeta.vercel.app/en/</loc>
-    <lastmod>2026-01-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fa" href="https://en-five-zeta.vercel.app/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://en-five-zeta.vercel.app/en/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://en-five-zeta.vercel.app/"/>
-  </url>
-
 </urlset>
