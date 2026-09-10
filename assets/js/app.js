@@ -1559,37 +1559,34 @@ return;
 }
 
 if (action === "restore-trash-task") {
-  const id = actionEl.dataset.id;
-   const id = actionEl.dataset.id;
-  if (window.Store.restoreTask && id) {
-    window.Store.restoreTask(id);
-    window.UI.modal.close();
-    openTrashModal();
-    if (window.UI && window.UI.toast) {
-      window.UI.toast(window.I18N.t("toast.restored"), "success");
-    }
-    if (window.App && window.App.renderAll) {
-      window.App.renderAll();
-    }
-  }
-  return;
+const id = actionButton.dataset.id;
+if (window.Store.restoreTask) {
+window.Store.restoreTask(id);
+window.UI.modal.close();
+openTrashModal();
+if (window.UI && window.UI.toast) {
+window.UI.toast(window.I18N.t("toast.restored"), "success");
 }
-
+if (window.App && window.App.renderAll) {
+window.App.renderAll();
+}
+}
+return;
+}
 if (action === "restore-trash-habit") {
-const id = actionEl.dataset.id;
-  const id = actionEl.dataset.id;
-  if (window.Store.restoreHabit && id) {
-    window.Store.restoreHabit(id);
-    window.UI.modal.close();
-    openTrashModal();
-    if (window.UI && window.UI.toast) {
-      window.UI.toast(window.I18N.t("toast.restored"), "success");
-    }
-    if (window.App && window.App.renderAll) {
-      window.App.renderAll();
-    }
-  }
-  return;
+const id = actionButton.dataset.id;
+if (window.Store.restoreHabit) {
+window.Store.restoreHabit(id);
+window.UI.modal.close();
+openTrashModal();
+if (window.UI && window.UI.toast) {
+window.UI.toast(window.I18N.t("toast.restored"), "success");
+}
+if (window.App && window.App.renderAll) {
+window.App.renderAll();
+}
+}
+return;
 }
 window.UI.modal.close();
 openTrashModal();
