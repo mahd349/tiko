@@ -72,41 +72,205 @@
     return total;
   }
 
-  function renderStatsGrid() {
-    const grid = el("statsGrid");
-    if (!grid) return;
 
-    const tasks = window.Store.state.tasks;
-    const habits = window.Store.state.habits;
-
-    const doneTasks = tasks.filter(function (task) {
-      return task.done;
-    }).length;
-
-    const completionRate = tasks.length
-      ? Math.round((doneTasks / tasks.length) * 100)
-      : 0;
-
-    const activeDays = Object.keys(window.Store.state.logs).filter(function (dateKey) {
-      return Object.keys(window.Store.state.logs[dateKey] || {}).length;
-    }).length;
-
-    const bestStreak = habits.reduce(function (max, habit) {
-      return Math.max(max, window.Store.habitStreaks(habit).best);
-    }, 0);
-
-    const focusHours = totalFocusSeconds() / 3600;
-
-    grid.innerHTML =
-      box(window.I18N.faNum(tasks.length), window.I18N.t("stats.totalTasks")) +
-      box(window.I18N.faNum(doneTasks), window.I18N.t("stats.doneTasks")) +
-      box(window.I18N.percent(completionRate), window.I18N.t("stats.completion")) +
-      box(window.I18N.faNum(habits.length), window.I18N.t("stats.totalHabits")) +
-      box(window.I18N.faNum(activeDays), window.I18N.t("stats.activeDays")) +
-      box("🔥 " + window.I18N.faNum(bestStreak), window.I18N.t("stats.bestStreak")) +
-      box(window.I18N.faNum(focusHours.toFixed(1)), window.I18N.t("stats.focusHours"));
-  }
-
+let currentRange = 7;
+function rangeKeys() {
+const keys = [];
+const today = window.Calendar.todayKey();
+if (currentRange === "year") {
+const jy = window.Calendar.getToday("fa").jy;
+let cursor = window.Calendar.toKey(jy, 1, 1, "fa");
+let guard = 0;
+while (cursor <= today && guard < 400) {
+keys.push(cursor);
+cursor = window.Calendar.keyShift(1, cursor);
+guard += 1;
+}
+return keys;
+}
+const count = Math.min(365, Math.max(7, currentRange));
+for (let i = count - 1; i >= 0; i -= 1) {
+keys.push(window.Calendar.keyShift(-i));
+}
+return keys;
+}
+function renderRangeBar() {
+const bar = el("statsRange");
+if (!bar) return;
+const options = [
+{ value: "7", label: L("۷ روز", "7 days") },
+{ value: "30", label: L("۳۰ روز", "30 days") },
+{ value: "90", label: L("۹۰ روز", "90 days") },
+{ value: "year", label: L("امسال", "This year") }
+];
+bar.innerHTML = options
+.map(function (opt) {
+const active = String(currentRange) === opt.value;
+return (
+'<button class="filter-chip' + (active ? " active" : "") + '" data-range="' + opt.value + '" aria-pressed="' + active + '">' + opt.label + "</button>"
+);
+})
+.join("");
+}
+function renderInsights() {
+const wrap = el("statsInsights");
+if (!wrap) return;
+const keys = rangeKeys();
+const insights = [];
+let bestKey = null;
+let bestPct = -1;
+keys.forEach(function (key) {
+const score = window.Store.dayScore(key);
+if (score.total > 0 && score.pct > bestPct) {
+bestPct = score.pct;
+bestKey = key;
+}
+});
+if (bestKey) {
+insights.push({
+icon: "🏆",
+text:
+L("بهترین روز بازه: ", "Best day in range: ") +
+window.Calendar.keyToJalaliFull(bestKey) +
+L(" با ", " with ") +
+window.I18N.percent(Math.round(bestPct * 100)) +
+L(" تکمیل", " done")
+});
+}
+const last7 = [];
+const prev7 = [];
+for (let i = 0; i < 7; i += 1) last7.push(window.Calendar.keyShift(-i));
+for (let i = 7; i < 14; i += 1) prev7.push(window.Calendar.keyShift(-i));
+const avgOf = function (list) {
+return (
+list.reduce(function (sum, key) {
+return sum + window.Store.dayScore(key).pct;
+}, 0) / list.length
+);
+};
+const diff = Math.round((avgOf(last7) - avgOf(prev7)) * 100);
+insights.push({
+icon: diff >= 0 ? "📈" : "📉",
+text:
+L("این هفته نسبت به هفتهٔ قبل: ", "This week vs last week: ") +
+(diff >= 0 ? "+" : "") +
+window.I18N.faNum(diff) +
+L(" درصد", " points")
+});
+let topHabit = null;
+let topRate = -1;
+window.Store.state.habits.forEach(function (habit) {
+let active = 0;
+let done = 0;
+keys.forEach(function (key) {
+if (!window.Store.habitExistedOn(habit, key)) return;
+if (window.Store.habitActiveOn && !window.Store.habitActiveOn(habit, key)) return;
+active += 1;
+if (window.Store.habitDone(habit, key)) done += 1;
+});
+if (active >= 3) {
+const rate = done / active;
+if (rate > topRate) {
+topRate = rate;
+topHabit = habit;
+}
+}
+});
+if (topHabit) {
+insights.push({
+icon: "🔥",
+text:
+L("منظم‌ترین عادت بازه: ", "Most consistent habit: ") +
+topHabit.name +
+L(" با ", " with ") +
+window.I18N.percent(Math.round(topRate * 100)) +
+L(" انجام", " completion")
+});
+}
+const overdue = window.Store.state.tasks.filter(function (task) {
+return !task.done && task.date < window.Calendar.keyShift(-5);
+}).length;
+if (overdue) {
+insights.push({
+icon: "⚠️",
+text:
+window.I18N.faNum(overdue) +
+L(" وظیفه بیش از ۵ روز عقب افتاده‌اند — چند تا را حذف کن یا زمان دوباره بده.", " tasks are over 5 days late — consider rescheduling or deleting some.")
+});
+}
+wrap.innerHTML = insights.length
+? '<div class="modal-section-title">💡 ' + L("بینش‌های این بازه", "Insights for this range") + "</div>" +
+insights
+.map(function (item) {
+return (
+'<div class="insight-card"><span class="insight-icon">' + item.icon + "</span><span>" +
+window.Utils.escapeHtml(item.text) +
+"</span></div>"
+);
+})
+.join("")
+: "";
+}
+   
+function renderStatsGrid() {
+const grid = el("statsGrid");
+if (!grid) return;
+const keys = rangeKeys();
+const keySet = {};
+keys.forEach(function (key) {
+keySet[key] = true;
+});
+const habits = window.Store.state.habits;
+const tasks = window.Store.state.tasks.filter(function (task) {
+return keySet[task.date];
+});
+const doneTasks = tasks.filter(function (task) {
+return task.done;
+}).length;
+const completionRate = keys.length
+? Math.round(
+(keys.reduce(function (sum, key) {
+return sum + window.Store.dayScore(key).pct;
+}, 0) /
+keys.length) *
+100
+)
+: 0;
+const activeDays = keys.filter(function (key) {
+const day = window.Store.state.logs[key];
+return day && Object.keys(day).length;
+}).length;
+const bestStreak = habits.reduce(function (max, habit) {
+return Math.max(max, window.Store.habitStreaks(habit).best);
+}, 0);
+const timerIds = {};
+habits.forEach(function (habit) {
+if (habit.type === "timer") timerIds[String(habit.id)] = true;
+});
+let seconds = 0;
+const today = window.Calendar.todayKey();
+keys.forEach(function (key) {
+const day = window.Store.state.logs[key];
+if (!day) return;
+Object.keys(day).forEach(function (habitId) {
+if (!timerIds[String(habitId)]) return;
+const log = day[habitId];
+if (key === today && log.startedAt) {
+seconds += window.Store.liveSeconds(habitId, log);
+} else {
+seconds += log.seconds || 0;
+}
+});
+});
+grid.innerHTML =
+box(window.I18N.faNum(tasks.length), window.I18N.t("stats.totalTasks")) +
+box(window.I18N.faNum(doneTasks), window.I18N.t("stats.doneTasks")) +
+box(window.I18N.percent(completionRate), window.I18N.t("stats.completion")) +
+box(window.I18N.faNum(habits.length), window.I18N.t("stats.totalHabits")) +
+box(window.I18N.faNum(activeDays), window.I18N.t("stats.activeDays")) +
+box("🔥 " + window.I18N.faNum(bestStreak), window.I18N.t("stats.bestStreak")) +
+box(window.I18N.faNum((seconds / 3600).toFixed(1)), window.I18N.t("stats.focusHours"));
+}
   function renderWeeklyChart() {
     const chart = el("weeklyChart");
     const totalEl = el("weeklyTotal");
@@ -266,20 +430,13 @@
     });
   }
 
-  function renderTrendChart() {
-    const month = [];
-
-    for (let i = 29; i >= 0; i -= 1) {
-      month.push(window.Calendar.keyShift(-i));
-    }
-
-    const values = month.map(function (dateKey) {
-      return window.Store.dayScore(dateKey).pct * 100;
-    });
-
-    drawTrend(month, values);
-  }
-
+function renderTrendChart() {
+const keys = rangeKeys();
+const values = keys.map(function (dateKey) {
+return window.Store.dayScore(dateKey).pct * 100;
+});
+drawTrend(keys, values);
+}
   function renderIndividualCharts() {
     const container = el("individualCharts");
     if (!container) return;
@@ -375,8 +532,10 @@
     sizeEl.textContent = window.Utils.formatBytes(window.Store.storageSize());
   }
 
-  function render() {
-    renderStatsGrid();
+ function render() {
+renderRangeBar();
+renderStatsGrid();
+renderInsights();
     renderWeeklyChart();
     renderTrendChart();
     renderIndividualCharts();
@@ -627,6 +786,16 @@ event.target.value = "";
     if (resetBtn) {
       resetBtn.addEventListener("click", confirmReset);
     }
+     const rangeBar = el("statsRange");
+if (rangeBar) {
+rangeBar.addEventListener("click", function (event) {
+const chip = event.target.closest("[data-range]");
+if (!chip) return;
+const value = chip.dataset.range;
+currentRange = value === "year" ? "year" : Math.max(7, parseInt(value, 10) || 7);
+render();
+});
+}
   }
 
   function init() {
