@@ -34,6 +34,20 @@
   --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.24);
 }
 
+:root {
+--space-1: 4px;
+--space-2: 8px;
+--space-3: 12px;
+--space-4: 16px;
+--space-5: 24px;
+--space-6: 32px;
+--space-7: 48px;
+--duration-fast: 150ms;
+--duration-base: 250ms;
+--duration-slow: 400ms;
+}
+
+
 /* ============================
    2. THEMES
 ============================ */
