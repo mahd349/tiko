@@ -1073,6 +1073,9 @@ if (statusEl) statusEl.textContent = reminderPermLabel(result);
    if (window.WaveBg && window.WaveBg.injectIntoToolsModal) {
 window.WaveBg.injectIntoToolsModal(content);
 }
+if (window.AnimatedBg && window.AnimatedBg.injectIntoToolsModal) {
+window.AnimatedBg.injectIntoToolsModal(content);
+}
 }
 if (timeInput) {
 timeInput.addEventListener("change", function () {
