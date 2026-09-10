@@ -21,9 +21,9 @@
   settings: "pd_settings",
   meta: "pd_meta",
   trash: "pd_trash",
-  projects: "pd_projects"
+  projects: "pd_projects",
+game: "pd_game"
 };
-
   const memory = new Map();
 
   const storage = (function () {
@@ -87,7 +87,11 @@ const state = {
     lastBackupAt: null,
     appId: "routine"
   },
-  projects: []
+ projects: [],
+game: {
+medals: {},
+challenges: []
+}
 };
 
   /* ------------------------------
@@ -599,7 +603,13 @@ days: Object.keys(state.logs).length
   /* ------------------------------
      Load / Save
   ------------------------------ */
-
+function normalizeGame(raw) {
+raw = raw || {};
+return {
+medals: window.Utils.isPlainObject(raw.medals) ? raw.medals : {},
+challenges: Array.isArray(raw.challenges) ? raw.challenges : []
+};
+}
 function loadState() {
 const rawMeta = loadJson(KEYS.meta, {});
 const oldSchemaVersion = Number(rawMeta.schemaVersion) || 1;
@@ -625,6 +635,7 @@ state.projects = (loadJson(KEYS.projects, []) || [])
     return item && window.Utils.sanitizeText(item.name, 1).length > 0;
   })
   .map(normalizeProject);
+   state.game = normalizeGame(loadJson(KEYS.game, {}));
 state.meta = normalizeMeta(rawMeta);
 
 if (oldSchemaVersion < 3) {
@@ -644,7 +655,8 @@ saveState();
     saveJson(KEYS.trash, state.trash);
    saveJson(KEYS.trash, state.trash);
 saveJson(KEYS.projects, state.projects);
-    saveJson(KEYS.meta, state.meta);
+saveJson(KEYS.game, state.game);
+saveJson(KEYS.meta, state.meta);
   }
 
   function subscribe(fn) {
