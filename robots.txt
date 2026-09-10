@@ -1,40 +1,4 @@
-# robots.txt for en-five-zeta.vercel.app (روتین)
-# Last updated: 2026-01
-
 User-agent: *
 Allow: /
-Allow: /rahnama/
-Allow: /about/
-Allow: /privacy/
-Allow: /terms/
-Allow: /contact/
 
-# Block static assets from crawling (save crawl budget)
-
-# Block API/internal paths
-Disallow: /api/
-Disallow: /*.json$
-
-# Allow important files
-Allow: /sitemap.xml
-Allow: /og-image.jpg
-Allow: /hero.jpg
-
-# Sitemap location
 Sitemap: https://en-five-zeta.vercel.app/sitemap.xml
-
-# Crawl-delay for polite bots
-User-agent: AhrefsBot
-Crawl-delay: 10
-
-User-agent: SemrushBot
-Crawl-delay: 10
-
-User-agent: DotBot
-Crawl-delay: 10
-
-User-agent: MJ12bot
-Disallow: /
-
-User-agent: BLEXBot
-Disallow: /
