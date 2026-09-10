@@ -2820,6 +2820,55 @@ pointer-events: none;
 }
 
    /* ============================
+NOTES (P13)
+============================ */
+.note-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.note-input {
+  min-height: 100px;
+  font-family: var(--font);
+  line-height: 1.8;
+  resize: vertical;
+}
+.note-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.note-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.note-result {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.note-result:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}
+.note-date {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.note-preview {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+   /* ============================
 WAVE BACKGROUND (UI OVERHAUL)
 ============================ */
 .wave-bg-container {
