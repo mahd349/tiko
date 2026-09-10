@@ -936,16 +936,24 @@ toggle(taskId);
 }
 }
 });
+}
+
 function init() {
-if (initialized) return;
-initialized = true;
-
-bind();
-initRecurrencePicker();
-
-var dateEl = el("taskDate");
-if (dateEl && !dateEl.value) {
-dateEl.value = window.Calendar.todayKey();
+  if (initialized) return;
+  initialized = true;
+  bind();
+  initRecurrencePicker();
+  var dateEl = el("taskDate");
+  if (dateEl && !dateEl.value) {
+    dateEl.value = window.Calendar.todayKey();
+  }
+  syncDateLabel();
 }
-syncDateLabel();
-}
+
+window.Tasks = {
+  render: render,
+  renderHome: renderHome,
+  renderToday: renderToday
+};
+window.Utils.onDomReady(init);
+})();
