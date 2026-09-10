@@ -2035,6 +2035,63 @@ border-radius: 22px 22px 0 0;
 padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
 }
 
+
+/* ============================
+BREAKDOWN (P10-2)
+============================ */
+.bd-block {
+margin-bottom: 18px;
+}
+.bd-block:last-child {
+margin-bottom: 0;
+}
+.bd-title {
+font-size: 13px;
+font-weight: 900;
+color: var(--text-2);
+margin-bottom: 10px;
+}
+.bd-row {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 8px;
+}
+.bd-name {
+flex: 0 0 110px;
+font-size: 12px;
+font-weight: 800;
+color: var(--text-2);
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.bd-bar {
+flex: 1;
+height: 8px;
+border-radius: 999px;
+background: var(--surface-2);
+border: 1px solid var(--border);
+overflow: hidden;
+}
+.bd-bar span {
+display: block;
+height: 100%;
+background: linear-gradient(90deg, var(--accent), var(--accent-2));
+border-radius: 999px;
+}
+.bd-val {
+flex: 0 0 auto;
+font-size: 11px;
+font-weight: 800;
+color: var(--text-3);
+}
+@media (max-width: 640px) {
+.bd-name {
+flex-basis: 80px;
+}
+}
+   
    /* ============================
 ACTIVE DAYS PICKER
 ============================ */
