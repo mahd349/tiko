@@ -417,6 +417,7 @@ window.Store.markBackup();
 toast(window.I18N.t("common.backup") + " ✅", "success");
 }
 function openBackupPreview(preview) {
+function openBackupPreview(preview) {
 if (!window.UI || !window.UI.modal) return;
 const file = preview.file;
 const current = preview.current;
