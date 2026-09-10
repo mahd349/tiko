@@ -211,7 +211,7 @@
       "modal.yesReset": "بله، پاک کن",
       "modal.backupFirst": "📥 اول پشتیبان",
       "modal.resetWarning": "تمام وظایف، عادت‌ها و تاریخچه برای همیشه پاک می‌شوند.",
-      "modal.resetTitle": "⚠️ پاک‌کردن همهٔ داده‌ها"
+      "modal.resetTitle": "⚠️ پاک‌کردن همهٔ داده‌ها",
        "share.title": "🔥 کارت استریک",
 "share.selectHabit": "انتخاب عادت",
 "share.download": "📥 دانلود تصویر",
@@ -239,11 +239,11 @@
 "backup.backupFirst": "📥 اول پشتیبان بگیر",
 "backup.restoreNow": "♻️ بازیابی کن",
 "backup.reminder": "۷ روز است پشتیبان نگرفته‌ای. داده‌هایت فقط روی همین مرورگر است.",
-"backup.reminderAction": "پشتیبان بگیر"
+"backup.reminderAction": "پشتیبان بگیر",
    "datepicker.today": "امروز",
 "datepicker.clear": "پاک کردن",
 "datepicker.invalid": "تاریخ واردشده نامعتبر است",
-"datepicker.placeholder": "مثلاً ۱۴۰۴/۱۱/۱۹"
+"datepicker.placeholder": "مثلاً ۱۴۰۴/۱۱/۱۹",
    "reminder.title": "یادآور روزانه",
 "reminder.enable": "فعال‌سازی یادآور",
 "reminder.time": "ساعت یادآوری",
@@ -494,7 +494,7 @@
       "modal.yesReset": "Yes, delete everything",
       "modal.backupFirst": "📥 Back up first",
       "modal.resetWarning": "All tasks, habits and history will be permanently deleted.",
-      "modal.resetTitle": "⚠️ Delete all data"
+      "modal.resetTitle": "⚠️ Delete all data",
    "share.title": "🔥 Streak card",
 "share.selectHabit": "Select habit",
 "share.download": "📥 Download image",
@@ -522,11 +522,11 @@
 "backup.backupFirst": "📥 Back up first",
 "backup.restoreNow": "♻️ Restore now",
 "backup.reminder": "You haven't backed up for 7 days. Your data exists only in this browser.",
-"backup.reminderAction": "Take backup"
+"backup.reminderAction": "Take backup",
    "datepicker.today": "Today",
 "datepicker.clear": "Clear",
 "datepicker.invalid": "The entered date is invalid",
-"datepicker.placeholder": "e.g. 1404/11/19"
+"datepicker.placeholder": "e.g. 1404/11/19",
 "reminder.title": "Daily reminder",
 "reminder.enable": "Enable reminder",
 "reminder.time": "Reminder time",
