@@ -295,6 +295,12 @@
 "pomodoro.focus": "فوکوس",
 "pomodoro.shortBreak": "استراحت کوتاه",
 "pomodoro.longBreak": "استراحت بلند"
+"bgAnim.title": "پس‌زمینه متحرک",
+"bgAnim.select": "انتخاب سبک",
+"bgAnim.off": "خاموش",
+"bgAnim.grid": "شبکه",
+"bgAnim.dots": "نقطه‌ها",
+"bgAnim.on": "انیمیشن روشن"
     },
 
     en: {
@@ -583,6 +589,12 @@
 "pomodoro.focus": "Focus",
 "pomodoro.shortBreak": "Short break",
 "pomodoro.longBreak": "Long break"
+"bgAnim.title": "Animated Background",
+"bgAnim.select": "Select style",
+"bgAnim.off": "Off",
+"bgAnim.grid": "Grid",
+"bgAnim.dots": "Dots",
+"bgAnim.on": "Animation on"
     }
   };
 
