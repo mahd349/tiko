@@ -301,6 +301,9 @@
 "bgAnim.grid": "شبکه",
 "bgAnim.dots": "نقطه‌ها",
 "bgAnim.on": "انیمیشن روشن"
+"notes.title": "یادداشت‌ها",
+"notes.today": "یادداشت امروز",
+"notes.search": "جستجوی یادداشت‌ها"
     },
 
     en: {
@@ -595,6 +598,9 @@
 "bgAnim.grid": "Grid",
 "bgAnim.dots": "Dots",
 "bgAnim.on": "Animation on"
+"notes.title": "Notes",
+"notes.today": "Today's note",
+"notes.search": "Search notes"
     }
   };
 
