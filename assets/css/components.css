@@ -2818,6 +2818,92 @@ inset: 0;
 z-index: 1500;
 pointer-events: none;
 }
+
+   /* ============================
+WAVE BACKGROUND (UI OVERHAUL)
+============================ */
+.wave-bg-container {
+position: fixed;
+inset: 0;
+z-index: -3;
+pointer-events: none;
+opacity: 0;
+transition: opacity 0.8s var(--ease);
+will-change: opacity;
+}
+.wave-bg-container.wave-bg-active {
+opacity: 1;
+}
+.wave-bg-canvas {
+display: block;
+width: 100%;
+height: 100%;
+}
+body.wave-bg-active .bg-orbs,
+body.wave-bg-active .bg-grid,
+body.wave-bg-active .bg-noise {
+opacity: 0.15;
+transition: opacity 0.8s var(--ease);
+}
+.wave-toggle-btn {
+position: fixed;
+bottom: calc(var(--mobile-nav-height, 0px) + 18px);
+inset-inline-end: 18px;
+z-index: 110;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 10px 14px;
+min-height: 42px;
+border: 1px solid var(--border);
+border-radius: 999px;
+background: color-mix(in srgb, var(--surface) 88%, transparent);
+color: var(--text-2);
+font-size: 12px;
+font-weight: 800;
+cursor: pointer;
+backdrop-filter: blur(14px);
+-webkit-backdrop-filter: blur(14px);
+box-shadow: var(--shadow-sm);
+transition: all 0.25s var(--ease);
+}
+.wave-toggle-btn:hover {
+color: var(--text);
+border-color: var(--accent-line);
+transform: translateY(-2px);
+box-shadow: var(--shadow-md);
+}
+.wave-toggle-btn.is-active {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff;
+border-color: transparent;
+box-shadow: 0 10px 28px var(--accent-glow);
+}
+.wave-toggle-icon {
+font-size: 16px;
+display: inline-block;
+}
+.wave-toggle-btn.is-active .wave-toggle-icon {
+animation: wavePulse 2.4s ease-in-out infinite;
+}
+@keyframes wavePulse {
+0%, 100% { transform: scale(1) rotate(0deg); }
+50% { transform: scale(1.2) rotate(180deg); }
+}
+.wave-modal-block {
+margin-bottom: 14px;
+}
+@media (max-width: 640px) {
+.wave-toggle-btn .wave-toggle-label {
+display: none;
+}
+.wave-toggle-btn {
+padding: 10px;
+width: 44px;
+height: 44px;
+justify-content: center;
+}
+}
    /* ============================
 RECURRENCE PICKER
 ============================ */
