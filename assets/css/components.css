@@ -2461,7 +2461,149 @@ TRANSFER MODAL (P9)
 }
 
 
-
+/* ============================
+POMODORO (P12)
+============================ */
+.pomo-wrap {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 14px;
+padding: 8px 4px;
+}
+.pomo-modes {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
+width: 100%;
+background: var(--surface);
+padding: 4px;
+border-radius: 14px;
+border: 1px solid var(--border);
+}
+.pomo-mode {
+padding: 10px 8px;
+border: 0;
+background: transparent;
+color: var(--text-2);
+font-weight: 800;
+font-size: 13px;
+border-radius: 10px;
+cursor: pointer;
+transition: all 0.2s var(--ease);
+line-height: 1.3;
+}
+.pomo-mode small {
+display: block;
+font-size: 10.5px;
+color: var(--text-3);
+font-weight: 700;
+margin-top: 2px;
+}
+.pomo-mode:hover {
+color: var(--text);
+background: var(--surface-2);
+}
+.pomo-mode.active {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff;
+box-shadow: 0 8px 18px var(--accent-glow);
+}
+.pomo-mode.active small {
+color: rgba(255, 255, 255, 0.82);
+}
+.pomo-time {
+font-size: clamp(64px, 16vw, 108px);
+font-weight: 900;
+letter-spacing: 2px;
+font-variant-numeric: tabular-nums;
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+-webkit-background-clip: text;
+background-clip: text;
+color: transparent;
+line-height: 1;
+margin: 8px 0 4px;
+}
+.pomo-status {
+font-size: 14px;
+font-weight: 800;
+color: var(--text-2);
+}
+.pomo-sessions {
+font-size: 12px;
+font-weight: 700;
+color: var(--accent);
+padding: 4px 12px;
+background: var(--accent-soft);
+border: 1px solid var(--accent-line);
+border-radius: 999px;
+}
+.pomo-actions {
+display: flex;
+gap: 10px;
+width: 100%;
+margin-top: 4px;
+}
+.pomo-actions .btn {
+flex: 1;
+min-height: 52px;
+font-size: 15px;
+}
+.pomo-options {
+width: 100%;
+margin-top: 14px;
+padding: 12px 14px;
+background: var(--surface-2);
+border: 1px solid var(--border);
+border-radius: 14px;
+font-size: 13px;
+font-weight: 700;
+}
+.pomo-options summary {
+cursor: pointer;
+color: var(--text-2);
+font-weight: 800;
+}
+.pomo-options-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 12px;
+margin-top: 14px;
+}
+.pomo-options-grid label {
+display: flex;
+flex-direction: column;
+gap: 6px;
+font-size: 12px;
+color: var(--text-2);
+font-weight: 700;
+}
+.pomo-options-grid .pomo-check {
+flex-direction: row;
+align-items: center;
+grid-column: span 2;
+cursor: pointer;
+}
+.pomo-options-grid .input {
+min-height: 40px;
+font-size: 13px;
+}
+.pomo-hint {
+font-size: 11.5px;
+color: var(--text-3);
+text-align: center;
+margin-top: 12px;
+line-height: 1.9;
+font-weight: 600;
+}
+@media (max-width: 480px) {
+.pomo-options-grid {
+grid-template-columns: 1fr;
+}
+.pomo-options-grid .pomo-check {
+grid-column: 1;
+}
+}
 /* ============================
 PRINT REPORT (P10-3)
 ============================ */
