@@ -319,12 +319,6 @@ function normalizeHabitType(value) {
 if (value === "timer" || value === "number") return value;
 return "checkbox";
 }
-
-
-function normalizeHabitType(value) {
-if (value === "timer" || value === "number") return value;
-return "checkbox";
-}
 function normalizeHabit(raw) {
   raw = raw || {};
   return {
@@ -1625,17 +1619,6 @@ notify("meta:backup");
     }
   }
 
-function resetAll() {
-state.tasks = [];
-state.habits = [];
-state.logs = {};
-state.trash = {
-tasks: [],
-habits: []
-};
-saveState();
-notify("reset");
-}
    
   /* ------------------------------
      Init + expose
