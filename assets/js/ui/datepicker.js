@@ -65,7 +65,7 @@ const months = window.Calendar.PERSIAN_MONTHS;
 for (let i = 0; i < months.length; i += 1) {
 if (text.indexOf(months[i]) !== -1) {
 const yearMatch = text.match(/\d{4}/);
-const dayMatch = text.match(/\d{1,2}/);
+const dayMatch = text.replace(/\d{4}/, " ").match(/\d{1,2}/);
 
 if (yearMatch && dayMatch) {
 return validateJalali(
