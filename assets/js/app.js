@@ -457,30 +457,42 @@ return (
       "</div>";
   }
 
-  function renderHomeBars() {
-    const box = el("homeBars");
-    if (!box) return;
-
-    const week = [];
-
-    for (let i = 6; i >= 0; i -= 1) {
-      week.push(window.Calendar.keyShift(-i));
-    }
-
-    box.innerHTML = week
-      .map(function (dateKey) {
-        const score = window.Store.dayScore(dateKey);
-        const percent = Math.round(score.pct * 100);
-
-        return (
-          '<div class="home-bar-col">' +
-          '<div class="home-bar" style="height:' + Math.max(6, Math.round(score.pct * 150)) + 'px"></div>' +
-          '<div class="home-bar-label">' + window.Calendar.keyToJalaliShort(dateKey) + "</div>" +
-          "</div>"
-        );
-      })
-      .join("");
-  }
+function renderHomeBars() {
+const box = el("homeBars");
+if (!box) return;
+const week = [];
+for (let i = 6; i >= 0; i -= 1) {
+week.push(window.Calendar.keyShift(-i));
+}
+const scores = week.map(function (dateKey) {
+return window.Store.dayScore(dateKey);
+});
+box.innerHTML = week
+.map(function (dateKey, index) {
+const score = scores[index];
+return (
+'<div class="home-bar-col">' +
+'<div class="home-bar" style="height:' + Math.max(6, Math.round(score.pct * 150)) + 'px"></div>' +
+'<div class="home-bar-label">' + window.Calendar.keyToJalaliShort(dateKey) + "</div>" +
+"</div>"
+);
+})
+.join("");
+const barsSummary = el("homeBarsSummary");
+if (barsSummary) {
+const avg = Math.round(
+(scores.reduce(function (sum, score) {
+return sum + score.pct;
+}, 0) /
+scores.length) *
+100
+);
+barsSummary.textContent = L(
+"میانگین تکمیل ۷ روز اخیر: " + window.I18N.percent(avg) + ".",
+"Average completion over the last 7 days: " + avg + "%."
+);
+}
+}
 
   function renderHomeMiniWeek() {
     const box = el("homeMiniWeek");
@@ -605,8 +617,31 @@ return (
       L("ساعت در ۳۰ روز", "Hours in 30 days") +
       "</text>" +
       "</svg>" +
-      '<div class="fd-legend">' + legend + "</div>";
-  }
+'<div class="fd-legend">' + legend + "</div>";
+const donutSummary = el("focusDonutSummary");
+if (donutSummary) {
+donutSummary.textContent = L(
+"توزیع زمان تمرکز در ۳۰ روز اخیر: " +
+data
+.map(function (item) {
+return item.habit.name + " " + window.I18N.percent(Math.round((item.seconds / total) * 100));
+})
+.join("، ") +
+"؛ مجموع " +
+window.I18N.faNum((total / 3600).toFixed(1)) +
+" ساعت.",
+"Focus time split over the last 30 days: " +
+data
+.map(function (item) {
+return item.habit.name + " " + Math.round((item.seconds / total) * 100) + "%";
+})
+.join(", ") +
+"; total " +
+(total / 3600).toFixed(1) +
+" hours."
+);
+}
+}
 
   function nextStepItem() {
 const today = window.Calendar.todayKey();
@@ -857,13 +892,19 @@ if (window.Notes && activeTab === "today") window.Notes.renderToday();
     const box = el("heatmap");
     if (!box) return;
 
-    let html = "";
-
-    for (let i = 181; i >= 0; i -= 1) {
-      const dateKey = window.Calendar.keyShift(-i);
-      const score = window.Store.dayScore(dateKey);
-
-      let style = "";
+let html = "";
+let activeDays = 0;
+let pctSum = 0;
+let pctDays = 0;
+for (let i = 181; i >= 0; i -= 1) {
+const dateKey = window.Calendar.keyShift(-i);
+const score = window.Store.dayScore(dateKey);
+if (score.total && !score.future) {
+pctSum += score.pct;
+pctDays += 1;
+if (score.pct > 0) activeDays += 1;
+}
+let style = "";
 
       if (score.total && !score.future && score.pct > 0) {
         style =
@@ -882,8 +923,24 @@ if (window.Notes && activeTab === "today") window.Notes.renderToday();
         "></div>";
     }
 
-    box.innerHTML = html;
-  }
+box.innerHTML = html;
+const heatSummary = el("heatmapSummary");
+if (heatSummary) {
+const avg = pctDays ? Math.round((pctSum / pctDays) * 100) : 0;
+heatSummary.textContent = L(
+"خلاصهٔ نقشهٔ حرارتی ۶ ماه اخیر: " +
+window.I18N.faNum(activeDays) +
+" روز فعال؛ میانگین تکمیل روزهای دارای برنامه " +
+window.I18N.percent(avg) +
+".",
+"Heatmap summary for the last 6 months: " +
+activeDays +
+" active days; average completion on planned days " +
+avg +
+"%."
+);
+}
+}
 
   function changeMonth(delta) {
     if (calView.jy === null || calView.lang !== window.I18N.lang) {
