@@ -595,7 +595,6 @@ total.toFixed(habit.type === "checkbox" ? 0 : 1) + unit +
             .join("") +
           "</div>" +
           "</div>"
-      
       })
       .join("");
   }
