@@ -2012,9 +2012,13 @@ if (action === "fab-habit") {
   /* ------------------------------
      Init
   ------------------------------ */
-
-  function init() {
-    applyAnimationsPref();
+function applyAnimationsPref() {
+const on = !window.Store || window.Store.state.settings.animations !== false;
+document.documentElement.setAttribute("data-animations", on ? "on" : "off");
+}
+   
+function init() {
+applyAnimationsPref();
 applyTheme(window.Store.state.settings.theme);
 window.Store.subscribe(function (action) {
 if (action === "settings:update" || action === "import") {
