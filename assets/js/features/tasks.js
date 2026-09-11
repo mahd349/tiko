@@ -902,7 +902,7 @@ enableTaskSwipe(box);
       const action = actionEl.dataset.action;
       const id = actionEl.dataset.id;
 
- if (action === "edit-task") {
+if (action === "edit-task") {
   edit(id);
 } else if (action === "expand-subtasks") {
   openSubtasksModal(id);
