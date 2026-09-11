@@ -253,7 +253,33 @@ function makeSwipeable(element, handlers) {
 
   element.addEventListener("touchcancel", reset, { passive: true });
 }
-   
+   const scriptPromises = {};
+function loadScript(src) {
+if (scriptPromises[src]) return scriptPromises[src];
+scriptPromises[src] = new Promise(function (resolve, reject) {
+const script = document.createElement("script");
+script.src = src;
+script.defer = true;
+script.onload = function () {
+resolve(src);
+};
+script.onerror = function () {
+delete scriptPromises[src];
+reject(new Error("Failed to load " + src));
+};
+document.head.appendChild(script);
+});
+return scriptPromises[src];
+}
+function onIdle(fn) {
+if (window.requestIdleCallback) {
+window.requestIdleCallback(function () {
+fn();
+}, { timeout: 4000 });
+} else {
+setTimeout(fn, 1200);
+}
+}
   window.Utils = {
     FA_DIGITS,
     toFa,
@@ -275,6 +301,8 @@ function makeSwipeable(element, handlers) {
     copyText,
     getCssVar,
    makeSwipeable,
-    onDomReady
+    onDomReady,
+     loadScript,
+onIdle
   };
 })();
