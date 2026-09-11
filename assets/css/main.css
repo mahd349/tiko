@@ -418,10 +418,10 @@ ol {
 .orb {
 position: absolute;
 border-radius: 50%;
-opacity: 0.85;
-will-change: transform;
-backface-visibility: hidden;
-animation: orbFloat 22s ease-in-out infinite alternate;
+opacity: 0.7;
+filter: none;
+animation: none;
+will-change: auto;
 }
 
 .orb-1 {
@@ -433,17 +433,7 @@ background: radial-gradient(circle at 50% 50%, var(--orb-2) 0%, rgba(0, 0, 0, 0)
 .orb-3 {
 background: radial-gradient(circle at 50% 50%, var(--orb-3) 0%, rgba(0, 0, 0, 0) 70%);
 }
-@keyframes orbFloat {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(30px, -28px, 0) scale(1.08);
-  }
-  100% {
-    transform: translate3d(-24px, 22px, 0) scale(0.96);
-  }
-}
+
 
 .bg-grid {
   position: absolute;
@@ -487,9 +477,7 @@ background: radial-gradient(circle at 50% 50%, var(--orb-3) 0%, rgba(0, 0, 0, 0)
   gap: 12px;
   padding: 10px 14px;
   padding-top: calc(10px + env(safe-area-inset-top));
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+background: color-mix(in srgb, var(--bg) 92%, transparent);
   border-bottom: 1px solid var(--border);
 }
 
@@ -595,8 +583,6 @@ background: radial-gradient(circle at 50% 50%, var(--orb-3) 0%, rgba(0, 0, 0, 0)
   flex-direction: column;
   gap: 28px;
   background: var(--sidebar-bg);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
   border-inline-end: 1px solid var(--border);
   overflow-y: auto;
   transition: transform 0.32s var(--ease), background 0.3s var(--ease),
@@ -742,18 +728,12 @@ html[dir="ltr"] .nav-item:hover {
 }
 
 .hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: url("../../hero.jpg"), var(--hero-gradient);
-  background-size: cover, cover;
-  background-position: center, center;
-  transform: scale(1.03);
-  transition: transform 8s ease;
-}
-
-.hero:hover .hero-bg {
-  transform: scale(1.09);
+position: absolute;
+inset: 0;
+z-index: 0;
+background-image: url("../../hero.jpg"), var(--hero-gradient);
+background-size: cover, cover;
+background-position: center, center;
 }
 
 .hero-bg::after {
@@ -790,13 +770,11 @@ html[dir="ltr"] .nav-item:hover {
   gap: 8px;
   padding: 8px 13px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 65%, transparent);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 12px;
   font-weight: 800;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   margin-bottom: 12px;
 }
 
@@ -818,10 +796,8 @@ html[dir="ltr"] .nav-item:hover {
   min-width: 160px;
   padding: 14px 18px;
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 68%, transparent);
+background: color-mix(in srgb, var(--surface) 88%, transparent);
   border: 1px solid var(--border);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow-sm);
   display: grid;
   gap: 4px;
@@ -1168,9 +1144,7 @@ html[dir="ltr"] .nav-item:hover {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+background: color-mix(in srgb, var(--bg) 94%, transparent);
   border-top: 1px solid var(--border);
 }
 
@@ -1434,6 +1408,13 @@ transition: none !important;
 .habit-name { font-size: 14px; }
 .stat-value { font-size: 20px; }
 .filter-chip { font-size: 11.5px; padding: 7px 12px; }
+
+body.wave-bg-active .modal-overlay,
+body.wave-bg-active .datepicker-popup,
+body.wave-bg-active .icon-picker-pop {
+backdrop-filter: none;
+-webkit-backdrop-filter: none;
+}
 /* Print */
 @media print {
   .bg-canvas,
