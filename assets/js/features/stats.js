@@ -271,34 +271,28 @@ box(window.I18N.faNum(activeDays), window.I18N.t("stats.activeDays")) +
 box("🔥 " + window.I18N.faNum(bestStreak), window.I18N.t("stats.bestStreak")) +
 box(window.I18N.faNum((seconds / 3600).toFixed(1)), window.I18N.t("stats.focusHours"));
 }
-  function renderWeeklyChart() {
-    const chart = el("weeklyChart");
-    const totalEl = el("weeklyTotal");
-
-    if (!chart) return;
-
-    const week = [];
-
-    for (let i = 6; i >= 0; i -= 1) {
-      week.push(window.Calendar.keyShift(-i));
-    }
-
-    const values = week.map(function (dateKey) {
-      return Math.round(window.Store.dayScore(dateKey).pct * 100);
-    });
-
-    chart.innerHTML = values
-      .map(function (value, index) {
-        return (
-          '<div class="chart-col">' +
-          '<div class="chart-bar-visual" style="height:' + Math.max(4, value * 1.5) + 'px" data-val="' +
-          window.I18N.percent(value) + '"></div>' +
-          '<span class="chart-label">' + window.Calendar.keyToJalaliShort(week[index]) + "</span>" +
-          "</div>"
-        );
-      })
-      .join("");
-
+function renderWeeklyChart() {
+const chart = el("weeklyChart");
+const totalEl = el("weeklyTotal");
+if (!chart) return;
+const week = [];
+for (let i = 6; i >= 0; i -= 1) {
+week.push(window.Calendar.keyShift(-i));
+}
+const values = week.map(function (dateKey) {
+return Math.round(window.Store.dayScore(dateKey).pct * 100);
+});
+chart.innerHTML = values
+.map(function (value, index) {
+return (
+'<div class="chart-col">' +
+'<div class="chart-bar-visual" style="height:' + Math.max(4, value * 1.5) + 'px" data-val="' +
+window.I18N.percent(value) + '"></div>' +
+'<span class="chart-label">' + window.Calendar.keyToJalaliShort(week[index]) + "</span>" +
+"</div>"
+);
+})
+.join("");
 const avg = Math.round(
 values.reduce(function (a, b) {
 return a + b;
@@ -314,35 +308,21 @@ values.forEach(function (value, index) {
 if (value > values[bestIndex]) bestIndex = index;
 });
 weeklySummary.textContent = L(
-"خلاصهٔ نمودار هفتگی: میانگین تکمیل " +
-window.I18N.percent(avg) +
-"؛ بهترین روز " +
-window.Calendar.keyToJalaliFull(week[bestIndex]) +
-" با " +
-window.I18N.percent(values[bestIndex]) +
-" تکمیل. روزها: " +
-week
-.map(function (key, index) {
+"خلاصهٔ نمودار هفتگی: میانگین تکمیل " + window.I18N.percent(avg) +
+"؛ بهترین روز " + window.Calendar.keyToJalaliFull(week[bestIndex]) +
+" با " + window.I18N.percent(values[bestIndex]) + " تکمیل. روزها: " +
+week.map(function (key, index) {
 return window.Calendar.keyToJalaliShort(key) + " " + window.I18N.percent(values[index]);
-})
-.join("، ") +
-".",
-"Weekly chart summary: average completion " +
-avg +
-"%; best day " +
-window.Calendar.keyToJalaliFull(week[bestIndex], "en") +
-" at " +
-values[bestIndex] +
+}).join("، ") + ".",
+"Weekly chart summary: average completion " + avg + "%; best day " +
+window.Calendar.keyToJalaliFull(week[bestIndex], "en") + " at " + values[bestIndex] +
 "%. Days: " +
-week
-.map(function (key, index) {
+week.map(function (key, index) {
 return window.Calendar.keyToJalaliShort(key, "en") + " " + values[index] + "%";
-})
-.join(", ") +
-"."
+}).join(", ") + "."
 );
 }
-  }
+}
 
   function drawTrend(keys, values) {
     const svg = el("trendChart");
@@ -482,24 +462,13 @@ values.forEach(function (value, index) {
 if (value > values[bestIndex]) bestIndex = index;
 });
 trendSummary.textContent = L(
-"خلاصهٔ نمودار روند: بازهٔ " +
-window.I18N.faNum(keys.length) +
-" روزه؛ میانگین تکمیل " +
-window.I18N.percent(avg) +
-"؛ بهترین روز " +
-window.Calendar.keyToJalaliFull(keys[bestIndex]) +
-" با " +
-window.I18N.percent(Math.round(values[bestIndex])) +
-".",
-"Trend chart summary: " +
-keys.length +
-"-day range; average completion " +
-avg +
-"%; best day " +
-window.Calendar.keyToJalaliFull(keys[bestIndex], "en") +
-" at " +
-Math.round(values[bestIndex]) +
-"%."
+"خلاصهٔ نمودار روند: بازهٔ " + window.I18N.faNum(keys.length) +
+" روزه؛ میانگین تکمیل " + window.I18N.percent(avg) +
+"؛ بهترین روز " + window.Calendar.keyToJalaliFull(keys[bestIndex]) +
+" با " + window.I18N.percent(Math.round(values[bestIndex])) + ".",
+"Trend chart summary: " + keys.length + "-day range; average completion " + avg +
+"%; best day " + window.Calendar.keyToJalaliFull(keys[bestIndex], "en") +
+" at " + Math.round(values[bestIndex]) + "%."
 );
 }
 }
@@ -607,6 +576,17 @@ streaks.current +
 " days; best " +
 streaks.best +
 " days."
+) +
+"</p>" +
+           '<p class="sr-only">' +
+L(
+"نمودار هفتگی " + habit.name + ": مجموع " +
+window.I18N.faNum(total.toFixed(habit.type === "checkbox" ? 0 : 1)) + unit +
+"؛ استریک فعلی " + window.I18N.days(streaks.current) +
+"؛ رکورد " + window.I18N.days(streaks.best) + ".",
+"Weekly chart for " + habit.name + ": total " +
+total.toFixed(habit.type === "checkbox" ? 0 : 1) + unit +
+"; current streak " + streaks.current + " days; best " + streaks.best + " days."
 ) +
 "</p>" +
 "</div>"
