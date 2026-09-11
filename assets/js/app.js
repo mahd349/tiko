@@ -940,7 +940,7 @@ return (
             window.Utils.escapeHtml(task.name) +
             "</span>" +
             "</div>" +
-            '<span class="modal-tag' + (task.done ? " done" : "") + '">' +
+            '<span class="modal-tag' + (taskDone ? " done" : "") + '">' +
             window.I18N.t(PRI_KEY[task.priority || "med"]) +
             "</span>" +
             "</div>"
