@@ -1202,6 +1202,14 @@ renderCatFilters();
 render();
 });
 }
-
+window.Habits = {
+  render: render,
+  renderHome: renderHome,
+  renderToday: renderToday,
+  renderCatFilters: renderCatFilters,
+  iconHTML: iconHTML
+};
+window.Utils.onDomReady(init);
+})();
   window.Utils.onDomReady(init);
 })();
