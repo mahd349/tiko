@@ -209,14 +209,7 @@ update();
 }
 
 function bind() {
-document.addEventListener("click", function (event) {
-var btn = event.target.closest("[data-action]");
-if (!btn) return;
-var action = btn.dataset.action;
-if (action === "search-notes") {
-openSearchModal();
-}
-});
+/* The "search-notes" action is handled by app.js, which lazy-loads this module. */
 }
 
 function init() {
