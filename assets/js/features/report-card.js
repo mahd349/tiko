@@ -296,8 +296,7 @@ window.UI.modal.close();
 render();
 }
 function init() {
-const btn = document.getElementById("reportCardBtn");
-if (btn) btn.addEventListener("click", open);
+/* Click binding lives in stats.js; this module loads on demand. */
 }
 window.ReportCard = { open: open };
 window.Utils.onDomReady(init);
