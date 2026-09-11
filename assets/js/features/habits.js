@@ -462,7 +462,48 @@ renderNewActiveDays();
 
     paint();
   }
-
+function parseTags(value) {
+return String(value || "")
+.split(/[،,]/)
+.map(function (tag) {
+return window.Utils.sanitizeText(tag.trim(), 30);
+})
+.filter(Boolean)
+.slice(0, 8);
+}
+function renderHabitProjectOptions() {
+const select = el("habitProject");
+if (!select) return;
+const current = select.value || "";
+select.innerHTML =
+'<option value="">' + window.I18N.t("projects.none") + "</option>" +
+window.Store.state.projects
+.map(function (project) {
+return '<option value="' + project.id + '">' + window.Utils.escapeHtml(project.name) + "</option>";
+})
+.join("");
+if (current && window.Store.getProjectById(current)) {
+select.value = current;
+}
+}
+function projectMetaHTML(habit) {
+if (!habit.projectId) return "";
+const project = window.Store.getProjectById(habit.projectId);
+if (!project) return "";
+return (
+'<span class="chip project-chip" style="background:' + project.color + '22;border-color:' + project.color + '44;color:' + project.color + '">' +
+window.Utils.escapeHtml(project.name) +
+"</span>"
+);
+}
+function tagsMetaHTML(habit) {
+if (!habit.tags || !habit.tags.length) return "";
+return habit.tags
+.map(function (tag) {
+return '<span class="tag-chip">' + window.Utils.escapeHtml(tag) + "</span>";
+})
+.join("");
+}
 function add() {
 const nameInput = el("habitName");
 const name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 80);
@@ -480,11 +521,15 @@ category: el("habitCategory") ? el("habitCategory").value : "personal",
 type: el("habitType") ? el("habitType").value : "checkbox",
 goal: parseFloat(el("habitGoal") ? el("habitGoal").value : 0) || 0,
 color: el("habitColor") ? el("habitColor").value : "#8b5cf6",
+projectId: el("habitProject") ? el("habitProject").value || null : null,
+tags: parseTags(el("habitTags") ? el("habitTags").value : ""),
 activeDays: newHabitActiveDays.slice()
 });
 
 if (nameInput) nameInput.value = "";
 if (el("habitGoal")) el("habitGoal").value = "";
+if (el("habitProject")) el("habitProject").value = "";
+if (el("habitTags")) el("habitTags").value = "";
 
 if (window.resetHabitIconPicker) {
 window.resetHabitIconPicker();
@@ -601,6 +646,13 @@ if (window.App && window.App.closeMobileHabitForm) {
     if (!habit || !window.UI || !window.UI.modal) return;
 
     const selectedIcon = normalizeIcon(habit.emoji);
+     const projectOptions =
+'<option value=""' + (!habit.projectId ? " selected" : "") + ">" + window.I18N.t("projects.none") + "</option>" +
+window.Store.state.projects
+.map(function (project) {
+return '<option value="' + project.id + '"' + (String(habit.projectId || "") === String(project.id) ? " selected" : "") + ">" + window.Utils.escapeHtml(project.name) + "</option>";
+})
+.join("");
 
     const html =
       '<div class="form-row">' +
@@ -636,6 +688,16 @@ if (window.App && window.App.closeMobileHabitForm) {
       '<input id="ehColor" type="color" class="input" value="' + habit.color + '">' +
       "</div>" +
       "</div>" +
+       '<div class="form-grid">' +
+'<div class="form-row">' +
+'<label for="ehProject">' + window.I18N.t("filter.project") + "</label>" +
+'<select id="ehProject" class="input">' + projectOptions + "</select>" +
+"</div>" +
+'<div class="form-row">' +
+'<label for="ehTags">' + window.I18N.t("tags.title") + "</label>" +
+'<input id="ehTags" class="input" maxlength="120" value="' + window.Utils.escapeHtml((habit.tags || []).join("، ")) + '">' +
+"</div>" +
+"</div>" +
       '<div class="form-row">' +
       "<label>" + window.I18N.t("common.icon") + "</label>" +
       '<div class="icon-picker-pop open" id="ehIcons" role="listbox" style="position:static;display:grid;width:100%;max-height:220px"></div>' +
@@ -661,7 +723,8 @@ window.I18N.t("habits.activeDaysTitle") +
     const hiddenIcon = content.querySelector("#ehEmoji");
     const iconGrid = content.querySelector("#ehIcons");
     const saveBtn = content.querySelector('[data-action="save-habit-edit"]');
-
+const projectSelect = content.querySelector("#ehProject");
+const tagsInput = content.querySelector("#ehTags");
      let selectedDays =
 Array.isArray(habit.activeDays) && habit.activeDays.length
 ? habit.activeDays.slice()
@@ -758,6 +821,8 @@ name: name,
 category: catSelect ? catSelect.value : habit.category,
 goal: parseFloat(goalInput ? goalInput.value : 0) || 0,
 color: colorInput ? colorInput.value : habit.color,
+projectId: projectSelect ? projectSelect.value || null : habit.projectId,
+tags: parseTags(tagsInput ? tagsInput.value : ""),
 emoji: hiddenIcon ? hiddenIcon.value : habit.emoji,
 activeDays: selectedDays.slice()
 });
@@ -825,9 +890,11 @@ activeDays: selectedDays.slice()
 activeDaysMetaHTML(habit) +
 streakHTML +
       (streaks.best > 0
-        ? "<span>" + window.I18N.t("habits.record") + " " + window.I18N.faNum(streaks.best) + "</span>"
-        : "") +
-      "</div>" +
+? "<span>" + window.I18N.t("habits.record") + " " + window.I18N.faNum(streaks.best) + "</span>"
+: "") +
+projectMetaHTML(habit) +
+tagsMetaHTML(habit) +
+"</div>" +
       (habit.goal > 0
         ? '<div class="goal-bar"><span data-goalbar-id="' + habit.id + '" style="width:' +
           Math.round(progress * 100) +
@@ -1185,20 +1252,31 @@ if (habitInput) habitInput.focus();
 
 function init() {
 if (initialized) return;
-
 initialized = true;
-
 buildCategoryOptions();
+renderHabitProjectOptions();
+var tagsField = el("habitTags");
+if (tagsField) {
+tagsField.placeholder = window.I18N.t("tags.formPlaceholder");
+tagsField.setAttribute("aria-label", window.I18N.t("tags.formPlaceholder"));
+}
 initIconPicker();
 initActiveDaysPicker();
 bind();
 renderCatFilters();
 startDayWatcher();
 ensureTick();
-
+window.Store.subscribe(function (action) {
+if (String(action).indexOf("project:") === 0) {
+renderHabitProjectOptions();
+}
+});
 document.addEventListener("i18n:changed", function () {
 renderNewActiveDays();
 renderCatFilters();
+renderHabitProjectOptions();
+var tags = el("habitTags");
+if (tags) tags.placeholder = window.I18N.t("tags.formPlaceholder");
 render();
 });
 }
