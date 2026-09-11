@@ -53,7 +53,29 @@
     med: 1,
     low: 2
   };
-
+const FEATURE_SCRIPTS = {
+pomodoro: "assets/js/features/pomodoro.js",
+transfer: "assets/js/features/transfer.js",
+share: "assets/js/features/share-card.js",
+notes: "assets/js/features/notes.js",
+report: "assets/js/features/report-card.js",
+game: "assets/js/features/game.js",
+wave: "assets/js/features/wave-bg.js",
+animated: "assets/js/features/animated-bg.js"
+};
+let notesRequested = false;
+function ensureFeature(key) {
+return window.Utils.loadScript(FEATURE_SCRIPTS[key]);
+}
+function ensureNotes() {
+notesRequested = true;
+return ensureFeature("notes");
+}
+function featureLoadFailed() {
+if (window.UI && window.UI.toast) {
+window.UI.toast(L("بارگذاری ماژول ناموفق بود؛ اتصال اینترنت را بررسی کن.", "Failed to load the module; check your connection."), "error");
+}
+}
   function el(id) {
     return document.getElementById(id);
   }
@@ -729,7 +751,13 @@ return window.Store.habitDone(habit);
   renderTodayStats();
   if (window.Tasks) window.Tasks.renderToday();
   if (window.Habits) window.Habits.renderToday();
-  if (window.Notes) window.Notes.renderToday();
+  if (window.Notes) {
+window.Notes.renderToday();
+} else if (!notesRequested) {
+ensureNotes().then(function () {
+if (window.Notes && activeTab === "today") window.Notes.renderToday();
+}).catch(function () {});
+}
 }
 
   /* ------------------------------
@@ -998,8 +1026,14 @@ return (
 }
 html += '<div class="modal-section-title">📝 ' + L("یادداشت", "Note") + "</div>";
 html += '<div id="calendarNoteView"></div>';
-    window.UI.modal.open(window.Calendar.keyToJalaliFull(dateKey), html);
-     if (window.Notes) window.Notes.renderCalendarNote(dateKey);
+window.UI.modal.open(window.Calendar.keyToJalaliFull(dateKey), html);
+if (window.Notes) {
+window.Notes.renderCalendarNote(dateKey);
+} else {
+ensureNotes().then(function () {
+if (window.Notes) window.Notes.renderCalendarNote(dateKey);
+}).catch(function () {});
+}
   }
 
   /* ------------------------------
@@ -1075,12 +1109,16 @@ if (statusEl) statusEl.textContent = reminderPermLabel(result);
 });
 }
 });
-   if (window.WaveBg && window.WaveBg.injectIntoToolsModal) {
+ensureFeature("wave").then(function () {
+if (window.WaveBg && window.WaveBg.injectIntoToolsModal && document.body.contains(content)) {
 window.WaveBg.injectIntoToolsModal(content);
 }
-if (window.AnimatedBg && window.AnimatedBg.injectIntoToolsModal) {
+}).catch(function () {});
+ensureFeature("animated").then(function () {
+if (window.AnimatedBg && window.AnimatedBg.injectIntoToolsModal && document.body.contains(content)) {
 window.AnimatedBg.injectIntoToolsModal(content);
 }
+}).catch(function () {});
 }
 if (timeInput) {
 timeInput.addEventListener("change", function () {
@@ -1733,20 +1771,27 @@ return;
         window.I18N.setLang(actionButton.dataset.lang);
       }
 
-      if (action === "open-share") {
-        window.UI.modal.close();
-
-        if (window.ShareCard) {
-          window.ShareCard.open();
-        }
-      }
-
-    if (action === "open-transfer") {
-  if (window.Transfer && window.Transfer.open) window.Transfer.open();
+if (action === "open-share") {
+window.UI.modal.close();
+ensureFeature("share").then(function () {
+if (window.ShareCard) window.ShareCard.open();
+}).catch(featureLoadFailed);
 }
-       if (action === "open-pomodoro") {
-  window.UI.modal.close();
-  if (window.Pomodoro && window.Pomodoro.open) window.Pomodoro.open();
+if (action === "open-transfer") {
+ensureFeature("transfer").then(function () {
+if (window.Transfer && window.Transfer.open) window.Transfer.open();
+}).catch(featureLoadFailed);
+}
+if (action === "open-pomodoro") {
+window.UI.modal.close();
+ensureFeature("pomodoro").then(function () {
+if (window.Pomodoro && window.Pomodoro.open) window.Pomodoro.open();
+}).catch(featureLoadFailed);
+}
+if (action === "search-notes") {
+ensureNotes().then(function () {
+if (window.Notes) window.Notes.openSearchModal();
+}).catch(featureLoadFailed);
 }
       if (action === "open-help") {
         window.UI.modal.close();
@@ -1956,12 +2001,12 @@ if (action === "fab-habit") {
         return;
       }
 
-      if (key === "s") {
-        if (window.ShareCard) {
-          window.ShareCard.open();
-        }
-        return;
-      }
+if (key === "s") {
+ensureFeature("share").then(function () {
+if (window.ShareCard) window.ShareCard.open();
+}).catch(featureLoadFailed);
+return;
+}
 
       if (key === "l") {
         window.I18N.toggleLang();
@@ -2035,6 +2080,11 @@ applyAnimationsPref();
     applyStaticTranslations();
     renderAll();
      maybeShowBackupReminder();
+   window.Utils.onIdle(function () {
+ensureFeature("game").catch(function () {});
+ensureFeature("wave").catch(function () {});
+ensureFeature("animated").catch(function () {});
+});
 
     clockTimer = setInterval(renderClock, 1000);
 
