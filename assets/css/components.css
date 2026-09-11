@@ -1896,6 +1896,7 @@ r: 7px;
   .modal-title {
     padding-inline: 34px;
   }
+}
    /* ============================
 DATE PICKER
 ============================ */
@@ -2034,7 +2035,7 @@ max-width: 100%;
 border-radius: 22px 22px 0 0;
 padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
 }
-
+   }
 
 /* ============================
 BREAKDOWN (P10-2)
@@ -3079,6 +3080,4 @@ flex-wrap: wrap;
 
 .dp-day {
 min-height: 42px;
-}
-}
 }
