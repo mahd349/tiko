@@ -206,17 +206,7 @@ ctx = canvas.getContext("2d");
 }
 
 function createButton() {
-if (document.getElementById("animBgBtn")) return;
-var btn = document.createElement("button");
-btn.id = "animBgBtn";
-btn.className = "anim-bg-toggle";
-btn.type = "button";
-btn.setAttribute("aria-label", "تغییر پس‌زمینه متحرک");
-btn.innerHTML =
-'<span class="anim-bg-icon">✨</span>' +
-'<span class="anim-bg-label">انیمیشن</span>';
-btn.addEventListener("click", toggle);
-document.body.appendChild(btn);
+/* Floating toggle removed by design; the control lives inside the tools modal. */
 }
 
 function updateButton() {
