@@ -7,10 +7,12 @@
 
   let initialized = false;
 
-  const state = {
-    filter: "all",
-    query: ""
-  };
+const state = {
+filter: "all",
+query: "",
+project: "all",
+tag: "all"
+};
 
   const PRI_COLOR = {
     high: "var(--danger)",
@@ -58,6 +60,24 @@ const WEEKDAY_SHORT_EN = ["Sa", "Su", "Mo", "Tu", "We", "Th", "Fr"];
       renderToday();
     }
   }
+   function parseTags(value) {
+return String(value || "")
+.split(/[،,]/)
+.map(function (tag) {
+return window.Utils.sanitizeText(tag.trim(), 30);
+})
+.filter(Boolean)
+.slice(0, 8);
+}
+function collectTags() {
+const set = {};
+window.Store.state.tasks.forEach(function (task) {
+(task.tags || []).forEach(function (tag) {
+set[tag] = true;
+});
+});
+return Object.keys(set).sort();
+}
    function getCurrentDateKey(parseFirst) {
 const dateEl = el("taskDate");
 
@@ -117,6 +137,8 @@ window.Store.addTask({
 name: name,
 date: getCurrentDateKey(true),
 priority: el("taskPriority") ? el("taskPriority").value || "med" : "med",
+projectId: el("taskProject") ? el("taskProject").value || null : null,
+tags: parseTags(el("taskTags") ? el("taskTags").value : ""),
 recurrence: {
 freq: newTaskRecurrence.freq,
 days: newTaskRecurrence.days.slice(),
@@ -130,6 +152,8 @@ if (el("taskPriority")) {
 el("taskPriority").value = "med";
 }
 resetRecurrence();
+if (el("taskTags")) el("taskTags").value = "";
+if (el("taskProject")) el("taskProject").value = "";
 refreshAll();
 toast(window.I18N.t("toast.taskAdded"), "success");
 toast(window.I18N.t("toast.taskAdded"), "success");
@@ -316,7 +340,13 @@ if (!task) return;
 if (!window.UI || !window.UI.modal) return;
 
 var rec = task.recurrence || { freq: "none", days: [0,1,2,3,4,5,6], interval: 1, endDate: null };
-
+var projectOptions =
+'<option value=""' + (!task.projectId ? " selected" : "") + ">" + window.I18N.t("projects.none") + "</option>" +
+window.Store.state.projects
+.map(function (project) {
+return '<option value="' + project.id + '"' + (String(task.projectId || "") === String(project.id) ? " selected" : "") + ">" + window.Utils.escapeHtml(project.name) + "</option>";
+})
+.join("");
 var html =
 '<div class="form-row">' +
 '<label for="etName">' + window.I18N.t("common.name") + "</label>" +
@@ -337,6 +367,16 @@ return '<option value="' + p + '"' + (task.priority === p ? " selected" : "") + 
 window.I18N.t(PRI_KEY[p]) + "</option>";
 }).join("") +
 "</select>" +
+"</div>" +
+"</div>" +
+'<div class="form-grid">' +
+'<div class="form-row">' +
+'<label for="etProject">' + window.I18N.t("filter.project") + "</label>" +
+'<select id="etProject" class="input">' + projectOptions + "</select>" +
+"</div>" +
+'<div class="form-row">' +
+'<label for="etTags">' + window.I18N.t("tags.title") + "</label>" +
+'<input id="etTags" class="input" maxlength="120" value="' + window.Utils.escapeHtml((task.tags || []).join("، ")) + '">' +
 "</div>" +
 "</div>" +
 '<div class="form-row">' +
@@ -361,6 +401,8 @@ var dateInput = content.querySelector("#etDate");
 var priorityInput = content.querySelector("#etPri");
 var recFreqSelect = content.querySelector("#etRecFreq");
 var recOptionsContainer = content.querySelector("#etRecOptions");
+var projectSelect = content.querySelector("#etProject");
+var tagsInput = content.querySelector("#etTags");
 var saveBtn = content.querySelector('[data-action="save-task-edit"]');
 
 var editRecurrence = {
@@ -472,6 +514,8 @@ window.Store.updateTask(id, {
 name: name,
 date: window.Utils.isValidDateKey(dateValue) ? dateValue : task.date,
 priority: priorityInput ? priorityInput.value : task.priority,
+projectId: projectSelect ? projectSelect.value || null : task.projectId,
+tags: parseTags(tagsInput ? tagsInput.value : ""),
 recurrence: {
 freq: editRecurrence.freq,
 days: editRecurrence.days.slice(),
@@ -657,10 +701,160 @@ function enableTaskSwipe(container) {
     });
   });
 }
-   
+   function renderFilterSelects() {
+const projectSelect = el("taskProjectFilter");
+const tagSelect = el("taskTagFilter");
+if (projectSelect) {
+if (state.project !== "all" && state.project !== "none" && !window.Store.getProjectById(state.project)) {
+state.project = "all";
+}
+projectSelect.innerHTML =
+'<option value="all">' + window.I18N.t("filter.allProjects") + "</option>" +
+'<option value="none"' + (state.project === "none" ? " selected" : "") + ">" + window.I18N.t("projects.none") + "</option>" +
+window.Store.state.projects
+.map(function (project) {
+return '<option value="' + project.id + '"' + (state.project === String(project.id) ? " selected" : "") + ">" + window.Utils.escapeHtml(project.name) + "</option>";
+})
+.join("");
+}
+if (tagSelect) {
+if (state.tag !== "all" && state.tag !== "none" && collectTags().indexOf(state.tag) === -1) {
+state.tag = "all";
+}
+tagSelect.innerHTML =
+'<option value="all">' + window.I18N.t("filter.allTags") + "</option>" +
+'<option value="none"' + (state.tag === "none" ? " selected" : "") + ">" + window.I18N.t("filter.noTag") + "</option>" +
+collectTags()
+.map(function (tag) {
+return '<option value="' + window.Utils.escapeHtml(tag) + '"' + (state.tag === tag ? " selected" : "") + ">" + window.Utils.escapeHtml(tag) + "</option>";
+})
+.join("");
+}
+}
+function renderTaskProjectOptions() {
+const select = el("taskProject");
+if (!select) return;
+const current = select.value || "";
+select.innerHTML =
+'<option value="">' + window.I18N.t("projects.none") + "</option>" +
+window.Store.state.projects
+.map(function (project) {
+return '<option value="' + project.id + '">' + window.Utils.escapeHtml(project.name) + "</option>";
+})
+.join("");
+if (current && window.Store.getProjectById(current)) {
+select.value = current;
+}
+}
+function openProjectsModal() {
+if (!window.UI || !window.UI.modal) return;
+function usageCount(projectId) {
+let count = 0;
+window.Store.state.tasks.forEach(function (item) {
+if (String(item.projectId || "") === String(projectId)) count += 1;
+});
+window.Store.state.habits.forEach(function (item) {
+if (String(item.projectId || "") === String(projectId)) count += 1;
+});
+return count;
+}
+function buildList() {
+const projects = window.Store.state.projects;
+if (!projects.length) {
+return (
+'<div class="empty-state">' +
+'<div class="empty-state-icon">📁</div>' +
+'<div class="empty-state-text">' + window.I18N.t("projects.empty") + "</div>" +
+'<div class="empty-state-sub">' + window.I18N.t("projects.emptySub") + "</div>" +
+"</div>"
+);
+}
+return projects
+.map(function (project) {
+return (
+'<div class="modal-item proj-row">' +
+'<div class="item-left">' +
+'<input type="color" class="input proj-color" data-proj-color="' + project.id + '" value="' + project.color + '" aria-label="' + window.I18N.t("common.color") + '">' +
+'<input type="text" class="input proj-name" data-proj-name="' + project.id + '" value="' + window.Utils.escapeHtml(project.name) + '" maxlength="60" aria-label="' + window.I18N.t("common.name") + '">' +
+"</div>" +
+'<span class="modal-tag">' + window.I18N.t("projects.usage", { count: window.I18N.faNum(usageCount(project.id)) }) + "</span>" +
+'<button class="btn-icon danger" data-action="delete-project" data-id="' + project.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
+"</div>"
+);
+})
+.join("");
+}
+const html =
+'<div class="modal-section-title">📁 ' + window.I18N.t("projects.manage") + "</div>" +
+'<div id="projectsList">' + buildList() + "</div>" +
+'<p class="form-hint">' + window.I18N.t("projects.deleteWarning") + "</p>" +
+'<div class="form-row" style="margin-top:10px">' +
+'<input type="text" id="newProjectName" class="input" placeholder="' + window.I18N.t("projects.namePlaceholder") + '" maxlength="60">' +
+'<input type="color" id="newProjectColor" class="input proj-color" value="#6366f1" aria-label="' + window.I18N.t("common.color") + '">' +
+'<button class="btn btn-primary btn-sm" data-action="add-project">' + window.I18N.t("projects.new") + "</button>" +
+"</div>";
+const content = window.UI.modal.open(window.I18N.t("projects.title"), html);
+if (!content) return;
+function refresh() {
+const list = content.querySelector("#projectsList");
+if (list) list.innerHTML = buildList();
+renderTaskProjectOptions();
+refreshAll();
+}
+content.addEventListener("click", function (event) {
+const deleteBtn = event.target.closest('[data-action="delete-project"]');
+if (deleteBtn) {
+const snap = window.Store.snapshot();
+window.Store.deleteProject(deleteBtn.dataset.id);
+refresh();
+toast(window.I18N.t("projects.deleted"), "undo", {
+action: {
+label: window.I18N.t("common.restore"),
+onClick: function () {
+window.Store.restoreSnapshot(snap);
+refresh();
+}
+}
+});
+return;
+}
+const addBtn = event.target.closest('[data-action="add-project"]');
+if (addBtn) {
+const nameInput = content.querySelector("#newProjectName");
+const colorInput = content.querySelector("#newProjectColor");
+const name = window.Utils.sanitizeText(nameInput ? nameInput.value : "", 60);
+if (!name) {
+if (nameInput) nameInput.focus();
+return;
+}
+window.Store.addProject({ name: name, color: colorInput ? colorInput.value : "#6366f1" });
+if (nameInput) nameInput.value = "";
+refresh();
+}
+});
+content.addEventListener("change", function (event) {
+const nameId = event.target.dataset ? event.target.dataset.projName : null;
+const colorId = event.target.dataset ? event.target.dataset.projColor : null;
+if (nameId) {
+const name = window.Utils.sanitizeText(event.target.value, 60);
+if (!name) {
+refresh();
+return;
+}
+window.Store.updateProject(nameId, { name: name });
+refreshAll();
+return;
+}
+if (colorId) {
+window.Store.updateProject(colorId, { color: event.target.value });
+refreshAll();
+}
+});
+}
 function render() {
 var list = el("taskList");
 if (!list) return;
+renderFilterSelects();
 
 var today = window.Calendar.todayKey();
 var items = window.Store.state.tasks.slice().sort(function (a, b) {
@@ -741,7 +935,18 @@ list.innerHTML = items
   .join("");
 enableTaskSwipe(list);
 }
-
+if (state.project !== "all") {
+items = items.filter(function (task) {
+if (state.project === "none") return !task.projectId;
+return String(task.projectId || "") === String(state.project);
+});
+}
+if (state.tag !== "all") {
+items = items.filter(function (task) {
+if (state.tag === "none") return !(task.tags && task.tags.length);
+return (task.tags || []).indexOf(state.tag) !== -1;
+});
+}
 function renderHome() {
 var box = el("homeTaskList");
 if (!box) return;
@@ -873,7 +1078,24 @@ enableTaskSwipe(box);
         render();
       });
     }
-
+const projectFilter = el("taskProjectFilter");
+const tagFilter = el("taskTagFilter");
+const manageProjectsBtn = el("manageProjectsBtn");
+if (projectFilter) {
+projectFilter.addEventListener("change", function () {
+state.project = projectFilter.value;
+render();
+});
+}
+if (tagFilter) {
+tagFilter.addEventListener("change", function () {
+state.tag = tagFilter.value;
+render();
+});
+}
+if (manageProjectsBtn) {
+manageProjectsBtn.addEventListener("click", openProjectsModal);
+}
     if (clearBtn) {
       clearBtn.addEventListener("click", clearDone);
     }
@@ -948,6 +1170,26 @@ function init() {
   initialized = true;
   bind();
   initRecurrencePicker();
+   renderTaskProjectOptions();
+renderFilterSelects();
+var manageBtn = el("manageProjectsBtn");
+var tagsField = el("taskTags");
+if (manageBtn) {
+manageBtn.textContent = "📁 " + window.I18N.t("projects.manage");
+}
+if (tagsField) {
+tagsField.placeholder = window.I18N.t("tags.formPlaceholder");
+tagsField.setAttribute("aria-label", window.I18N.t("tags.formPlaceholder"));
+}
+document.addEventListener("i18n:changed", function () {
+renderTaskProjectOptions();
+renderFilterSelects();
+render();
+var btn = el("manageProjectsBtn");
+var tags = el("taskTags");
+if (btn) btn.textContent = "📁 " + window.I18N.t("projects.manage");
+if (tags) tags.placeholder = window.I18N.t("tags.formPlaceholder");
+});
   var dateEl = el("taskDate");
   if (dateEl && !dateEl.value) {
     dateEl.value = window.Calendar.todayKey();
