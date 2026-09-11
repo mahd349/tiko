@@ -129,15 +129,27 @@ challenges: []
     }
   }
 
-  function notify(action) {
-    listeners.forEach(function (fn) {
-      try {
-        fn(action, state);
-      } catch (error) {
-        console.error(error);
-      }
-    });
-  }
+ const computeCache = {
+scores: {},
+streaks: {},
+tasksByDate: {}
+};
+const weekdayCache = {};
+function invalidateComputeCache() {
+computeCache.scores = {};
+computeCache.streaks = {};
+computeCache.tasksByDate = {};
+}
+function notify(action) {
+invalidateComputeCache();
+listeners.forEach(function (fn) {
+try {
+fn(action, state);
+} catch (error) {
+console.error(error);
+}
+});
+}
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -886,9 +898,13 @@ return false;
 }
 
 function getTasksForDate(dateKey) {
-return state.tasks.filter(function (task) {
+const cached = computeCache.tasksByDate[dateKey];
+if (cached) return cached.slice();
+const list = state.tasks.filter(function (task) {
 return isTaskActiveOn(task, dateKey);
 });
+computeCache.tasksByDate[dateKey] = list;
+return list.slice();
 }
 
 function isTaskDoneOnDate(task, dateKey) {
@@ -1321,35 +1337,48 @@ function taskProgress(task) {
     return 0;
   }
 
-  function habitExistedOn(habit, dateKey) {
-    if (!habit.created) return true;
+  const createdKeyMap = typeof WeakMap !== "undefined" ? new WeakMap() : null;
+function habitCreatedKey(habit) {
+if (!habit.created) return "";
+if (createdKeyMap && createdKeyMap.has(habit)) {
+return createdKeyMap.get(habit);
+}
+let key = "";
+try {
+key = window.Calendar.keyOf(new Date(habit.created));
+} catch (error) {
+key = "";
+}
+if (createdKeyMap) createdKeyMap.set(habit, key);
+return key;
+}
+function habitExistedOn(habit, dateKey) {
+const createdKey = habitCreatedKey(habit);
+if (!createdKey) return true;
+return createdKey <= dateKey;
+}
 
-    try {
-      const createdKey = window.Calendar.keyOf(new Date(habit.created));
-      return createdKey <= dateKey;
-    } catch (error) {
-      return true;
-    }
-  }
-
-   function habitActiveOn(habit, dateKey) {
+function weekdayOfKey(dateKey) {
+const hit = weekdayCache[dateKey];
+if (hit !== undefined) return hit;
+let wd = 0;
+try {
+wd = window.Calendar.getDayOfWeek(window.Calendar.keyToDate(dateKey), "fa");
+} catch (error) {
+wd = 0;
+}
+weekdayCache[dateKey] = wd;
+return wd;
+}
+function habitActiveOn(habit, dateKey) {
 if (!habit) return false;
-
 if (!Array.isArray(habit.activeDays) || !habit.activeDays.length) {
 return true;
 }
-
-try {
-const date = window.Calendar.keyToDate(dateKey);
-const weekday = window.Calendar.getDayOfWeek(date, "fa");
-
-return habit.activeDays.indexOf(weekday) !== -1;
-} catch (error) {
-return true;
-}
+return habit.activeDays.indexOf(weekdayOfKey(dateKey)) !== -1;
 }
 
- function habitStreaks(habit) {
+function habitStreaksCompute(habit) {
 let current = 0;
 let best = 0;
 let run = 0;
@@ -1408,45 +1437,48 @@ current: current,
 best: best
 };
 }
+function habitStreaks(habit) {
+const today = window.Calendar.todayKey();
+const id = String(habit.id);
+const hit = computeCache.streaks[id];
+if (hit && hit.day === today) return hit.value;
+const value = habitStreaksCompute(habit);
+computeCache.streaks[id] = { day: today, value: value };
+return value;
+}
 
 function dayScore(dateKey) {
 const key = dateKey || window.Calendar.todayKey();
+const hit = computeCache.scores[key];
+if (hit) return hit;
 const today = window.Calendar.todayKey();
 const future = key > today;
-
 const dayTasks = getTasksForDate(key);
-
 const dayHabits = future
 ? []
 : state.habits.filter(function (habit) {
 return habitExistedOn(habit, key) && habitActiveOn(habit, key);
 });
-
 const total = dayTasks.length + dayHabits.length;
-
+let score;
 if (!total) {
-return {
-pct: 0,
-done: 0,
-total: 0,
-future: future
-};
-}
-
+score = { pct: 0, done: 0, total: 0, future: future };
+} else {
 let done = dayTasks.filter(function (task) {
 return isTaskDoneOnDate(task, key);
 }).length;
-
 dayHabits.forEach(function (habit) {
 done += habitProgress(habit, key);
 });
-
-return {
+score = {
 pct: Math.min(1, done / total),
 done: done,
 total: total,
 future: future
 };
+}
+computeCache.scores[key] = score;
+return score;
 }
   function focusSeconds(habitId, days = 30) {
     let total = 0;
