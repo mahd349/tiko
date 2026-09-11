@@ -289,21 +289,21 @@
 "filter.project": "پروژه",
 "filter.tag": "برچسب",
 "filter.allProjects": "همه پروژه‌ها",
-"filter.allTags": "همه برچسب‌ها"
-       "transfer.title": "انتقال به دستگاه دیگر"
+"filter.allTags": "همه برچسب‌ها",
+       "transfer.title": "انتقال به دستگاه دیگر",
 "pomodoro.title": "پومودورو",
 "pomodoro.focus": "فوکوس",
 "pomodoro.shortBreak": "استراحت کوتاه",
-"pomodoro.longBreak": "استراحت بلند"
+"pomodoro.longBreak": "استراحت بلند",
 "bgAnim.title": "پس‌زمینه متحرک",
 "bgAnim.select": "انتخاب سبک",
 "bgAnim.off": "خاموش",
 "bgAnim.grid": "شبکه",
 "bgAnim.dots": "نقطه‌ها",
-"bgAnim.on": "انیمیشن روشن"
+"bgAnim.on": "انیمیشن روشن",
 "notes.title": "یادداشت‌ها",
 "notes.today": "یادداشت امروز",
-"notes.search": "جستجوی یادداشت‌ها"
+"notes.search": "جستجوی یادداشت‌ها",
     },
 
     en: {
@@ -586,18 +586,18 @@
 "filter.project": "Project",
 "filter.tag": "Tag",
 "filter.allProjects": "All projects",
-"filter.allTags": "All tags"
-   "transfer.title": "Transfer to another device"
+"filter.allTags": "All tags",
+   "transfer.title": "Transfer to another device",
 "pomodoro.title": "Pomodoro",
 "pomodoro.focus": "Focus",
 "pomodoro.shortBreak": "Short break",
-"pomodoro.longBreak": "Long break"
+"pomodoro.longBreak": "Long break",
 "bgAnim.title": "Animated Background",
 "bgAnim.select": "Select style",
 "bgAnim.off": "Off",
 "bgAnim.grid": "Grid",
 "bgAnim.dots": "Dots",
-"bgAnim.on": "Animation on"
+"bgAnim.on": "Animation on",
 "notes.title": "Notes",
 "notes.today": "Today's note",
 "notes.search": "Search notes"
