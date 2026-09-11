@@ -1041,6 +1041,20 @@ window.print();
 if (csvBtn) {
 csvBtn.addEventListener("click", exportCSV);
 }
+     const reportCardBtn = el("reportCardBtn");
+if (reportCardBtn) {
+reportCardBtn.addEventListener("click", function () {
+if (window.ReportCard) {
+window.ReportCard.open();
+return;
+}
+window.Utils.loadScript("assets/js/features/report-card.js").then(function () {
+if (window.ReportCard) window.ReportCard.open();
+}).catch(function () {
+toast(L("بارگذاری ماژول ناموفق بود", "Failed to load the module"), "error");
+});
+});
+}
      const rangeBar = el("statsRange");
 if (rangeBar) {
 rangeBar.addEventListener("click", function (event) {
