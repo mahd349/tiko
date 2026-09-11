@@ -1393,6 +1393,16 @@ html[dir="ltr"] .nav-item:hover {
     padding-bottom: calc(28px + env(safe-area-inset-bottom));
   }
 }
+
+/* ==== ANIMATION PERF GATE ==== */
+html[data-animations="off"] .orb,
+html[data-animations="off"] .hero-bg,
+html[data-animations="off"] .bg-grid,
+html[data-animations="off"] .tab-content.active,
+html[data-animations="off"] .modal {
+animation: none !important;
+transition: none !important;
+}
 /* کلید خاموش‌کردن انیمیشن‌های بی‌پایان */
 html[data-animations="off"] .orb,
 html[data-animations="off"] .hero-bg,
