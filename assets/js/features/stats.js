@@ -299,15 +299,49 @@ box(window.I18N.faNum((seconds / 3600).toFixed(1)), window.I18N.t("stats.focusHo
       })
       .join("");
 
-    if (totalEl) {
-      const avg = Math.round(
-        values.reduce(function (a, b) {
-          return a + b;
-        }, 0) / 7
-      );
-
-      totalEl.textContent = window.I18N.faNum(avg);
-    }
+const avg = Math.round(
+values.reduce(function (a, b) {
+return a + b;
+}, 0) / 7
+);
+if (totalEl) {
+totalEl.textContent = window.I18N.faNum(avg);
+}
+const weeklySummary = el("weeklyChartSummary");
+if (weeklySummary) {
+let bestIndex = 0;
+values.forEach(function (value, index) {
+if (value > values[bestIndex]) bestIndex = index;
+});
+weeklySummary.textContent = L(
+"خلاصهٔ نمودار هفتگی: میانگین تکمیل " +
+window.I18N.percent(avg) +
+"؛ بهترین روز " +
+window.Calendar.keyToJalaliFull(week[bestIndex]) +
+" با " +
+window.I18N.percent(values[bestIndex]) +
+" تکمیل. روزها: " +
+week
+.map(function (key, index) {
+return window.Calendar.keyToJalaliShort(key) + " " + window.I18N.percent(values[index]);
+})
+.join("، ") +
+".",
+"Weekly chart summary: average completion " +
+avg +
+"%; best day " +
+window.Calendar.keyToJalaliFull(week[bestIndex], "en") +
+" at " +
+values[bestIndex] +
+"%. Days: " +
+week
+.map(function (key, index) {
+return window.Calendar.keyToJalaliShort(key, "en") + " " + values[index] + "%";
+})
+.join(", ") +
+"."
+);
+}
   }
 
   function drawTrend(keys, values) {
@@ -436,6 +470,38 @@ const values = keys.map(function (dateKey) {
 return window.Store.dayScore(dateKey).pct * 100;
 });
 drawTrend(keys, values);
+const trendSummary = el("trendChartSummary");
+if (trendSummary && keys.length) {
+const avg = Math.round(
+values.reduce(function (a, b) {
+return a + b;
+}, 0) / values.length
+);
+let bestIndex = 0;
+values.forEach(function (value, index) {
+if (value > values[bestIndex]) bestIndex = index;
+});
+trendSummary.textContent = L(
+"خلاصهٔ نمودار روند: بازهٔ " +
+window.I18N.faNum(keys.length) +
+" روزه؛ میانگین تکمیل " +
+window.I18N.percent(avg) +
+"؛ بهترین روز " +
+window.Calendar.keyToJalaliFull(keys[bestIndex]) +
+" با " +
+window.I18N.percent(Math.round(values[bestIndex])) +
+".",
+"Trend chart summary: " +
+keys.length +
+"-day range; average completion " +
+avg +
+"%; best day " +
+window.Calendar.keyToJalaliFull(keys[bestIndex], "en") +
+" at " +
+Math.round(values[bestIndex]) +
+"%."
+);
+}
 }
   function renderIndividualCharts() {
     const container = el("individualCharts");
@@ -505,17 +571,46 @@ drawTrend(keys, values);
           '<span class="streak-badge' + (streaks.current ? "" : " cold") + '">🔥 ' + window.I18N.days(streaks.current) + "</span>" +
           '<span class="card-hint">' + L("مجموع ", "Total ") + window.I18N.faNum(total.toFixed(habit.type === "checkbox" ? 0 : 1)) + unit + "</span>" +
           "</div>" +
-          '<div class="chart-bar">' +
-          values
-            .map(function (value, index) {
-              return (
-                '<div class="chart-col">' +
-                '<div class="chart-bar-visual" style="height:' + Math.max(3, (value / max) * 80) + "px;background:" + habit.color + '" data-val="' +
-                window.I18N.faNum(value.toFixed(habit.type === "checkbox" ? 0 : 1)) +
-                '"></div>' +
-                '<span class="chart-label">' + window.Calendar.keyToJalaliShort(week[index]) + "</span>" +
-                "</div>"
-              );
+'<div class="chart-bar" aria-hidden="true">' +
+values
+.map(function (value, index) {
+return (
+'<div class="chart-col">' +
+'<div class="chart-bar-visual" style="height:' + Math.max(3, (value / max) * 80) + "px;background:" + habit.color + '" data-val="' +
+window.I18N.faNum(value.toFixed(habit.type === "checkbox" ? 0 : 1)) +
+'"></div>' +
+'<span class="chart-label">' + window.Calendar.keyToJalaliShort(week[index]) + "</span>" +
+"</div>"
+);
+})
+.join("") +
+"</div>" +
+'<p class="sr-only">' +
+L(
+"نمودار هفتگی " +
+habit.name +
+": مجموع " +
+window.I18N.faNum(total.toFixed(habit.type === "checkbox" ? 0 : 1)) +
+unit +
+"؛ استریک فعلی " +
+window.I18N.days(streaks.current) +
+"؛ رکورد " +
+window.I18N.days(streaks.best) +
+".",
+"Weekly chart for " +
+habit.name +
+": total " +
+total.toFixed(habit.type === "checkbox" ? 0 : 1) +
+unit +
+"; current streak " +
+streaks.current +
+" days; best " +
+streaks.best +
+" days."
+) +
+"</p>" +
+"</div>"
+);
             })
             .join("") +
           "</div>" +
