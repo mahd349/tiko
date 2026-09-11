@@ -1397,7 +1397,7 @@ function closeMobileHabitForm() {
     setText("#addTaskBtn", "common.add");
     setText("#clearDoneBtn", "tasks.clearDone");
 
-    setHeadingPreserve("#tab-tasks .card-header h3", "tasks.listTitle", ".counter");
+    setHeadingPreserve('#tab-tasks .card:has(#taskList) .card-header h3', "tasks.listTitle", ".counter");
 
     const taskFilterKeys = {
       all: "common.all",
