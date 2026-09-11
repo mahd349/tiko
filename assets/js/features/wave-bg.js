@@ -318,18 +318,7 @@ if (cb) cb.checked = isActive;
 }
 
 function createToggleButton() {
-if (document.getElementById("waveToggleBtn")) return;
-var btn = document.createElement("button");
-btn.id = "waveToggleBtn";
-btn.className = "wave-toggle-btn";
-btn.type = "button";
-btn.setAttribute("aria-pressed", "false");
-btn.setAttribute("aria-label", L("تغییر پس‌زمینه متحرک", "Toggle animated background"));
-btn.innerHTML =
-'<span class="wave-toggle-icon" aria-hidden="true">✨</span>' +
-'<span class="wave-toggle-label">' + L("پس‌زمینه متحرک", "Animated bg") + "</span>";
-btn.addEventListener("click", toggle);
-document.body.appendChild(btn);
+/* Floating toggle removed by design; the control lives inside the tools modal. */
 }
 
 /* ---------- tools modal integration ---------- */
