@@ -117,6 +117,11 @@
       "habits.record": "رکورد:",
       "habits.of": "از",
       "habits.goalMinutes": "هدف {goal} دقیقه",
+       "filter.noTag": "بدون برچسب",
+"tags.formPlaceholder": "برچسب‌ها (با ویرگول جدا کن)",
+"projects.usage": "{count} آیتم متصل",
+"projects.deleteWarning": "حذف پروژه، آیتم‌های آن را بدون پروژه می‌کند؛ از توست می‌توانی بازگردانی.",
+"projects.deleted": "🗑️ پروژه حذف شد",
 
       "category.health": "سلامت",
       "category.fitness": "ورزش",
@@ -598,6 +603,11 @@
 "bgAnim.grid": "Grid",
 "bgAnim.dots": "Dots",
 "bgAnim.on": "Animation on",
+"filter.noTag": "No tag",
+"tags.formPlaceholder": "Tags (separate with commas)",
+"projects.usage": "{count} linked items",
+"projects.deleteWarning": "Deleting a project unassigns its items; you can undo from the toast.",
+"projects.deleted": "🗑️ Project deleted",
 "notes.title": "Notes",
 "notes.today": "Today's note",
 "notes.search": "Search notes"
