@@ -2118,6 +2118,14 @@ function applyAnimationsPref() {
 const on = !window.Store || window.Store.state.settings.animations !== false;
 document.documentElement.setAttribute("data-animations", on ? "on" : "off");
 }
+   function bindToolsFallback() {
+const toolsBtn = document.querySelector('[data-action="menu"]');
+if (!toolsBtn) return;
+toolsBtn.addEventListener("click", function (event) {
+event.stopPropagation();
+openToolsModal();
+});
+}
    
 function init() {
 applyAnimationsPref();
@@ -2129,7 +2137,8 @@ applyAnimationsPref();
 });
 
     bindSidebar();
-    bindGlobalClicks();
+bindGlobalClicks();
+bindToolsFallback();
     bindCalendarToolbar();
     bindKeyboard();
     bindLanguageEvents();
