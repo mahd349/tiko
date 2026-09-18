@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>۴۰۴ — صفحه پیدا نشد | روتین</title>
+<meta name="description" content="این صفحه در روتین وجود ندارد. به صفحهٔ اصلی برگردید.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#060a14">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M18 34l9 9 19-19' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font: "Vazirmatn", Tahoma, sans-serif;
+    --bg: #060a14;
+    --bg-2: #0b1020;
+    --surface: rgba(13, 18, 34, 0.72);
+    --text: #f8fafc;
+    --text-2: #aab6ce;
+    --text-3: #73809a;
+    --accent: #8b5cf6;
+    --accent-2: #6366f1;
+    --accent-glow: rgba(139, 92, 246, 0.28);
+    --border: rgba(148, 163, 184, 0.15);
+    --shadow: 0 16px 44px rgba(0, 0, 0, 0.25);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --radius: 24px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    background: radial-gradient(circle at 20% 20%, rgba(99,102,241,.18), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168,85,247,.18), transparent 40%),
+                linear-gradient(165deg, var(--bg) 0%, var(--bg-2) 100%);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  body {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(148,163,184,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .error-card {
+    position: relative;
+    z-index: 1;
+    max-width: 520px;
+    padding: 48px 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    animation: fadeUp 0.6s var(--ease);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .error-code {
+    font-size: clamp(80px, 20vw, 140px);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+    letter-spacing: -4px;
+  }
+
+  .error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: inline-block;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .error-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .error-text {
+    color: var(--text-2);
+    font-size: 15px;
+    line-height: 1.9;
+    margin-bottom: 28px;
+  }
+
+  .error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 26px;
+    border: 0;
+    border-radius: 14px;
+    font: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+    min-width: 140px;
+  }
+
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    box-shadow: 0 8px 24px var(--accent-glow);
+  }
+
+  .btn-primary:hover { box-shadow: 0 12px 32px var(--accent-glow); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .search-box {
+    margin-top: 24px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .search-box input {
+    flex: 1;
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s var(--ease);
+  }
+
+  .search-box input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .search-box input::placeholder { color: var(--text-3); }
+
+  .popular {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .popular-label {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .popular-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .popular-links a {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s var(--ease);
+  }
+
+  .popular-links a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  @media (max-width: 480px) {
+    .error-card { padding: 36px 24px; }
+    .error-actions { flex-direction: column; }
+    .btn { width: 100%; }
+    .search-box { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+  <main class="error-card" role="main">
+    <div class="error-code" aria-hidden="true">۴۰۴</div>
+    <div class="error-icon" aria-hidden="true">🔍</div>
+    <h1 class="error-title">این صفحه پیدا نشد</h1>
+    <p class="error-text">
+      متأسفیم؛ صفحه‌ای که دنبالش بودید وجود ندارد یا آدرس آن تغییر کرده است.
+      می‌توانید به صفحهٔ اصلی برگردید یا از جستجو استفاده کنید.
+    </p>
+    <div class="error-actions">
+      <a href="/" class="btn btn-primary">🏠 بازگشت به خانه</a>
+      <a href="#app" class="btn btn-ghost" onclick="window.location.href='/'">📋 رفتن به داشبورد</a>
+    </div>
+    <form class="search-box" action="/" method="get" onsubmit="return redirectToSearch(event)">
+      <input type="search" name="q" placeholder="جستجو در روتین..." aria-label="جستجو" autocomplete="off">
+      <button type="submit" class="btn btn-primary">جستجو</button>
+    </form>
+    <div class="popular">
+      <div class="popular-label">صفحه‌های پرطرفدار:</div>
+      <div class="popular-links">
+        <a href="/">خانه</a>
+        <a href="/#tasks">وظایف</a>
+        <a href="/#habits">عادت‌ها</a>
+        <a href="/#calendar">تقویم</a>
+        <a href="/rahnama/">مقاله‌ها</a>
+        <a href="/about/">دربارهٔ ما</a>
+      </div>
+    </div>
+  </main>
+  <script>
+    function redirectToSearch(e) {
+      e.preventDefault();
+      const q = e.target.q.value.trim();
+      if (q) window.location.href = '/?q=' + encodeURIComponent(q);
+      else window.location.href = '/';
+      return false;
+    }
+    // Redirect after 30 seconds if user is inactive
+    setTimeout(function() {
+      if (!document.hasFocus()) {
+        // Optional: auto-redirect
+      }
+    }, 30000);
+  </script>
+</body>
+</html>
