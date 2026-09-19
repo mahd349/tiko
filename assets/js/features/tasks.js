@@ -111,12 +111,12 @@ if (!dateEl || !labelEl) return;
 const key = dateEl.dataset.value;
 
 if (window.Utils.isValidDateKey(key)) {
-labelEl.textContent = window.Calendar.keyToJalaliFull(key);
+labelEl.textContent = window.Calendar.keyToJalaliFull(key, window.I18N.lang)
 return;
 }
 
 if (window.Utils.isValidDateKey(dateEl.value)) {
-labelEl.textContent = window.Calendar.keyToJalaliFull(dateEl.value);
+labelEl.textContent = window.Calendar.keyToJalaliFull(dateEl.value, window.I18N.lang)
 return;
 }
 
@@ -1190,11 +1190,23 @@ var tags = el("taskTags");
 if (btn) btn.textContent = "📁 " + window.I18N.t("projects.manage");
 if (tags) tags.placeholder = window.I18N.t("tags.formPlaceholder");
 });
-  var dateEl = el("taskDate");
-  if (dateEl && !dateEl.value) {
-    dateEl.value = window.Calendar.todayKey();
-  }
-  syncDateLabel();
+var dateEl = el("taskDate");
+if (dateEl && !dateEl.dataset.value) {
+const today = window.Calendar.todayKey();
+dateEl.dataset.value = today;
+dateEl.value = window.Calendar.keyToJalaliFull(today, window.I18N.lang);
+dateEl.setAttribute("placeholder", window.I18N.t("datepicker.placeholder"));
+}
+syncDateLabel();
+document.addEventListener("i18n:changed", function () {
+const d = el("taskDate");
+if (d && d.dataset.value) {
+d.value = window.Calendar.keyToJalaliFull(d.dataset.value, window.I18N.lang);
+d.setAttribute("placeholder", window.I18N.t("datepicker.placeholder"));
+}
+syncDateLabel();
+renderRecurrencePicker();
+});
 }
 
 window.Tasks = {
