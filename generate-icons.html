@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><title>ساخت آیکن تیکوچی</title></head>
+<body style="font-family:sans-serif;padding:24px;background:#111;color:#eee">
+<h2>ساخت آیکن‌های PNG</h2>
+<p>روی هر دکمه بزن تا فایل دانلود شود؛ سپس همه را در <code>assets/icons/</code> بگذار.</p>
+<div id="btns"></div>
+<canvas id="c" style="display:none"></canvas>
+<script>
+function roundRect(x, X, Y, W, H, R) {
+x.beginPath(); x.moveTo(X + R, Y); x.lineTo(X + W - R, Y); x.quadraticCurveTo(X + W, Y, X + W, Y + R);
+x.lineTo(X + W, Y + H - R); x.quadraticCurveTo(X + W, Y + H, X + W - R, Y + H); x.lineTo(X + R, Y + H);
+x.quadraticCurveTo(X, Y + H, X, Y + H - R); x.lineTo(X, Y + R); x.quadraticCurveTo(X, Y, X + R, Y); x.closePath();
+}
+function draw(size, maskable) {
+var c = document.getElementById("c"); c.width = size; c.height = size;
+var x = c.getContext("2d");
+x.clearRect(0, 0, size, size);
+if (maskable) { x.fillStyle = "#060a14"; x.fillRect(0, 0, size, size); }
+else { roundRect(x, 0, 0, size, size, size * 0.22); x.fillStyle = "#060a14"; x.fill(); }
+var pad = maskable ? size * 0.20 : size * 0.10;
+var w = size - pad * 2;
+var g = x.createLinearGradient(pad, pad, pad + w, pad + w);
+g.addColorStop(0, "#6366f1"); g.addColorStop(1, "#a855f7");
+roundRect(x, pad, pad, w, w, w * 0.28); x.fillStyle = g; x.fill();
+x.strokeStyle = "#fff"; x.lineWidth = size * 0.09; x.lineCap = "round"; x.lineJoin = "round";
+x.beginPath(); x.moveTo(size * 0.30, size * 0.52); x.lineTo(size * 0.44, size * 0.66); x.lineTo(size * 0.70, size * 0.36); x.stroke();
+return c.toDataURL("image/png");
+}
+function dl(name, size, maskable) { var a = document.createElement("a"); a.href = draw(size, maskable); a.download = name; a.click(); }
+[["icon-192.png", 192, false], ["icon-512.png", 512, false], ["icon-maskable-192.png", 192, true], ["icon-maskable-512.png", 512, true]]
+.forEach(function (j) {
+var b = document.createElement("button");
+b.textContent = j[0]; b.style.cssText = "margin:6px;padding:10px 16px";
+b.onclick = function () { dl(j[0], j[1], j[2]); };
+document.getElementById("btns").appendChild(b);
+});
+</script>
+</body>
+</html>
