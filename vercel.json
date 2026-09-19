@@ -9,6 +9,18 @@
     }
   ],
   "rewrites": [
+    "rewrites": [
+{ "source": "/tasks", "destination": "/index.html" },
+{ "source": "/tasks/", "destination": "/index.html" },
+{ "source": "/habits", "destination": "/index.html" },
+{ "source": "/habits/", "destination": "/index.html" },
+{ "source": "/today", "destination": "/index.html" },
+{ "source": "/today/", "destination": "/index.html" },
+{ "source": "/calendar", "destination": "/index.html" },
+{ "source": "/calendar/", "destination": "/index.html" },
+{ "source": "/stats", "destination": "/index.html" },
+{ "source": "/stats/", "destination": "/index.html" }
+]
 { "source": "/(tasks|habits|today|calendar|stats)/?", "destination": "/index.html" }
 ]
   "headers": [
