@@ -3069,6 +3069,16 @@ height: 44px;
 justify-content: center;
 }
 }
+
+/* ============================
+WEEKLY REVIEW
+============================ */
+.wr-grid {
+margin-bottom: 14px;
+}
+.wr-grid .stat-box {
+padding: 14px 8px;
+}
    /* ============================
 RECURRENCE PICKER
 ============================ */
