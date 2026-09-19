@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v15";
+const CACHE = "routine-v21";
 
 const CORE = [
   "/",
@@ -29,6 +29,12 @@ const CORE = [
   "/assets/js/ui/modal.js",
   "/assets/js/ui/toast.js",
   "/assets/js/app.js",
+   "/assets/js/ui/install.js",
+"/assets/icons/icon.svg",
+"/assets/icons/icon-192.png",
+"/assets/icons/icon-512.png",
+"/assets/icons/icon-maskable-192.png",
+"/assets/icons/icon-maskable-512.png",
    "/assets/js/features/wave-bg.js",
    "/assets/js/features/animated-bg.js",
    "/assets/js/features/notes.js",
@@ -107,16 +113,16 @@ self.addEventListener("fetch", function (event) {
   /* Navigation: network-first, offline fallback */
   if (req.mode === "navigate") {
     event.respondWith(
-      fetch(req)
-        .then(function (res) {
-          const copy = res.clone();
-
-          caches.open(CACHE).then(function (cache) {
-            cache.put(req, copy);
-          });
-
-          return res;
-        })
+fetch(req)
+.then(function (res) {
+if (res && res.ok) {
+const copy = res.clone();
+caches.open(CACHE).then(function (cache) {
+cache.put(req, copy);
+});
+}
+return res;
+})
         .catch(function () {
           return caches.match(req).then(function (cached) {
             return cached || caches.match("/index.html");

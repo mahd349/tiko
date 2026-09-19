@@ -8,6 +8,18 @@
       "permanent": false
     }
   ],
+  "rewrites": [
+    { "source": "/tasks", "destination": "/" },
+    { "source": "/tasks/", "destination": "/" },
+    { "source": "/habits", "destination": "/" },
+    { "source": "/habits/", "destination": "/" },
+    { "source": "/today", "destination": "/" },
+    { "source": "/today/", "destination": "/" },
+    { "source": "/calendar", "destination": "/" },
+    { "source": "/calendar/", "destination": "/" },
+    { "source": "/stats", "destination": "/" },
+    { "source": "/stats/", "destination": "/" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -21,16 +33,16 @@
       ]
     },
     {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
       "source": "/sw.js",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" },
         { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]

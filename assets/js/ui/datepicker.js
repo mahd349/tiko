@@ -122,7 +122,28 @@ return validateJalali(c, b, a);
 
 return null;
 }
-
+function currentLang() {
+return window.I18N && window.I18N.lang === "en" ? "en" : "fa";
+}
+function viewIsJalali() {
+return currentLang() === "fa";
+}
+function daysInViewModel(y, m) {
+return viewIsJalali()
+? window.Calendar.getDaysInMonth(y, m, "fa")
+: new Date(y, m, 0).getDate();
+}
+function firstWeekdayViewModel(y, m) {
+return viewIsJalali()
+? window.Calendar.getFirstWeekday(y, m, "fa")
+: new Date(y, m - 1, 1).getDay();
+}
+function keyFromView(y, m, day) {
+return window.Calendar.toKey(y, m, day, viewIsJalali() ? "fa" : "en");
+}
+function displayKey(key) {
+return window.Calendar.keyToJalaliFull(key, currentLang());
+}
 function ensurePicker() {
 if (pickerEl) return pickerEl;
 
@@ -191,47 +212,37 @@ return pickerEl;
 
 function render() {
 if (!pickerEl) return;
-
+const lang = currentLang();
 pickerEl.querySelector(".dp-title").textContent =
-window.Calendar.formatMonthYear(view.jy, view.jm, "fa");
-
-const weekdays = window.Calendar.getWeekdays("fa");
+window.Calendar.formatMonthYear(view.jy, view.jm, lang);
+const weekdays = window.Calendar.getWeekdays(lang);
 pickerEl.querySelector(".dp-weekdays").innerHTML = weekdays
 .map(function (weekday) {
 return '<div class="dp-wd">' + window.Utils.escapeHtml(weekday.slice(0, 3)) + "</div>";
 })
 .join("");
-
-const daysInMonth = window.Calendar.getDaysInMonth(view.jy, view.jm, "fa");
-const firstWeekday = window.Calendar.getFirstWeekday(view.jy, view.jm, "fa");
+const daysInMonth = daysInViewModel(view.jy, view.jm);
+const firstWeekday = firstWeekdayViewModel(view.jy, view.jm);
 const selectedKey = activeInput ? activeInput.dataset.value : "";
 const todayKey = window.Calendar.todayKey();
-
 let html = "";
-
 for (let i = 0; i < firstWeekday; i += 1) {
 html += '<div class="dp-day empty"></div>';
 }
-
 for (let day = 1; day <= daysInMonth; day += 1) {
-const key = window.Calendar.toKey(view.jy, view.jm, day, "fa");
-
+const key = keyFromView(view.jy, view.jm, day);
 let classes = "dp-day";
-
 if (key === todayKey) {
 classes += " today";
 }
-
 if (key === selectedKey) {
 classes += " selected";
 }
-
 html +=
 '<button type="button" class="' + classes + '" data-dp="day-' + key + '">' +
-window.I18N.faNum(day) +
+(lang === "fa" ? window.I18N.faNum(day) : String(day)) +
 "</button>";
 }
-
 pickerEl.querySelector(".dp-days").innerHTML = html;
 }
 
@@ -304,27 +315,16 @@ key = "";
 }
 
 if (window.Utils.isValidDateKey(key)) {
-try {
 const parts = key.split("-").map(Number);
+if (viewIsJalali()) {
 const j = window.Calendar.gregorianToJalali(parts[0], parts[1], parts[2]);
-
-view = {
-jy: j[0],
-jm: j[1]
-};
-} catch (error) {
-const today = window.Calendar.getToday("fa");
-view = {
-jy: today.jy,
-jm: today.jm
-};
+view = { jy: j[0], jm: j[1] };
+} else {
+view = { jy: parts[0], jm: parts[1] };
 }
 } else {
-const today = window.Calendar.getToday("fa");
-view = {
-jy: today.jy,
-jm: today.jm
-};
+const today = window.Calendar.getToday(viewIsJalali() ? "fa" : "en");
+view = { jy: today.jy, jm: today.jm };
 }
 
 render();
@@ -346,7 +346,7 @@ if (!activeInput) return;
 
 activeInput.dataset.skipParse = "1";
 activeInput.dataset.value = key;
-activeInput.value = window.Calendar.keyToJalaliFull(key);
+activeInput.value = displayKey(key);
 activeInput.dispatchEvent(new Event("change", { bubbles: true }));
 
 close();
@@ -375,7 +375,7 @@ const key = window.Calendar.toKey(parsed.jy, parsed.jm, parsed.jd, "fa");
 
 input.dataset.skipParse = "1";
 input.dataset.value = key;
-input.value = window.Calendar.keyToJalaliFull(key);
+input.value = displayKey(key);
 input.dispatchEvent(new Event("change", { bubbles: true }));
 return;
 } catch (error) {
@@ -385,7 +385,7 @@ return;
 
 if (input.dataset.value) {
 input.dataset.skipParse = "1";
-input.value = window.Calendar.keyToJalaliFull(input.dataset.value);
+input.value = window.Calendar.displayKey(input.dataset.value);
 input.dispatchEvent(new Event("change", { bubbles: true }));
 return;
 }

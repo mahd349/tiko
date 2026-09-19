@@ -10,7 +10,8 @@
 
   const dictionary = {
     fa: {
-      "app.name": "روتین",
+      "app.name": "تیکوچی",
+"app.moduleName": "روتین",
       "app.tagline": "پیگیری عادت، مدیریت وظایف و برنامه‌ریزی روزانه",
 
       "nav.home": "خانه",
@@ -21,7 +22,32 @@
       "nav.stats": "گزارش‌ها",
       "nav.theme": "پوسته",
       "nav.tools": "ابزارها",
-
+      "a11y.skip": "رفتن به محتوای اصلی",
+"home.listEyebrow": "فهرست امروز",
+"home.tasksTitle": "وظایف امروز",
+"home.habitsEyebrow": "پیگیری روزانه",
+"home.habitsTitle": "عادت‌های امروز",
+"home.progressEyebrow": "پیشرفت هفتگی",
+"home.chartTitle": "نمودار فعالیت",
+"home.calEyebrow": "تقویم",
+"home.recentTitle": "روزهای اخیر",
+"home.timerEyebrow": "عادت‌های تایمری",
+"home.focusTitle": "توزیع زمان تمرکز",
+"tasks.eyebrow": "مدیریت",
+"habits.eyebrow": "روتین روزانه",
+"today.eyebrow": "نمای کلی",
+"today.noteEyebrow": "دفترچه",
+"today.noteTitle": "📝 یادداشت امروز",
+"calendar.pageEyebrow": "زمان‌بندی",
+"stats.weekEyebrow": "هفتهٔ جاری",
+"stats.trendEyebrow": "روند",
+"stats.detailEyebrow": "جزئیات",
+"stats.backupEyebrow": "پشتیبان",
+"fab.task": "وظیفه جدید",
+"fab.habit": "عادت جدید",
+"footer.tagline": "ابزار فارسی پیگیری عادت‌ها و مدیریت زمان",
+"footer.made": "ساخته‌شده با ❤️ در ایران",
+"footer.rights": "تمامی حقوق محفوظ است",
       "auth.login": "ورود با گوگل",
       "auth.logout": "خروج از حساب",
       "auth.loading": "در حال ورود...",
@@ -182,7 +208,7 @@
       "feedback.general": "بازخورد عمومی",
       "feedback.messagePlaceholder": "پیام شما...",
       "feedback.send": "ارسال",
-      "landing.features": "ویژگی‌های روتین",
+      "landing.features": "ویژگی‌های تیکوچی",
       "landing.faq": "سوالات متداول",
 
       "toast.taskAdded": "✅ وظیفه اضافه شد",
@@ -312,7 +338,8 @@
     },
 
     en: {
-      "app.name": "Routine",
+      "app.name": "TikoChi",
+"app.moduleName": "Routine",
       "app.tagline": "Habit tracking, task management and daily planning",
 
       "nav.home": "Home",
@@ -323,7 +350,32 @@
       "nav.stats": "Reports",
       "nav.theme": "Theme",
       "nav.tools": "Tools",
-
+"a11y.skip": "Skip to main content",
+"home.listEyebrow": "Today's list",
+"home.tasksTitle": "Today's tasks",
+"home.habitsEyebrow": "Daily tracking",
+"home.habitsTitle": "Today's habits",
+"home.progressEyebrow": "Weekly progress",
+"home.chartTitle": "Activity chart",
+"home.calEyebrow": "Calendar",
+"home.recentTitle": "Recent days",
+"home.timerEyebrow": "Timer habits",
+"home.focusTitle": "Focus time breakdown",
+"tasks.eyebrow": "Management",
+"habits.eyebrow": "Daily routine",
+"today.eyebrow": "Overview",
+"today.noteEyebrow": "Notebook",
+"today.noteTitle": "📝 Today's note",
+"calendar.pageEyebrow": "Scheduling",
+"stats.weekEyebrow": "Current week",
+"stats.trendEyebrow": "Trend",
+"stats.detailEyebrow": "Details",
+"stats.backupEyebrow": "Backup",
+"fab.task": "New task",
+"fab.habit": "New habit",
+"footer.tagline": "Persian habit & time tracking tool",
+"footer.made": "Made with ❤️ in Iran",
+"footer.rights": "All rights reserved",
       "auth.login": "Sign in with Google",
       "auth.logout": "Sign out",
       "auth.loading": "Signing in...",
@@ -479,7 +531,7 @@
       "feedback.general": "General feedback",
       "feedback.messagePlaceholder": "Your message...",
       "feedback.send": "Send",
-     "landing.features": "Routine features",
+     "landing.features": "TikoChi features",
      "landing.faq": "Frequently asked questions",
 
       "toast.taskAdded": "✅ Task added",
@@ -545,7 +597,7 @@
 "datepicker.today": "Today",
 "datepicker.clear": "Clear",
 "datepicker.invalid": "The entered date is invalid",
-"datepicker.placeholder": "e.g. 1404/11/19",
+"datepicker.placeholder": "e.g. 2026-09-19",
 "reminder.title": "Daily reminder",
 "reminder.enable": "Enable reminder",
 "reminder.time": "Reminder time",
@@ -613,24 +665,33 @@
 "notes.search": "Search notes"
     }
   };
-
-  function getInitialLang() {
-    try {
-      const q = new URLSearchParams(window.location.search).get("lang");
-      if (q === "en" || q === "fa") return q;
-    } catch (error) {
-      // ignore
-    }
-
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "en" || saved === "fa") return saved;
-    } catch (error) {
-      // ignore
-    }
-
-    return "fa";
-  }
+function getInitialLang() {
+try {
+const q = new URLSearchParams(window.location.search).get("lang");
+if (q === "en" || q === "fa") return q;
+} catch (error) {
+// ignore
+}
+try {
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved === "en" || saved === "fa") return saved;
+} catch (error) {
+// ignore
+}
+try {
+const nav = (navigator.language || "").toLowerCase();
+if (nav.indexOf("fa") !== 0) return "en";
+} catch (error) {
+// ignore
+}
+try {
+const nav = (navigator.language || "").toLowerCase();
+if (nav.indexOf("fa") !== 0) return "en";
+} catch (error) {
+// ignore
+}
+return "fa";
+}
 
   let lang = getInitialLang();
   const listeners = new Set();
