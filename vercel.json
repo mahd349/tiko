@@ -9,16 +9,16 @@
     }
   ],
   "rewrites": [
-    { "source": "/tasks", "destination": "/index.html" },
-    { "source": "/tasks/", "destination": "/index.html" },
-    { "source": "/habits", "destination": "/index.html" },
-    { "source": "/habits/", "destination": "/index.html" },
-    { "source": "/today", "destination": "/index.html" },
-    { "source": "/today/", "destination": "/index.html" },
-    { "source": "/calendar", "destination": "/index.html" },
-    { "source": "/calendar/", "destination": "/index.html" },
-    { "source": "/stats", "destination": "/index.html" },
-    { "source": "/stats/", "destination": "/index.html" }
+    { "source": "/tasks", "destination": "/" },
+    { "source": "/tasks/", "destination": "/" },
+    { "source": "/habits", "destination": "/" },
+    { "source": "/habits/", "destination": "/" },
+    { "source": "/today", "destination": "/" },
+    { "source": "/today/", "destination": "/" },
+    { "source": "/calendar", "destination": "/" },
+    { "source": "/calendar/", "destination": "/" },
+    { "source": "/stats", "destination": "/" },
+    { "source": "/stats/", "destination": "/" }
   ],
   "headers": [
     {
