@@ -1673,6 +1673,27 @@ pruneOrphanLogs();
 purgeExpiredTrash();
 
 document.documentElement.setAttribute("data-theme", state.settings.theme);
+function syncInitialLang() {
+if (!window.I18N) return;
+let urlLang = null;
+try {
+urlLang = new URLSearchParams(window.location.search).get("lang");
+} catch (error) {
+urlLang = null;
+}
+if (urlLang === "en" || urlLang === "fa") {
+if (window.I18N.lang !== urlLang) {
+window.I18N.setLang(urlLang, true);
+}
+state.settings.lang = urlLang;
+} else {
+state.settings.lang = window.I18N.lang;
+}
+}
+syncInitialLang();
+window.setInterval(function () {
+purgeExpiredTrash();
+}, 6 * 60 * 60 * 1000);;
 
 if (window.I18N) {
 window.I18N.setLang(state.settings.lang, false);
