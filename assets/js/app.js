@@ -54,14 +54,14 @@
     low: 2
   };
 const FEATURE_SCRIPTS = {
-pomodoro: "assets/js/features/pomodoro.js",
-transfer: "assets/js/features/transfer.js",
-share: "assets/js/features/share-card.js",
-notes: "assets/js/features/notes.js",
-report: "assets/js/features/report-card.js",
-game: "assets/js/features/game.js",
-wave: "assets/js/features/wave-bg.js",
-animated: "assets/js/features/animated-bg.js"
+pomodoro: "/assets/js/features/pomodoro.js",
+transfer: "/assets/js/features/transfer.js",
+share: "/assets/js/features/share-card.js",
+notes: "/assets/js/features/notes.js",
+report: "/assets/js/features/report-card.js",
+game: "/assets/js/features/game.js",
+wave: "/assets/js/features/wave-bg.js",
+animated: "/assets/js/features/animated-bg.js"
 };
 let notesRequested = false;
 function ensureFeature(key) {
@@ -1191,7 +1191,7 @@ const html =
 '<button class="btn btn-ghost" data-action="open-transfer">🔗 ' + window.I18N.t("transfer.title") + "</button>" +
 '<button class="btn btn-ghost" data-action="open-pomodoro">🍅 ' + window.I18N.t("pomodoro.title") + "</button>" +
 '<button class="btn btn-ghost" data-action="open-help">❓ ' + window.I18N.t("common.help") + "</button>" +
-'<a class="btn btn-ghost" href="rahnama/">📚 ' + window.I18N.t("common.articles") + "</a>" +
+'<a class="btn btn-ghost" href="/rahnama/">📚 ' + window.I18N.t("common.articles") + "</a>" +
 "</div>";
 const content = window.UI.modal.open(window.I18N.t("common.tools"), html);
 if (!content) return;
