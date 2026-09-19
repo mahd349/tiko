@@ -197,7 +197,7 @@
 </div>
 
 <!-- ===== SKIP LINK (A11y) ===== -->
-<a href="#main" class="skip-link">رفتن به محتوای اصلی</a>
+<a href="#main" class="skip-link" data-i18n="a11y.skip">رفتن به محتوای اصلی</a>
 
 <!-- ===== MOBILE TOP BAR ===== -->
 <header class="mobile-header">
@@ -305,10 +305,10 @@
       <div class="card span-7">
         <div class="card-header">
           <div>
-            <span class="card-eyebrow">فهرست امروز</span>
-            <h2>وظایف امروز</h2>
+            <span class="card-eyebrow" data-i18n="home.listEyebrow">فهرست امروز</span>
+            <h2 data-i18n="home.tasksTitle">وظایف امروز</h2>
           </div>
-          <button class="link-btn" data-goto="tasks">مشاهده همه ←</button>
+          <button class="link-btn" data-goto="tasks" data-i18n="common.viewAll">مشاهده همه ←</button>
         </div>
         <div id="homeTaskList"></div>
       </div>
@@ -316,10 +316,10 @@
       <div class="card span-5">
         <div class="card-header">
           <div>
-            <span class="card-eyebrow">پیگیری روزانه</span>
-            <h2>عادت‌های امروز</h2>
+            <span class="card-eyebrow" data-i18n="home.habitsEyebrow">پیگیری روزانه</span>
+            <h2 data-i18n="home.habitsTitle">عادت‌های امروز</h2>
           </div>
-          <button class="link-btn" data-goto="habits">مشاهده همه ←</button>
+          <button class="link-btn" data-goto="habits" data-i18n="common.viewAll">مشاهده همه ←</button>
         </div>
         <div id="homeHabitList"></div>
       </div>
@@ -327,8 +327,8 @@
       <div class="card span-7">
         <div class="card-header">
           <div>
-            <span class="card-eyebrow">پیشرفت هفتگی</span>
-            <h2>نمودار فعالیت</h2>
+            <span class="card-eyebrow" data-i18n="home.progressEyebrow">پیشرفت هفتگی</span>
+            <h2 data-i18n="home.chartTitle">نمودار فعالیت</h2>
           </div>
         </div>
         <div class="home-bars" id="homeBars" role="img" aria-label="نمودار فعالیت ۷ روز اخیر"></div>
@@ -338,8 +338,8 @@
       <div class="card span-5">
         <div class="card-header">
           <div>
-            <span class="card-eyebrow">تقویم</span>
-            <h2>روزهای اخیر</h2>
+            <span class="card-eyebrow" data-i18n="home.calEyebrow">تقویم</span>
+            <h2 data-i18n="home.recentTitle">روزهای اخیر</h2>
           </div>
         </div>
         <div class="mini-week" id="homeMiniWeek"></div>
@@ -348,8 +348,8 @@
       <div class="card span-12">
         <div class="card-header">
           <div>
-            <span class="card-eyebrow">عادت‌های تایمری</span>
-            <h2>توزیع زمان تمرکز</h2>
+            <span class="card-eyebrow" data-i18n="home.timerEyebrow">عادت‌های تایمری</span>
+            <h2 data-i18n="home.focusTitle">توزیع زمان تمرکز</h2>
           </div>
         </div>
         <div class="focus-split" id="focusDonut" role="img" aria-label="توزیع زمان تمرکز"></div>
@@ -363,7 +363,7 @@
   <section id="tab-tasks" class="tab-content" role="tabpanel" tabindex="-1" aria-labelledby="tabbtn-tasks">
     <div class="page-header">
       <div>
-        <span class="page-eyebrow">مدیریت</span>
+        <span class="page-eyebrow" data-i18n="tasks.eyebrow">مدیریت</span>
         <h2>وظایف</h2>
         <p>کارهای روزانه را با تاریخ و اولویت مرتب کن.</p>
       </div>
@@ -427,7 +427,7 @@
   <section id="tab-habits" class="tab-content" role="tabpanel" tabindex="-1" aria-labelledby="tabbtn-habits">
     <div class="page-header">
       <div>
-        <span class="page-eyebrow">تیکوچی روزانه</span>
+        <span class="page-eyebrow" data-i18n="habits.eyebrow">روتین روزانه</span>
         <h2>عادت‌ها</h2>
         <p>عادت‌ها را بر اساس دسته‌بندی مدیریت و پیشرفتشان را دنبال کن.</p>
       </div>
@@ -479,7 +479,7 @@
   <section id="tab-today" class="tab-content" role="tabpanel" tabindex="-1" aria-labelledby="tabbtn-today">
     <div class="page-header">
       <div>
-        <span class="page-eyebrow">نمای کلی</span>
+        <span class="page-eyebrow" data-i18n="today.eyebrow">نمای کلی</span>
         <h2>امروز</h2>
         <p>وضعیت کامل همین روز در یک صفحه.</p>
       </div>
@@ -513,8 +513,8 @@
     <div class="card">
   <div class="card-header">
     <div>
-      <span class="card-eyebrow">دفترچه</span>
-      <h3>📝 یادداشت امروز</h3>
+      <span class="card-eyebrow" data-i18n="today.noteEyebrow">دفترچه</span>
+      <h3 data-i18n="today.noteTitle">📝 یادداشت امروز</h3>
     </div>
     <button class="btn btn-ghost btn-sm" data-action="search-notes">🔍 جستجو</button>
   </div>
@@ -526,7 +526,7 @@
   <section id="tab-calendar" class="tab-content" role="tabpanel" tabindex="-1" aria-labelledby="tabbtn-calendar">
     <div class="page-header">
       <div>
-        <span class="page-eyebrow">زمان‌بندی</span>
+        <span class="page-eyebrow" data-i18n="calendar.pageEyebrow">زمان‌بندی</span>
         <h2>تقویم</h2>
         <p>روی هر روز بزن تا جزئیاتش را ببینی.</p>
       </div>
@@ -554,8 +554,8 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <span class="card-eyebrow">۶ ماه اخیر</span>
-          <h3>نقشهٔ حرارتی</h3>
+          <span class="card-eyebrow" data-i18n="calendar.heatmapEyebrow">۶ ماه اخیر</span>
+          <h3 data-i18n="calendar.heatmapTitle">نقشهٔ حرارتی</h3>
         </div>
       </div>
       <div class="heatmap" id="heatmap" role="img" aria-label="نقشه حرارتی فعالیت ۶ ماه اخیر"></div>
@@ -582,8 +582,8 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <span class="card-eyebrow">هفتهٔ جاری</span>
-          <h3>نرخ تکمیل ۷ روز اخیر</h3>
+          <span class="card-eyebrow" data-i18n="stats.weekEyebrow">هفتهٔ جاری</span>
+          <h3 data-i18n="stats.weeklyTitle">نرخ تکمیل ۷ روز اخیر</h3>
         </div>
       </div>
       <div class="chart-bar" id="weeklyChart" role="img" aria-label="نمودار نرخ تکمیل هفتگی"></div>
@@ -593,8 +593,8 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <span class="card-eyebrow">روند</span>
-          <h3>۳۰ روز اخیر</h3>
+          <span class="card-eyebrow" data-i18n="stats.trendEyebrow">روند</span>
+          <h3 data-i18n="stats.trendTitle">۳۰ روز اخیر</h3>
         </div>
       </div>
       <div class="line-chart-container">
@@ -607,8 +607,8 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <span class="card-eyebrow">جزئیات</span>
-          <h3>نمودار هر عادت</h3>
+          <span class="card-eyebrow" data-i18n="stats.detailEyebrow">جزئیات</span>
+          <h3 data-i18n="stats.perHabitTitle">نمودار هر عادت</h3>
         </div>
       </div>
       <div id="individualCharts"></div>
@@ -617,8 +617,8 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <span class="card-eyebrow">پشتیبان</span>
-          <h3>مدیریت داده‌ها</h3>
+          <span class="card-eyebrow" data-i18n="stats.backupEyebrow">پشتیبان</span>
+          <h3 data-i18n="stats.dataTitle">مدیریت داده‌ها</h3>
         </div>
       </div>
       <p class="data-info">حجم فعلی: <strong id="storageSize">—</strong>. داده‌ها فقط در همین مرورگر ذخیره می‌شوند.</p>
@@ -709,7 +709,7 @@
 
   <!-- ===== FOOTER ===== -->
   <footer class="site-footer" role="contentinfo">
-    <p><strong>تیکوچی</strong> — ابزار فارسی پیگیری عادت‌ها و مدیریت زمان</p>
+    <p><strong>تیکوچی</strong> — <span data-i18n="footer.tagline">ابزار فارسی پیگیری عادت‌ها و مدیریت زمان</span></p>
     <nav class="footer-links" aria-label="مقاله‌های آموزشی">
       <a href="/rahnama/chand-rooz-adat/">چند روز تا شکل‌گیری عادت؟</a>
       <a href="/rahnama/ghanoon-do-daghighe/">قانون دو دقیقه</a>
@@ -723,7 +723,7 @@
       <a href="/terms/">قوانین استفاده</a>
       <a href="/contact/">تماس</a>
     </nav>
-    <p>ساخته‌شده با ❤️ در ایران | © <span id="footerYear"></span> تیکوچی — تمامی حقوق محفوظ است</p>
+    <p><span data-i18n="footer.made">ساخته‌شده با ❤️ در ایران</span> | © <span id="footerYear"></span> <strong>تیکوچی</strong> — <span data-i18n="footer.rights">تمامی حقوق محفوظ است</span></p>
   </footer>
 
 </main>
@@ -735,11 +735,11 @@
 <div class="fab-menu" id="fabMenu" role="menu" aria-label="منوی افزودن" hidden>
   <button class="fab-menu-item" data-action="fab-task" role="menuitem">
     <span class="fab-menu-icon">📋</span>
-    <span>وظیفه جدید</span>
+    <span data-i18n="fab.task">وظیفه جدید</span>
   </button>
   <button class="fab-menu-item" data-action="fab-habit" role="menuitem">
     <span class="fab-menu-icon">🔥</span>
-    <span>عادت جدید</span>
+    <span data-i18n="fab.habit">عادت جدید</span>
   </button>
 </div>
   
