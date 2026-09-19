@@ -8,6 +8,9 @@
       "permanent": false
     }
   ],
+  "rewrites": [
+{ "source": "/(tasks|habits|today|calendar|stats)/?", "destination": "/index.html" }
+]
   "headers": [
     {
       "source": "/(.*)",
