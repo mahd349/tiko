@@ -69,6 +69,11 @@
 
 <!-- ===== MANIFEST & PWA ===== -->
 <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="تیکوچی">
 
 <!-- ===== PERFORMANCE: PRECONNECT & PRELOAD ===== -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -796,6 +801,7 @@
 <script src="/assets/js/features/reminder.js" defer></script>
 <script src="/assets/js/ui/modal.js" defer></script>
 <script src="/assets/js/ui/toast.js" defer></script>
+<script src="assets/js/ui/install.js" defer></script>
 <script src="/assets/js/app.js" defer></script>
 <script>
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
