@@ -1150,6 +1150,9 @@ if (state === "unsupported") return window.I18N.t("reminder.permUnsupported");
 return window.I18N.t("reminder.permUnknown");
 }
 function openToolsModal() {
+   if (window.InstallPrompt && window.InstallPrompt.injectIntoToolsModal) {
+window.InstallPrompt.injectIntoToolsModal(content);
+}
 if (!window.UI || !window.UI.modal) return;
 const lang = window.I18N.lang;
 const reminder =
@@ -2218,6 +2221,34 @@ bindToolsFallback();
     applyStaticTranslations();
     renderAll();
      maybeShowBackupReminder();
+   (function handleShortcutParams() {
+try {
+var params = new URLSearchParams(window.location.search);
+if (params.get("new") === "1") {
+switchTab("tasks");
+setTimeout(function () {
+var input = document.getElementById("taskInput");
+if (input) input.focus();
+}, 250);
+} else if (params.get("pomo") === "1") {
+var openPomo = function () {
+if (window.Pomodoro && window.Pomodoro.open) window.Pomodoro.open();
+};
+if (window.Pomodoro) openPomo();
+else if (window.Utils.loadScript) window.Utils.loadScript("/assets/js/features/pomodoro.js").then(openPomo).catch(function () {});
+} else if (params.get("review") === "1") {
+switchTab("stats");
+setTimeout(function () {
+if (window.Stats && window.Stats.openWeeklyReview) window.Stats.openWeeklyReview();
+}, 250);
+}
+} catch (error) {
+// ignore
+}
+})();
+setTimeout(function () {
+if (window.InstallPrompt && window.InstallPrompt.maybeShow) window.InstallPrompt.maybeShow();
+}, 4000);
    maybeShowWeeklyReview();
    window.Utils.onIdle(function () {
 ensureFeature("game").catch(function () {});
