@@ -1150,9 +1150,7 @@ if (state === "unsupported") return window.I18N.t("reminder.permUnsupported");
 return window.I18N.t("reminder.permUnknown");
 }
 function openToolsModal() {
-   if (window.InstallPrompt && window.InstallPrompt.injectIntoToolsModal) {
-window.InstallPrompt.injectIntoToolsModal(content);
-}
+
 if (!window.UI || !window.UI.modal) return;
 const lang = window.I18N.lang;
 const reminder =
@@ -1216,15 +1214,20 @@ if (statusEl) statusEl.textContent = reminderPermLabel(result);
 }
 });
 ensureFeature("wave").then(function () {
-if (window.WaveBg && window.WaveBg.injectIntoToolsModal && document.body.contains(content)) {
-window.WaveBg.injectIntoToolsModal(content);
-}
+
 }).catch(function () {});
 ensureFeature("animated").then(function () {
-if (window.AnimatedBg && window.AnimatedBg.injectIntoToolsModal && document.body.contains(content)) {
+
+}).catch(function () {});
+}
+   if (window.AnimatedBg && window.AnimatedBg.injectIntoToolsModal && document.body.contains(content)) {
 window.AnimatedBg.injectIntoToolsModal(content);
 }
-}).catch(function () {});
+   if (window.WaveBg && window.WaveBg.injectIntoToolsModal && document.body.contains(content)) {
+window.WaveBg.injectIntoToolsModal(content);
+}
+      if (window.InstallPrompt && window.InstallPrompt.injectIntoToolsModal) {
+window.InstallPrompt.injectIntoToolsModal(content);
 }
 if (timeInput) {
 timeInput.addEventListener("change", function () {
