@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v15";
+const CACHE = "routine-v16";
 
 const CORE = [
   "/",
@@ -107,16 +107,16 @@ self.addEventListener("fetch", function (event) {
   /* Navigation: network-first, offline fallback */
   if (req.mode === "navigate") {
     event.respondWith(
-      fetch(req)
-        .then(function (res) {
-          const copy = res.clone();
-
-          caches.open(CACHE).then(function (cache) {
-            cache.put(req, copy);
-          });
-
-          return res;
-        })
+fetch(req)
+.then(function (res) {
+if (res && res.ok) {
+const copy = res.clone();
+caches.open(CACHE).then(function (cache) {
+cache.put(req, copy);
+});
+}
+return res;
+})
         .catch(function () {
           return caches.match(req).then(function (cached) {
             return cached || caches.match("/index.html");
