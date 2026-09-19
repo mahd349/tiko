@@ -22,7 +22,32 @@
       "nav.stats": "گزارش‌ها",
       "nav.theme": "پوسته",
       "nav.tools": "ابزارها",
-
+      "a11y.skip": "رفتن به محتوای اصلی",
+"home.listEyebrow": "فهرست امروز",
+"home.tasksTitle": "وظایف امروز",
+"home.habitsEyebrow": "پیگیری روزانه",
+"home.habitsTitle": "عادت‌های امروز",
+"home.progressEyebrow": "پیشرفت هفتگی",
+"home.chartTitle": "نمودار فعالیت",
+"home.calEyebrow": "تقویم",
+"home.recentTitle": "روزهای اخیر",
+"home.timerEyebrow": "عادت‌های تایمری",
+"home.focusTitle": "توزیع زمان تمرکز",
+"tasks.eyebrow": "مدیریت",
+"habits.eyebrow": "روتین روزانه",
+"today.eyebrow": "نمای کلی",
+"today.noteEyebrow": "دفترچه",
+"today.noteTitle": "📝 یادداشت امروز",
+"calendar.pageEyebrow": "زمان‌بندی",
+"stats.weekEyebrow": "هفتهٔ جاری",
+"stats.trendEyebrow": "روند",
+"stats.detailEyebrow": "جزئیات",
+"stats.backupEyebrow": "پشتیبان",
+"fab.task": "وظیفه جدید",
+"fab.habit": "عادت جدید",
+"footer.tagline": "ابزار فارسی پیگیری عادت‌ها و مدیریت زمان",
+"footer.made": "ساخته‌شده با ❤️ در ایران",
+"footer.rights": "تمامی حقوق محفوظ است",
       "auth.login": "ورود با گوگل",
       "auth.logout": "خروج از حساب",
       "auth.loading": "در حال ورود...",
@@ -325,7 +350,32 @@
       "nav.stats": "Reports",
       "nav.theme": "Theme",
       "nav.tools": "Tools",
-
+"a11y.skip": "Skip to main content",
+"home.listEyebrow": "Today's list",
+"home.tasksTitle": "Today's tasks",
+"home.habitsEyebrow": "Daily tracking",
+"home.habitsTitle": "Today's habits",
+"home.progressEyebrow": "Weekly progress",
+"home.chartTitle": "Activity chart",
+"home.calEyebrow": "Calendar",
+"home.recentTitle": "Recent days",
+"home.timerEyebrow": "Timer habits",
+"home.focusTitle": "Focus time breakdown",
+"tasks.eyebrow": "Management",
+"habits.eyebrow": "Daily routine",
+"today.eyebrow": "Overview",
+"today.noteEyebrow": "Notebook",
+"today.noteTitle": "📝 Today's note",
+"calendar.pageEyebrow": "Scheduling",
+"stats.weekEyebrow": "Current week",
+"stats.trendEyebrow": "Trend",
+"stats.detailEyebrow": "Details",
+"stats.backupEyebrow": "Backup",
+"fab.task": "New task",
+"fab.habit": "New habit",
+"footer.tagline": "Persian habit & time tracking tool",
+"footer.made": "Made with ❤️ in Iran",
+"footer.rights": "All rights reserved",
       "auth.login": "Sign in with Google",
       "auth.logout": "Sign out",
       "auth.loading": "Signing in...",
@@ -625,6 +675,12 @@ if (q === "en" || q === "fa") return q;
 try {
 const saved = localStorage.getItem(STORAGE_KEY);
 if (saved === "en" || saved === "fa") return saved;
+} catch (error) {
+// ignore
+}
+try {
+const nav = (navigator.language || "").toLowerCase();
+if (nav.indexOf("fa") !== 0) return "en";
 } catch (error) {
 // ignore
 }
