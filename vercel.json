@@ -8,18 +8,18 @@
       "permanent": false
     }
   ],
-    "rewrites": [
-{ "source": "/tasks", "destination": "/index.html" },
-{ "source": "/tasks/", "destination": "/index.html" },
-{ "source": "/habits", "destination": "/index.html" },
-{ "source": "/habits/", "destination": "/index.html" },
-{ "source": "/today", "destination": "/index.html" },
-{ "source": "/today/", "destination": "/index.html" },
-{ "source": "/calendar", "destination": "/index.html" },
-{ "source": "/calendar/", "destination": "/index.html" },
-{ "source": "/stats", "destination": "/index.html" },
-{ "source": "/stats/", "destination": "/index.html" }
-]
+  "rewrites": [
+    { "source": "/tasks", "destination": "/index.html" },
+    { "source": "/tasks/", "destination": "/index.html" },
+    { "source": "/habits", "destination": "/index.html" },
+    { "source": "/habits/", "destination": "/index.html" },
+    { "source": "/today", "destination": "/index.html" },
+    { "source": "/today/", "destination": "/index.html" },
+    { "source": "/calendar", "destination": "/index.html" },
+    { "source": "/calendar/", "destination": "/index.html" },
+    { "source": "/stats", "destination": "/index.html" },
+    { "source": "/stats/", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -33,16 +33,16 @@
       ]
     },
     {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
       "source": "/sw.js",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" },
         { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]
