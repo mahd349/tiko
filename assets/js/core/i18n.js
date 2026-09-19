@@ -615,24 +615,27 @@
 "notes.search": "Search notes"
     }
   };
-
-  function getInitialLang() {
-    try {
-      const q = new URLSearchParams(window.location.search).get("lang");
-      if (q === "en" || q === "fa") return q;
-    } catch (error) {
-      // ignore
-    }
-
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "en" || saved === "fa") return saved;
-    } catch (error) {
-      // ignore
-    }
-
-    return "fa";
-  }
+function getInitialLang() {
+try {
+const q = new URLSearchParams(window.location.search).get("lang");
+if (q === "en" || q === "fa") return q;
+} catch (error) {
+// ignore
+}
+try {
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved === "en" || saved === "fa") return saved;
+} catch (error) {
+// ignore
+}
+try {
+const nav = (navigator.language || "").toLowerCase();
+if (nav.indexOf("fa") !== 0) return "en";
+} catch (error) {
+// ignore
+}
+return "fa";
+}
 
   let lang = getInitialLang();
   const listeners = new Set();
