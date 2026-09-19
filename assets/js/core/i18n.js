@@ -10,7 +10,8 @@
 
   const dictionary = {
     fa: {
-      "app.name": "روتین",
+      "app.name": "تیکوچی",
+"app.moduleName": "روتین",
       "app.tagline": "پیگیری عادت، مدیریت وظایف و برنامه‌ریزی روزانه",
 
       "nav.home": "خانه",
@@ -182,7 +183,7 @@
       "feedback.general": "بازخورد عمومی",
       "feedback.messagePlaceholder": "پیام شما...",
       "feedback.send": "ارسال",
-      "landing.features": "ویژگی‌های روتین",
+      "landing.features": "ویژگی‌های تیکوچی",
       "landing.faq": "سوالات متداول",
 
       "toast.taskAdded": "✅ وظیفه اضافه شد",
@@ -312,7 +313,8 @@
     },
 
     en: {
-      "app.name": "Routine",
+      "app.name": "TikoChi",
+"app.moduleName": "Routine",
       "app.tagline": "Habit tracking, task management and daily planning",
 
       "nav.home": "Home",
@@ -479,7 +481,7 @@
       "feedback.general": "General feedback",
       "feedback.messagePlaceholder": "Your message...",
       "feedback.send": "Send",
-     "landing.features": "Routine features",
+     "landing.features": "TikoChi features",
      "landing.faq": "Frequently asked questions",
 
       "toast.taskAdded": "✅ Task added",
