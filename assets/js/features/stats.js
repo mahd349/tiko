@@ -1080,6 +1080,216 @@ html +=
 html += "</tbody></table>";
 wrap.innerHTML = html;
 }
+   /* ------------------------------
+ICS calendar export
+------------------------------ */
+function icsEscape(text) {
+return String(text == null ? "" : text)
+.replace(/\\/g, "\\\\")
+.replace(/;/g, "\\;")
+.replace(/,/g, "\\,")
+.replace(/\r?\n/g, "\\n");
+}
+function icsDate(key) {
+return String(key).replace(/-/g, "");
+}
+function icsNextDay(key) {
+return icsDate(window.Calendar.keyShift(1, key));
+}
+function icsStamp() {
+const d = new Date();
+return (
+d.getUTCFullYear() +
+String(d.getUTCMonth() + 1).padStart(2, "0") +
+String(d.getUTCDate()).padStart(2, "0") +
+"T" +
+String(d.getUTCHours()).padStart(2, "0") +
+String(d.getUTCMinutes()).padStart(2, "0") +
+String(d.getUTCSeconds()).padStart(2, "0") +
+"Z"
+);
+}
+const JALALI_WEEKDAY_TO_BYDAY = ["SA", "SU", "MO", "TU", "WE", "TH", "FR"];
+function byDayFromDays(days) {
+return (days || [])
+.map(function (d) {
+return JALALI_WEEKDAY_TO_BYDAY[d];
+})
+.filter(Boolean)
+.join(",");
+}
+function rruleForTask(task) {
+const rec = task.recurrence;
+if (!rec || rec.freq === "none") return "";
+let rule = "RRULE:FREQ=" + rec.freq.toUpperCase() + ";INTERVAL=" + Math.max(1, rec.interval || 1);
+if (rec.freq === "weekly") {
+const byday = byDayFromDays(rec.days);
+if (byday) rule += ";BYDAY=" + byday;
+}
+if (rec.freq === "monthly") {
+rule += ";BYMONTHDAY=" + Number(String(task.date).slice(8, 10));
+}
+if (rec.endDate) {
+rule += ";UNTIL=" + icsDate(rec.endDate) + "T235959Z";
+}
+return rule;
+}
+function exportICS() {
+const lines = [];
+lines.push("BEGIN:VCALENDAR");
+lines.push("VERSION:2.0");
+lines.push("PRODID:-//TikoChi//Routine Module//FA");
+lines.push("CALSCALE:GREGORIAN");
+lines.push("METHOD:PUBLISH");
+const stamp = icsStamp();
+window.Store.state.tasks.forEach(function (task) {
+lines.push("BEGIN:VEVENT");
+lines.push("UID:task-" + task.id + "@tikochi");
+lines.push("DTSTAMP:" + stamp);
+lines.push("DTSTART;VALUE=DATE:" + icsDate(task.date));
+lines.push("DTEND;VALUE=DATE:" + icsNextDay(task.date));
+lines.push("SUMMARY:" + icsEscape((task.done ? "✅ " : "") + task.name));
+const rrule = rruleForTask(task);
+if (rrule) lines.push(rrule);
+lines.push("END:VEVENT");
+});
+window.Store.state.habits.forEach(function (habit) {
+const startKey = habit.created ? window.Calendar.keyOf(new Date(habit.created)) : window.Calendar.todayKey();
+lines.push("BEGIN:VEVENT");
+lines.push("UID:habit-" + habit.id + "@tikochi");
+lines.push("DTSTAMP:" + stamp);
+lines.push("DTSTART;VALUE=DATE:" + icsDate(startKey));
+lines.push("DTEND;VALUE=DATE:" + icsNextDay(startKey));
+lines.push("SUMMARY:" + icsEscape("🔥 " + habit.name));
+const byday = byDayFromDays(habit.activeDays);
+lines.push("RRULE:FREQ=WEEKLY;INTERVAL=1" + (byday ? ";BYDAY=" + byday : ""));
+lines.push("END:VEVENT");
+});
+lines.push("END:VCALENDAR");
+window.Utils.downloadText("tikochi-calendar-" + window.Calendar.todayKey() + ".ics", lines.join("\r\n"), "text/calendar");
+toast(L("📆 فایل تقویم دانلود شد", "📆 Calendar file downloaded"), "success");
+}
+/* ------------------------------
+Weekly review (rule-based coach)
+------------------------------ */
+function openWeeklyReview() {
+if (!window.UI || !window.UI.modal) return;
+const keys = [];
+for (let i = 6; i >= 0; i -= 1) keys.push(window.Calendar.keyShift(-i));
+const today = window.Calendar.todayKey();
+let pctSum = 0, pctDays = 0, bestKey = null, bestPct = -1, worstKey = null, worstPct = 2;
+let tasksTotal = 0, tasksDone = 0, habitTotal = 0, habitDone = 0, focusSeconds = 0;
+const timerIds = {};
+window.Store.state.habits.forEach(function (h) {
+if (h.type === "timer") timerIds[String(h.id)] = true;
+});
+keys.forEach(function (key) {
+const score = window.Store.dayScore(key);
+if (score.total > 0 && !score.future) {
+pctSum += score.pct;
+pctDays += 1;
+if (score.pct > bestPct) { bestPct = score.pct; bestKey = key; }
+if (score.pct < worstPct) { worstPct = score.pct; worstKey = key; }
+}
+window.Store.getTasksForDate(key).forEach(function (task) {
+tasksTotal += 1;
+if (window.Store.isTaskDoneOnDate(task, key)) tasksDone += 1;
+});
+window.Store.state.habits.forEach(function (habit) {
+if (!window.Store.habitExistedOn(habit, key)) return;
+if (window.Store.habitActiveOn && !window.Store.habitActiveOn(habit, key)) return;
+habitTotal += 1;
+if (window.Store.habitDone(habit, key)) habitDone += 1;
+});
+const day = window.Store.state.logs[key];
+if (day) {
+Object.keys(day).forEach(function (hid) {
+if (!timerIds[String(hid)]) return;
+const log = day[hid];
+focusSeconds += key === today && log.startedAt ? window.Store.liveSeconds(hid, log) : log.seconds || 0;
+});
+}
+});
+const completion = pctDays ? Math.round((pctSum / pctDays) * 100) : 0;
+const focusHours = focusSeconds / 3600;
+const missed = window.Store.state.habits
+.map(function (habit) {
+let miss = 0;
+keys.forEach(function (key) {
+if (key === today) return;
+if (!window.Store.habitExistedOn(habit, key)) return;
+if (window.Store.habitActiveOn && !window.Store.habitActiveOn(habit, key)) return;
+if (!window.Store.habitDone(habit, key)) miss += 1;
+});
+return { habit: habit, miss: miss };
+})
+.filter(function (item) { return item.miss >= 2; })
+.sort(function (a, b) { return b.miss - a.miss; });
+const overdue = window.Store.state.tasks.filter(function (task) {
+return !task.done && !window.Store.isTaskRecurring(task) && task.date < window.Calendar.keyShift(-2);
+}).length;
+const suggestions = [];
+if (missed.length) {
+suggestions.push({ icon: "🎯", text: L("عادت «", "Habit \"") + missed[0].habit.name + L("» را " + window.I18N.faNum(missed[0].miss) + " روز از دست دادی؛ هدفش را کوچک‌تر کن یا روزهای فعالش را کمتر کن.", "\" was missed " + missed[0].miss + " days; shrink its goal or reduce its active days.") });
+}
+if (overdue >= 3) {
+suggestions.push({ icon: "🧹", text: window.I18N.faNum(overdue) + L(" وظیفهٔ عقب‌افتاده داری؛ چند تا را حذف کن یا به این هفته منتقل کن.", " overdue tasks; delete some or move them into this week.") });
+}
+if (completion >= 80) {
+suggestions.push({ icon: "🏆", text: L("هفتهٔ فوق‌العاده‌ای بود! یک چالش جدید از مودال چالش‌ها شروع کن.", "Great week! Start a new challenge from the challenges modal.") });
+} else if (completion < 40 && pctDays > 0) {
+suggestions.push({ icon: "⏱️", text: L("پیشرفت هفته زیر ۴۰٪ است؛ فردا فقط با یک کار ۲ دقیقه‌ای شروع کن (قانون دو دقیقه).", "Week progress is under 40%; start tomorrow with a 2-minute task (2-minute rule).") });
+}
+if (focusHours >= 5) {
+suggestions.push({ icon: "🧠", text: window.I18N.faNum(focusHours.toFixed(1)) + L(" ساعت تمرکز عمیق ثبت شد؛ همان ساعت‌های طلایی را تکرار کن.", " hours of deep focus logged; repeat those golden hours.") });
+}
+if (!suggestions.length) {
+suggestions.push({ icon: "🌱", text: L("دادهٔ کافی نیست؛ چند روز دیگر ثبت کن تا مرور دقیق‌تر شود.", "Not enough data yet; log a few more days for a sharper review.") });
+}
+function statBox(value, label) {
+return '<div class="stat-box"><div class="stat-value">' + value + '</div><div class="stat-label">' + label + "</div></div>";
+}
+const html =
+'<div class="stats-grid wr-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">' +
+statBox(window.I18N.percent(completion), L("میانگین تکمیل هفته", "Week completion")) +
+statBox(window.I18N.faNum(pctDays) + "/" + window.I18N.faNum(7), L("روزهای دارای برنامه", "Planned days")) +
+statBox(window.I18N.faNum(tasksDone) + "/" + window.I18N.faNum(tasksTotal), L("وظایف انجام‌شده", "Tasks done")) +
+statBox(window.I18N.faNum(focusHours.toFixed(1)), L("ساعت تمرکز", "Focus hours")) +
+"</div>" +
+'<div class="modal-section-title">📈 ' + L("بهترین و ضعیف‌ترین روز", "Best & weakest day") + "</div>" +
+'<div class="insight-card"><span class="insight-icon">🏆</span><span>' +
+(bestKey ? window.Calendar.keyToJalaliFull(bestKey) + L(" با ", " with ") + window.I18N.percent(Math.round(bestPct * 100)) : L("داده‌ای نیست", "No data")) +
+"</span></div>" +
+'<div class="insight-card"><span class="insight-icon">🌧️</span><span>' +
+(worstKey ? window.Calendar.keyToJalaliFull(worstKey) + L(" با ", " with ") + window.I18N.percent(Math.round(worstPct * 100)) : L("داده‌ای نیست", "No data")) +
+"</span></div>" +
+(missed.length
+? '<div class="modal-section-title">⚠️ ' + L("عادت‌های جاافتاده", "Missed habits") + "</div>" +
+missed.slice(0, 4).map(function (item) {
+return '<div class="insight-card"><span class="insight-icon">🔥</span><span>' + window.Utils.escapeHtml(item.habit.name) + L(" — ", " — ") + window.I18N.faNum(item.miss) + L(" روز", " days") + "</span></div>";
+}).join("")
+: "") +
+'<div class="modal-section-title">💡 ' + L("پیشنهادهای این هفته", "This week's suggestions") + "</div>" +
+suggestions.map(function (s) {
+return '<div class="insight-card"><span class="insight-icon">' + s.icon + "</span><span>" + window.Utils.escapeHtml(s.text) + "</span></div>";
+}).join("") +
+'<div class="sc-actions" style="margin-top:16px">' +
+'<button class="btn btn-ghost" data-action="close-modal">' + window.I18N.t("common.close") + "</button>" +
+"</div>";
+const content = window.UI.modal.open(L("📅 مرور هفتگی", "📅 Weekly review"), html);
+if (!content) return;
+const closeBtn = content.querySelector('[data-action="close-modal"]');
+if (closeBtn) {
+closeBtn.addEventListener("click", function () {
+window.UI.modal.close();
+});
+}
+try {
+localStorage.setItem("pd_weekly_review_" + today, "1");
+} catch (error) {
+// ignore
+}
+}
   function bind() {
     const exportBtn = el("exportBtn");
     const importBtn = el("importBtn");
@@ -1113,6 +1323,10 @@ window.print();
      const csvBtn = el("csvBtn");
 if (csvBtn) {
 csvBtn.addEventListener("click", exportCSV);
+}
+     const icsBtn = el("icsBtn");
+if (icsBtn) {
+icsBtn.addEventListener("click", exportICS);
 }
      const reportCardBtn = el("reportCardBtn");
 if (reportCardBtn) {
@@ -1150,6 +1364,8 @@ render();
   window.Stats = {
     init: init,
     render: render,
+     exportICS: exportICS,
+openWeeklyReview: openWeeklyReview,
     exportBackup: exportBackup
   };
 
