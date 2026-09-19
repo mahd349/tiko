@@ -76,6 +76,50 @@ if (window.UI && window.UI.toast) {
 window.UI.toast(L("بارگذاری ماژول ناموفق بود؛ اتصال اینترنت را بررسی کن.", "Failed to load the module; check your connection."), "error");
 }
 }
+   const ROUTE_PATH = {
+home: "/",
+tasks: "/tasks/",
+habits: "/habits/",
+today: "/today/",
+calendar: "/calendar/",
+stats: "/stats/"
+};
+const ROUTE_META = {
+home: {
+fa: { title: "تیکوچی | داشبورد بهره‌وری فارسی — پیگیری عادت، وظایف و تقویم شمسی", desc: "تیکوچی یک ابزار فارسی و رایگان برای پیگیری عادت‌ها، مدیریت وظایف، برنامه‌ریزی روزانه و تقویم شمسی است؛ با تایمر، استریک و گزارش پیشرفت." },
+en: { title: "TikoChi — Persian Productivity Dashboard for Habits, Tasks & Jalali Calendar", desc: "TikoChi is a free Persian-first dashboard for habit tracking, task management, daily planning and the Jalali calendar, with timers, streaks and progress reports." }
+},
+tasks: {
+fa: { title: "مدیریت وظایف فارسی با تقویم شمسی | تیکوچی", desc: "وظایف روزانه را با تاریخ شمسی، اولویت، تکرار و زیروظیفه مدیریت کن؛ فیلتر عقب‌افتاده‌ها و گزارش تفکیکی، رایگان و بدون ثبت‌نام." },
+en: { title: "Persian Task Manager with Jalali Dates | TikoChi", desc: "Manage daily tasks with Jalali dates, priorities, recurrence and subtasks; overdue filters and breakdown reports, free and offline-first." }
+},
+habits: {
+fa: { title: "پیگیری عادت و استریک | تیکوچی", desc: "عادت‌سازی با استریک، روزهای فعال سفارشی، تایمر و نمودار پیشرفت؛ ابزار فارسی رایگان برای ساختن عادت‌های ماندگار." },
+en: { title: "Habit Tracker & Streaks | TikoChi", desc: "Build lasting habits with streaks, custom active days, timers and progress charts; a free Persian habit tracker." }
+},
+today: {
+fa: { title: "برنامه‌ریزی روزانه شمسی | تیکوچی", desc: "امروزت را یکجا ببین: وظایف، عادت‌های باقی‌مانده، درصد پیشرفت و یادداشت روزانه؛ داشبورد بهره‌وری فارسی." },
+en: { title: "Daily Planner (Jalali) | TikoChi", desc: "See today in one place: tasks, remaining habits, completion ring and daily note; a Persian daily planning dashboard." }
+},
+calendar: {
+fa: { title: "تقویم شمسی برنامه‌ریزی | تیکوچی", desc: "تقویم شمسی با نقشهٔ حرارتی ۶ ماه اخیر و جزئیات روزانه؛ برنامه‌ریزی عادت و وظیفه بر اساس تقویم ایرانی." },
+en: { title: "Jalali Calendar for Planning | TikoChi", desc: "A Persian calendar with a 6-month heatmap and per-day details; plan habits and tasks on the Iranian calendar." }
+},
+stats: {
+fa: { title: "گزارش پیشرفت و تحلیل بهره‌وری | تیکوچی", desc: "نمودار روند ۳۰ روزه، نرخ تکمیل هفتگی، عملکرد هر عادت و خروجی CSV/PNG؛ تحلیل رایگان بهره‌وری شخصی." },
+en: { title: "Progress Reports & Productivity Analytics | TikoChi", desc: "30-day trend chart, weekly completion rate, per-habit performance and CSV/PNG exports; free personal analytics." }
+}
+};
+function applyRouteMeta(tab) {
+const lang = window.I18N && window.I18N.lang === "en" ? "en" : "fa";
+const meta = (ROUTE_META[tab] || ROUTE_META.home)[lang];
+if (!meta) return;
+document.title = meta.title;
+const descEl = document.querySelector('meta[name="description"]');
+if (descEl) descEl.setAttribute("content", meta.desc);
+const canonical = document.querySelector('link[rel="canonical"]');
+if (canonical) canonical.setAttribute("href", "https://tiko-chi.vercel.app" + (ROUTE_PATH[tab] || "/"));
+}
   function el(id) {
     return document.getElementById(id);
   }
@@ -219,11 +263,12 @@ document.documentElement.setAttribute("data-animations", on ? "on" : "off");
 
     closeSidebar();
 
-    try {
-      history.replaceState(null, "", "#" + tab);
-    } catch (error) {
-      // ignore
-    }
+ try {
+history.replaceState(null, "", ROUTE_PATH[tab] || "/");
+} catch (error) {
+// ignore
+}
+applyRouteMeta(tab);
   }
 
   /* ------------------------------
@@ -1816,6 +1861,7 @@ window.Store.startTimer(id);
 }
 }
 renderAll();
+        applyRouteMeta(activeTab);
 return;
 }
        
@@ -2154,10 +2200,16 @@ ensureFeature("animated").catch(function () {});
 
     clockTimer = setInterval(renderClock, 1000);
 
-  const hash = (location.hash || "").replace("#", "");
+const cleanPath = (location.pathname || "/").replace(/\/+$/, "") || "/";
+const pathTab = Object.keys(ROUTE_PATH).filter(function (key) {
+return (ROUTE_PATH[key].replace(/\/+$/, "") || "/") === cleanPath || (ROUTE_PATH[key] === "/" && cleanPath === "");
+})[0] || "";
+const hash = (location.hash || "").replace("#", "");
 const isMobile = window.matchMedia("(max-width: 900px)").matches;
-if (TABS.indexOf(hash) !== -1) {
-  switchTab(hash);
+if (pathTab) {
+switchTab(pathTab);
+} else if (TABS.indexOf(hash) !== -1) {
+switchTab(hash);
 } else if (isMobile) {
   switchTab("today");
 } else {
