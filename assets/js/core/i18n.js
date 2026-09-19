@@ -547,7 +547,7 @@
 "datepicker.today": "Today",
 "datepicker.clear": "Clear",
 "datepicker.invalid": "The entered date is invalid",
-"datepicker.placeholder": "e.g. 1404/11/19",
+"datepicker.placeholder": "e.g. 2026-09-19",
 "reminder.title": "Daily reminder",
 "reminder.enable": "Enable reminder",
 "reminder.time": "Reminder time",
