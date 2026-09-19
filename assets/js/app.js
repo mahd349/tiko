@@ -1186,6 +1186,7 @@ const html =
 '<button class="btn btn-ghost" data-action="open-share">🔥 ' + window.I18N.t("common.streakCard") + "</button>" +
 '<button class="btn btn-ghost" data-action="open-trash">🗑️ ' + trashLabel + "</button>" +
 '<button class="btn btn-ghost" data-action="backup">📥 ' + window.I18N.t("common.backup") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-weekly-review">📅 ' + L("مرور هفتگی", "Weekly review") + "</button>" +
 '<button class="btn btn-ghost" data-action="restore">📤 ' + window.I18N.t("common.restore") + "</button>" +
 '<button class="btn btn-danger" data-action="reset">🗑️ ' + window.I18N.t("common.reset") + "</button>" +
 '<button class="btn btn-ghost" data-action="open-transfer">🔗 ' + window.I18N.t("transfer.title") + "</button>" +
@@ -1997,6 +1998,11 @@ window.App.renderAll();
 }
 return;
 }
+       if (action === "open-weekly-review") {
+window.UI.modal.close();
+if (window.Stats && window.Stats.openWeeklyReview) window.Stats.openWeeklyReview();
+return;
+}
 
       if (action === "close-modal") {
         window.UI.modal.close();
@@ -2171,6 +2177,26 @@ toolsBtn.addEventListener("click", function (event) {
 event.stopPropagation();
 openToolsModal();
 });
+}function maybeShowWeeklyReview() {
+if (!window.Store || !window.UI || !window.UI.toast) return;
+try {
+const today = window.Calendar.todayKey();
+if (window.Calendar.getDayOfWeek(window.Calendar.keyToDate(today), "fa") !== 6) return;
+if (localStorage.getItem("pd_weekly_review_" + today)) return;
+const hasData = window.Store.state.tasks.length || window.Store.state.habits.length;
+if (!hasData) return;
+window.UI.toast(L("📅 وقت مرور هفتگی است — یک دقیقه ببین هفته چطور گذشت", "📅 Weekly review time — see how your week went"), "info", {
+duration: 8000,
+action: {
+label: L("مرور هفته", "Review week"),
+onClick: function () {
+if (window.Stats && window.Stats.openWeeklyReview) window.Stats.openWeeklyReview();
+}
+}
+});
+} catch (error) {
+// ignore
+}
 }
    
 function init() {
@@ -2192,6 +2218,7 @@ bindToolsFallback();
     applyStaticTranslations();
     renderAll();
      maybeShowBackupReminder();
+   maybeShowWeeklyReview();
    window.Utils.onIdle(function () {
 ensureFeature("game").catch(function () {});
 ensureFeature("wave").catch(function () {});
