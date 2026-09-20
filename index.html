@@ -11,7 +11,7 @@
 
 <!-- ===== SEO PRIMARY ===== -->
 <title>تیکوچی | پیگیری عادت، مدیریت وظایف و برنامه‌ریزی روزانه با تقویم شمسی</title>
-<meta name="description"content="تیکوچی یک ابزار فارسی و رایگان برای پیگیری عادت‌ها، مدیریت وظایف، برنامه‌ریزی روزانه و تقویم شمسی است؛ با تایمر، استریک و گزارش پیشرفت."
+<meta name="description" content="تیکوچی یک ابزار فارسی و رایگان برای پیگیری عادت‌ها، مدیریت وظایف، برنامه‌ریزی روزانه و تقویم شمسی است؛ با تایمر، استریک و گزارش پیشرفت.">
 <meta name="keywords" content="تیکوچی, پیگیری عادت, مدیریت عادت, مدیریت وظایف, برنامه‌ریزی روزانه, تقویم شمسی, تایمر, استریک, عادت‌سازی, habit tracker, task manager, productivity, بهره‌وری">
 <meta name="author" content="TikoChi">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -380,13 +380,13 @@
       <form class="form-row" id="taskForm" onsubmit="return false;">
         <input type="text" id="taskInput" class="input" placeholder="نام وظیفه…" maxlength="140" aria-label="نام وظیفه" autocomplete="off" required>
         <input type="text" id="taskDate" class="input input-date" data-datepicker autocomplete="off" placeholder="مثلاً ۱۴۰۴/۱۱/۱۹" data-value="" aria-label="تاریخ وظیفه">
-        <select id="taskPriority" class="input" aria-label="اولویت">
-          <option value="med">🟡 معمولی</option>
-          <option value="high">🔴 مهم</option>
-          <option value="low">⚪ کم‌اهمیت</option>
-          <select id="taskProject" class="input" aria-label="پروژه"></select>
-<input type="text" id="taskTags" class="input" placeholder="برچسب‌ها (با ویرگول جدا کن)" maxlength="120" autocomplete="off" aria-label="برچسب‌ها">
-        </select>
+<select id="taskPriority" class="input" aria-label="اولویت">
+<option value="med" data-i18n="tasks.priorityMed">🟡 معمولی</option>
+<option value="high" data-i18n="tasks.priorityHigh">🔴 مهم</option>
+<option value="low" data-i18n="tasks.priorityLow">⚪ کم‌اهمیت</option>
+</select>
+<select id="taskProject" class="input" aria-label="پروژه"></select>
+<input type="text" id="taskTags" class="input" data-i18n-placeholder="tags.formPlaceholder" placeholder="برچسب‌ها (با ویرگول جدا کن)" maxlength="120" autocomplete="off" aria-label="برچسب‌ها">
         <div id="recurrencePicker" style="width:100%"></div>
         <button class="btn btn-primary" id="addTaskBtn" type="submit">افزودن</button>
       </form>
