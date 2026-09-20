@@ -385,7 +385,7 @@ return;
 
 if (input.dataset.value) {
 input.dataset.skipParse = "1";
-input.value = window.Calendar.displayKey(input.dataset.value);
+input.value = displayKey(input.dataset.value);
 input.dispatchEvent(new Event("change", { bubbles: true }));
 return;
 }
