@@ -592,10 +592,7 @@ total.toFixed(habit.type === "checkbox" ? 0 : 1) + unit +
 "</div>"
 );
             })
-            .join("") +
-          "</div>" +
-          "</div>"
-      .join("");
+    .join("");
   }
 
   function renderStorageSize() {
