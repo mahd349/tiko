@@ -774,8 +774,8 @@ return projects
 return (
 '<div class="modal-item proj-row">' +
 '<div class="item-left">' +
-'<input type="color" class="input proj-color" data-proj-color="' + project.id + '" value="' + project.color + '" aria-label="' + window.I18N.t("common.color") + '">' +
-'<input type="text" class="input proj-name" data-proj-name="' + project.id + '" value="' + window.Utils.escapeHtml(project.name) + '" maxlength="60" aria-label="' + window.I18N.t("common.name") + '">' +
+'<input type="color" class="input proj-color" name="proj-color-' + project.id + '" data-proj-color="' + project.id + '" value="' + project.color + '" aria-label="' + window.I18N.t("common.color") + '">' +
+'<input type="text" class="input proj-name" name="proj-name-' + project.id + '" data-proj-name="' + project.id + '" value="' + window.Utils.escapeHtml(project.name) + '" maxlength="60" aria-label="' + window.I18N.t("common.name") + '">' +
 "</div>" +
 '<span class="modal-tag">' + window.I18N.t("projects.usage", { count: window.I18N.faNum(usageCount(project.id)) }) + "</span>" +
 '<button class="btn-icon danger" data-action="delete-project" data-id="' + project.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
