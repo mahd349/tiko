@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v22";
+const CACHE = "routine-v23";
 
 const CORE = [
   "/",
