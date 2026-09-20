@@ -2100,9 +2100,15 @@ ACTIVE DAYS PICKER
 margin: 0 0 12px;
 }
 
-.active-days-block label {
+.active-days-block label,
+.active-days-block .field-label {
 display: block;
 margin-bottom: 8px;
+}
+.field-label {
+font-size: 12.5px;
+font-weight: 700;
+color: var(--text-2);
 }
 
 .weekday-picker {
