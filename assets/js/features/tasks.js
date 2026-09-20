@@ -902,7 +902,18 @@ if (window.Store.isTaskRecurring(task)) return false;
 return !task.done && task.date < today;
 });
 }
-
+if (state.project !== "all") {
+items = items.filter(function (task) {
+if (state.project === "none") return !task.projectId;
+return String(task.projectId || "") === String(state.project);
+});
+}
+if (state.tag !== "all") {
+items = items.filter(function (task) {
+if (state.tag === "none") return !(task.tags && task.tags.length);
+return (task.tags || []).indexOf(state.tag) !== -1;
+});
+}
 var openCount = window.Store.state.tasks.filter(function (task) {
 return !task.done && !window.Store.isTaskRecurring(task);
 }).length;
@@ -935,18 +946,7 @@ list.innerHTML = items
   .join("");
 enableTaskSwipe(list);
 }
-if (state.project !== "all") {
-items = items.filter(function (task) {
-if (state.project === "none") return !task.projectId;
-return String(task.projectId || "") === String(state.project);
-});
-}
-if (state.tag !== "all") {
-items = items.filter(function (task) {
-if (state.tag === "none") return !(task.tags && task.tags.length);
-return (task.tags || []).indexOf(state.tag) !== -1;
-});
-}
+
 function renderHome() {
 var box = el("homeTaskList");
 if (!box) return;
