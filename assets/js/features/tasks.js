@@ -45,11 +45,14 @@ const WEEKDAY_SHORT_EN = ["Sa", "Su", "Mo", "Tu", "We", "Th", "Fr"];
     return document.getElementById(id);
   }
 
-  function toast(message, type, options) {
-    if (window.UI && window.UI.toast) {
-      window.UI.toast(message, type, options);
-    }
-  }
+function toast(message, type, options) {
+if (window.UI && window.UI.toast) {
+window.UI.toast(message, type, options);
+}
+}
+function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 
   function refreshAll() {
     if (window.App && typeof window.App.renderAll === "function") {
@@ -320,7 +323,7 @@ renderRecurrencePicker();
     window.Store.clearDoneTasks();
     refreshAll();
 
-    toast("🧹 " + window.I18N.faNum(doneCount), "undo", {
+    toast(window.I18N.faNum(doneCount), "undo", {
       action: {
         label: window.I18N.t("common.restore"),
         onClick: function () {
@@ -540,7 +543,7 @@ function taskRowHTML(task, compact, dateContext) {
     : task.done;
   var chip = "";
   if (isRecurring) {
-    chip = '<span class="chip recurring">🔄 ' + window.Store.recurrenceLabel(task) + "</span>";
+   chip = '<span class="chip recurring">' + svgIcon("repeat", 13) + " " + window.Store.recurrenceLabel(task) + "</span>";
   } else if (task.date < today && !done) {
     chip = '<span class="chip overdue">' + window.I18N.t("common.overdue") + " — " + window.Calendar.keyToJalaliFull(task.date) + "</span>";
   } else if (task.date === today) {
@@ -591,9 +594,9 @@ function taskRowHTML(task, compact, dateContext) {
     projectChip +
     chip +
     '<div class="task-actions">' +
-    '<button class="btn-icon" data-action="expand-subtasks" data-id="' + task.id + '" aria-label="' + window.I18N.t("subtasks.title") + '" title="' + window.I18N.t("subtasks.title") + '">📋</button>' +
-    '<button class="btn-icon" data-action="edit-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.edit") + '" title="' + window.I18N.t("common.edit") + '">✏️</button>' +
-    '<button class="btn-icon danger" data-action="delete-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
+    '<button class="btn-icon" data-action="expand-subtasks" data-id="' + task.id + '" aria-label="' + window.I18N.t("subtasks.title") + '" title="' + window.I18N.t("subtasks.title") + '">' + svgIcon("clip", 16) + "</button>" +
+'<button class="btn-icon" data-action="edit-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.edit") + '" title="' + window.I18N.t("common.edit") + '">' + svgIcon("edit", 16) + "</button>" +
+'<button class="btn-icon danger" data-action="delete-task" data-id="' + task.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">' + svgIcon("trash", 16) + "</button>" +
     "</div>" +
     "</div>"
   );
@@ -623,7 +626,7 @@ function openSubtasksModal(taskId) {
   }
 
   var html =
-    '<div class="modal-section-title">📋 ' + window.I18N.t("subtasks.title") + "</div>" +
+    '<div class="modal-section-title">' + svgIcon("clip", 16) + " " + window.I18N.t("subtasks.title") + "</div>" +
     '<div id="subtasksList">' + buildSubtasksHTML() + "</div>" +
     '<div class="form-row" style="margin-top:14px">' +
     '<input type="text" id="newSubtaskInput" class="input" placeholder="' + window.I18N.t("subtasks.placeholder") + '" maxlength="140">' +
@@ -763,7 +766,7 @@ const projects = window.Store.state.projects;
 if (!projects.length) {
 return (
 '<div class="empty-state">' +
-'<div class="empty-state-icon">📁</div>' +
+'<div class="empty-state-icon">' + svgIcon("folder", 40) + "</div>" +
 '<div class="empty-state-text">' + window.I18N.t("projects.empty") + "</div>" +
 '<div class="empty-state-sub">' + window.I18N.t("projects.emptySub") + "</div>" +
 "</div>"
@@ -778,14 +781,14 @@ return (
 '<input type="text" class="input proj-name" name="proj-name-' + project.id + '" data-proj-name="' + project.id + '" value="' + window.Utils.escapeHtml(project.name) + '" maxlength="60" aria-label="' + window.I18N.t("common.name") + '">' +
 "</div>" +
 '<span class="modal-tag">' + window.I18N.t("projects.usage", { count: window.I18N.faNum(usageCount(project.id)) }) + "</span>" +
-'<button class="btn-icon danger" data-action="delete-project" data-id="' + project.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">🗑️</button>' +
+'<button class="btn-icon danger" data-action="delete-project" data-id="' + project.id + '" aria-label="' + window.I18N.t("common.delete") + '" title="' + window.I18N.t("common.delete") + '">' + svgIcon("trash", 16) + "</button>" +
 "</div>"
 );
 })
 .join("");
 }
 const html =
-'<div class="modal-section-title">📁 ' + window.I18N.t("projects.manage") + "</div>" +
+'<div class="modal-section-title">' + svgIcon("folder", 16) + " " + window.I18N.t("projects.manage") + "</div>" +
 '<div id="projectsList">' + buildList() + "</div>" +
 '<p class="form-hint">' + window.I18N.t("projects.deleteWarning") + "</p>" +
 '<div class="form-row" style="margin-top:10px">' +
@@ -926,7 +929,7 @@ counter.textContent = window.I18N.faNum(openCount) + " / " + window.I18N.faNum(w
 if (!items.length) {
 list.innerHTML =
 '<div class="empty-state">' +
-'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-icon">' + svgIcon("inbox", 40) + "</div>" +
 '<div class="empty-state-text">' + window.I18N.t("tasks.emptyTitle") + "</div>" +
 '<div class="empty-state-sub">' + window.I18N.t("tasks.emptySub") + "</div>" +
 '<button class="btn btn-primary btn-sm" data-action="focus-task-form">' + window.I18N.t("tasks.newBtn") + "</button>" +
@@ -965,7 +968,7 @@ return (
 if (!items.length) {
 box.innerHTML =
 '<div class="empty-state">' +
-'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-icon">' + svgIcon("inbox", 40) + "</div>" +
 '<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
 '<div class="empty-state-sub">' + window.I18N.t("today.tasksEmptySub") + "</div>" +
 "</div>";
@@ -1012,7 +1015,7 @@ return (
 if (!items.length) {
 box.innerHTML =
 '<div class="empty-state">' +
-'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-icon">' + svgIcon("inbox", 40) + "</div>" +
 '<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
 '<div class="empty-state-sub">' + window.I18N.t("today.tasksEmptySub") + "</div>" +
 "</div>";
@@ -1175,7 +1178,7 @@ renderFilterSelects();
 var manageBtn = el("manageProjectsBtn");
 var tagsField = el("taskTags");
 if (manageBtn) {
-manageBtn.textContent = "📁 " + window.I18N.t("projects.manage");
+manageBtn.innerHTML = svgIcon("folder", 16) + "<span>" + window.I18N.t("projects.manage") + "</span>";
 }
 if (tagsField) {
 tagsField.placeholder = window.I18N.t("tags.formPlaceholder");
@@ -1187,7 +1190,7 @@ renderFilterSelects();
 render();
 var btn = el("manageProjectsBtn");
 var tags = el("taskTags");
-if (btn) btn.textContent = "📁 " + window.I18N.t("projects.manage");
+if (btn) btn.innerHTML = svgIcon("folder", 16) + "<span>" + window.I18N.t("projects.manage") + "</span>";
 if (tags) tags.placeholder = window.I18N.t("tags.formPlaceholder");
 });
 var dateEl = el("taskDate");
