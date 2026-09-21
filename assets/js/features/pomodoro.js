@@ -32,6 +32,9 @@ return document.getElementById(id);
 function toast(msg, type, options) {
 if (window.UI && window.UI.toast) window.UI.toast(msg, type, options);
 }
+  function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 function settings() {
 var s = window.Store && window.Store.state && window.Store.state.settings;
 var p = s && window.Utils.isPlainObject(s.pomodoro) ? s.pomodoro : {};
