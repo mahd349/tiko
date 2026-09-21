@@ -27,12 +27,12 @@
 
   const THEMES = ["aurora", "midnight", "rose", "light"];
 
-  const THEME_ICONS = {
-    aurora: "🌌",
-    midnight: "🌙",
-    rose: "🌸",
-    light: "☀️"
-  };
+const THEME_ICONS = {
+aurora: "sparkle",
+midnight: "moon",
+rose: "flower",
+light: "sun"
+};
 
   const TABS = ["home", "tasks", "habits", "today", "calendar", "stats"];
 
@@ -124,9 +124,19 @@ if (canonical) canonical.setAttribute("href", "https://tiko-chi.vercel.app" + (R
     return document.getElementById(id);
   }
 
-  function L(faText, enText) {
-    return window.I18N.lang === "en" ? enText : faText;
-  }
+function L(faText, enText) {
+return window.I18N.lang === "en" ? enText : faText;
+}
+function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
+function setButtonHTML(selector, key, icon) {
+document.querySelectorAll(selector).forEach(function (node) {
+node.innerHTML = svgIcon(icon, 16) + "<span></span>";
+const span = node.querySelector("span");
+if (span) span.textContent = window.I18N.t(key);
+});
+}
 
   function currentTheme() {
     return document.documentElement.getAttribute("data-theme") || "aurora";
@@ -138,22 +148,18 @@ if (canonical) canonical.setAttribute("href", "https://tiko-chi.vercel.app" + (R
 
   function updateThemeButtons() {
     const theme = currentTheme();
-    const icon = THEME_ICONS[theme] || "🎨";
-
-    const sidebarTheme = el("themeToggle");
-    const mobileTheme = el("mobileThemeBtn");
-
-    if (sidebarTheme) {
-      const iconEl = sidebarTheme.querySelector(".nav-icon");
-
-      if (iconEl) {
-        iconEl.textContent = icon;
-      }
-    }
-
-    if (mobileTheme) {
-      mobileTheme.textContent = icon;
-    }
+const icon = THEME_ICONS[theme] || "sparkle";
+const sidebarTheme = el("themeToggle");
+const mobileTheme = el("mobileThemeBtn");
+if (sidebarTheme) {
+const iconEl = sidebarTheme.querySelector(".nav-icon");
+if (iconEl) {
+iconEl.innerHTML = svgIcon(icon, 20);
+}
+}
+if (mobileTheme) {
+mobileTheme.innerHTML = svgIcon(icon, 18);
+}
 
     const meta = document.getElementById("themeColorMeta");
 
@@ -292,34 +298,34 @@ applyRouteMeta(tab);
     }
 
     if (titleEl) {
-      titleEl.textContent = window.I18N.t("hero.greeting") + " 👋";
+      titleEl.textContent = window.I18N.t("hero.greeting");
     }
 
     if (subtitleEl) {
       if (hour < 5) {
         subtitleEl.textContent = L(
-          "🌙 شب‌بخیر — کمی استراحت هم لازم است",
-          "🌙 Still up? A little rest helps too"
+          " شب‌بخیر — کمی استراحت هم لازم است",
+          " Still up? A little rest helps too"
         );
       } else if (hour < 12) {
         subtitleEl.textContent = L(
-          "☀️ صبح‌بخیر — بهترین وقت برای شروع",
-          "☀️ Good morning — the best time to start"
+          " صبح‌بخیر — بهترین وقت برای شروع",
+          " Good morning — the best time to start"
         );
       } else if (hour < 17) {
         subtitleEl.textContent = L(
-          "🌤️ ظهر بخیر — ادامه بده",
-          "🌤️ Good afternoon — keep going"
+          " ظهر بخیر — ادامه بده",
+          " Good afternoon — keep going"
         );
       } else if (hour < 21) {
         subtitleEl.textContent = L(
-          "🌆 عصر بخیر — جمع‌بندی روز",
-          "🌆 Good evening — time to wrap up"
+          " عصر بخیر — جمع‌بندی روز",
+          " Good evening — time to wrap up"
         );
       } else {
         subtitleEl.textContent = L(
-          "🌙 شب بخیر — یک قدم دیگر مانده",
-          "🌙 Good night — one more step to go"
+          " شب بخیر — یک قدم دیگر مانده",
+          " Good night — one more step to go"
         );
       }
     }
@@ -338,78 +344,133 @@ applyRouteMeta(tab);
      Home dashboard
   ------------------------------ */
 
-  function renderHomeSummary() {
-    const box = el("homeSummary");
-    if (!box) return;
-
-    const today = window.Calendar.todayKey();
-
-  var todayTasks = window.Store.getTasksForDate(today);
+function toneColor(pct) {
+const hue = Math.round(Math.max(0, Math.min(1, pct)) * 120);
+return "hsl(" + hue + ", 72%, 52%)";
+}
+function summarySparkHTML(keys, pcts) {
+return (
+'<div class="summary-spark">' +
+keys
+.map(function (key, index) {
+return (
+'<i style="height:' +
+Math.max(8, Math.round(pcts[index] * 100)) +
+"%;background:" +
+toneColor(pcts[index]) +
+'" title="' +
+window.Calendar.keyToJalaliShort(key) +
+'"></i>'
+);
+})
+.join("") +
+"</div>"
+);
+}
+function summaryRingHTML(pct) {
+const C = 2 * Math.PI * 20;
+const off = C - Math.max(0, Math.min(1, pct)) * C;
+return (
+'<span class="summary-ring-wrap">' +
+'<svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">' +
+'<circle cx="27" cy="27" r="20" fill="none" stroke="var(--border)" stroke-width="6"></circle>' +
+'<circle cx="27" cy="27" r="20" fill="none" stroke="' +
+toneColor(pct) +
+'" stroke-width="6" stroke-linecap="round" stroke-dasharray="' +
+C.toFixed(1) +
+'" stroke-dashoffset="' +
+off.toFixed(1) +
+'" transform="rotate(-90 27 27)"></circle>' +
+"</svg>" +
+'<span class="summary-ring-value">' +
+window.I18N.percent(Math.round(pct * 100)) +
+"</span>" +
+"</span>"
+);
+}
+function summarySparklineHTML(values) {
+const W = 120;
+const H = 44;
+const max = Math.max.apply(null, values.concat([1]));
+const pts = values.map(function (v, i) {
+const x = (i / Math.max(1, values.length - 1)) * (W - 8) + 4;
+const y = H - 6 - (v / max) * (H - 14);
+return x.toFixed(1) + "," + y.toFixed(1);
+});
+return (
+'<svg class="summary-sparkline" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+'<polyline points="' + pts.join(" ") + '" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>' +
+"</svg>"
+);
+}
+function renderHomeSummary() {
+const box = el("homeSummary");
+if (!box) return;
+const today = window.Calendar.todayKey();
+const week = [];
+for (let i = 6; i >= 0; i -= 1) {
+week.push(window.Calendar.keyShift(-i));
+}
+const weekPcts = week.map(function (key) {
+return window.Store.dayScore(key).pct;
+});
+var todayTasks = window.Store.getTasksForDate(today);
 var doneTasks = todayTasks.filter(function (task) {
 return window.Store.isTaskDoneOnDate(task, today);
 }).length;
-
-   const activeHabits = window.Store.state.habits.filter(function (habit) {
+const activeHabits = window.Store.state.habits.filter(function (habit) {
 return !window.Store.habitActiveOn || window.Store.habitActiveOn(habit, today);
 });
-
 const doneHabits = activeHabits.filter(function (habit) {
 return window.Store.habitDone(habit);
 }).length;
-    const focusSeconds = window.Store.state.habits
-      .filter(function (habit) {
-        return habit.type === "timer";
-      })
-      .reduce(function (sum, habit) {
-        return sum + window.Store.focusSeconds(habit.id, 1);
-      }, 0);
-
-    const bestCurrent = window.Store.state.habits.reduce(function (max, habit) {
-      return Math.max(max, window.Store.habitStreaks(habit).current);
-    }, 0);
-
-    const items = [
-      {
-        icon: "✅",
-        label: window.I18N.t("nav.tasks"),
-        value: window.I18N.faNum(doneTasks) + " / " + window.I18N.faNum(todayTasks.length),
-        sub: window.I18N.t("common.today")
-      },
-      {
-        icon: "🔥",
-        label: window.I18N.t("nav.habits"),
-       value: window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(activeHabits.length),
-        sub: window.I18N.t("common.today")
-      },
-      {
-        icon: "⏱️",
-        label: L("زمان تمرکز", "Focus time"),
-        value: window.Utils.formatTime(focusSeconds),
-        sub: L("امروز", "Today")
-      },
-      {
-        icon: "🏆",
-        label: L("استریک فعلی", "Current streak"),
-        value: window.I18N.days(bestCurrent),
-        sub: L("بهترینِ فعلی", "Current best")
-      }
-    ];
-
-    box.innerHTML = items
-      .map(function (item) {
-        return (
-          '<div class="summary-card">' +
-          '<div class="summary-icon">' + item.icon + "</div>" +
-          "<div>" +
-          '<div class="summary-label">' + item.label + "</div>" +
-          '<div class="summary-value">' + item.value + "</div>" +
-          '<div class="summary-sub">' + item.sub + "</div>" +
-          "</div>" +
-          "</div>"
-        );
-      })
-      .join("");
-  }
+const focusSeconds = window.Store.state.habits
+.filter(function (habit) {
+return habit.type === "timer";
+})
+.reduce(function (sum, habit) {
+return sum + window.Store.focusSeconds(habit.id, 1);
+}, 0);
+const focusWeek = week.map(function (key) {
+let sec = 0;
+const day = window.Store.state.logs[key];
+if (day) {
+Object.keys(day).forEach(function (hid) {
+sec += day[hid].seconds || 0;
+});
+}
+return sec / 60;
+});
+const bestCurrent = window.Store.state.habits.reduce(function (max, habit) {
+return Math.max(max, window.Store.habitStreaks(habit).current);
+}, 0);
+const taskPct = todayTasks.length ? doneTasks / todayTasks.length : 0;
+const habitPct = activeHabits.length ? doneHabits / activeHabits.length : 0;
+box.innerHTML =
+'<div class="summary-card sc-tasks">' +
+'<div class="summary-head"><span class="summary-icon">' + svgIcon("checkSquare", 20) + "</span>" +
+"<div><div class=\"summary-label\">" + window.I18N.t("nav.tasks") + "</div>" +
+'<div class="summary-value">' + window.I18N.faNum(doneTasks) + " / " + window.I18N.faNum(todayTasks.length) + "</div></div></div>" +
+'<div class="summary-visual">' + summarySparkHTML(week, weekPcts) + "</div>" +
+"</div>" +
+'<div class="summary-card sc-habits">' +
+'<div class="summary-head"><span class="summary-icon">' + svgIcon("flame", 20) + "</span>" +
+"<div><div class=\"summary-label\">" + window.I18N.t("nav.habits") + "</div>" +
+'<div class="summary-value">' + window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(activeHabits.length) + "</div></div></div>" +
+'<div class="summary-visual">' + summaryRingHTML(habitPct) + "</div>" +
+"</div>" +
+'<div class="summary-card sc-focus">' +
+'<div class="summary-head"><span class="summary-icon">' + svgIcon("timer", 20) + "</span>" +
+"<div><div class=\"summary-label\">" + L("زمان تمرکز", "Focus time") + "</div>" +
+'<div class="summary-value">' + window.Utils.formatTime(focusSeconds) + "</div></div></div>" +
+'<div class="summary-visual">' + summarySparklineHTML(focusWeek) + "</div>" +
+"</div>" +
+'<div class="summary-card sc-streak">' +
+'<span class="summary-icon">' + svgIcon("trophy", 22) + "</span>" +
+'<div class="summary-value">' + window.I18N.days(bestCurrent) + "</div>" +
+'<div class="summary-sub">' + L("استریک فعلی", "Current streak") + "</div>" +
+"</div>";
+}
 
 function renderHomeTaskList() {
 var box = el("homeTaskList");
@@ -429,7 +490,7 @@ return (
 if (!items.length) {
 box.innerHTML =
 '<div class="empty-state">' +
-'<div class="empty-state-icon">📭</div>' +
+'<div class="empty-state-icon">' + svgIcon("inbox", 40) + "</div>" +
 '<div class="empty-state-text">' + window.I18N.t("today.tasksEmptyTitle") + "</div>" +
 "</div>";
 return;
@@ -463,7 +524,7 @@ return (
     if (!habits.length) {
       box.innerHTML =
         '<div class="empty-state">' +
-        '<div class="empty-state-icon">🔥</div>' +
+        '<div class="empty-state-icon">' + svgIcon("flame", 40) + "</div>" +
         '<div class="empty-state-text">' +
         window.I18N.t("habits.emptyTitle") +
         "</div>" +
@@ -602,7 +663,7 @@ barsSummary.textContent = L(
     if (!total) {
       box.innerHTML =
         '<div class="empty-state">' +
-        '<div class="empty-state-icon">⏱️</div>' +
+        '<div class="empty-state-icon">' + svgIcon("timer", 40) + "</div>" +
         '<div class="empty-state-text">' +
         L("هنوز زمانی ثبت نشده", "No time logged yet") +
         "</div>" +
@@ -717,7 +778,7 @@ label.textContent = L("قدم بعدی", "Next step");
 const item = nextStepItem();
 if (!item) {
 card.classList.add("is-done");
-text.textContent = L("همهٔ کارهای امروز انجام شد! 🎉", "All done for today! 🎉");
+text.textContent = L("همهٔ کارهای امروز انجام شد!", "All done for today!");
 if (btn) btn.style.display = "none";
 return;
 }
@@ -784,41 +845,41 @@ return window.Store.habitDone(habit);
         }, 0) / 60
     );
 
-    const items = [
-      {
-        emoji: "📋",
-        value: window.I18N.faNum(todayTasks.length),
-        label: window.I18N.t("nav.tasks")
-      },
-      {
-        emoji: "✅",
-        value: window.I18N.faNum(doneTasks) + " / " + window.I18N.faNum(todayTasks.length),
-        label: window.I18N.t("common.done"),
-        ok: todayTasks.length > 0 && doneTasks === todayTasks.length
-      },
-      {
-        emoji: "🔥",
-        value: window.I18N.faNum(activeHabits.length),
-        label: window.I18N.t("nav.habits")
-      },
-      {
-        emoji: "🎯",
-        value: window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(activeHabits.length),
-        label: L("کامل شده", "Completed"),
-        ok: activeHabits.length > 0 && doneHabits === activeHabits.length
-      },
-      {
-        emoji: "⏱️",
-        value: window.I18N.faNum(focusMinutes),
-        label: L("دقیقه تمرکز", "Focus minutes")
-      }
-    ];
+const items = [
+{
+icon: "checkSquare",
+value: window.I18N.faNum(todayTasks.length),
+label: window.I18N.t("nav.tasks")
+},
+{
+icon: "check",
+value: window.I18N.faNum(doneTasks) + " / " + window.I18N.faNum(todayTasks.length),
+label: window.I18N.t("common.done"),
+ok: todayTasks.length > 0 && doneTasks === todayTasks.length
+},
+{
+icon: "flame",
+value: window.I18N.faNum(activeHabits.length),
+label: window.I18N.t("nav.habits")
+},
+{
+icon: "target",
+value: window.I18N.faNum(doneHabits) + " / " + window.I18N.faNum(activeHabits.length),
+label: L("کامل شده", "Completed"),
+ok: activeHabits.length > 0 && doneHabits === activeHabits.length
+},
+{
+icon: "timer",
+value: window.I18N.faNum(focusMinutes),
+label: L("دقیقه تمرکز", "Focus minutes")
+}
+];
 
     statsBox.innerHTML = items
       .map(function (item) {
         return (
           '<div class="today-stat">' +
-          '<div class="today-stat-emoji">' + item.emoji + "</div>" +
+          '<div class="today-stat-emoji">' + svgIcon(item.icon, 22) + "</div>" +
           '<div class="today-stat-value' + (item.ok ? " checked" : "") + '">' + item.value + "</div>" +
           '<div class="today-stat-label">' + item.label + "</div>" +
           "</div>"
@@ -1057,7 +1118,7 @@ avg +
       "</div>";
 
     if (dayTasks.length) {
-      html += '<div class="modal-section-title">📋 ' + window.I18N.t("nav.tasks") + "</div>";
+      html += '<div class="modal-section-title">' + svgIcon("checkSquare", 16) + " " + window.I18N.t("nav.tasks") + "</div>";
 
       html += dayTasks
 .map(function (task) {
@@ -1065,7 +1126,7 @@ var taskDone = window.Store.isTaskDoneOnDate(task, dateKey);
 return (
 '<div class="modal-item">' +
 '<div class="item-left">' +
-"<span>" + (taskDone ? "✅" : "⬜") + "</span>" +
+'<span style="display:flex">' + (taskDone ? svgIcon("check", 18) : svgIcon("square", 18)) + "</span>" +
             '<span class="item-name' + (task.done ? " done" : "") + '">' +
             window.Utils.escapeHtml(task.name) +
             "</span>" +
@@ -1080,7 +1141,7 @@ return (
     }
 
     if (dayHabits.length) {
-      html += '<div class="modal-section-title">🔥 ' + window.I18N.t("nav.habits") + "</div>";
+      html += '<div class="modal-section-title">' + svgIcon("flame", 16) + " " + window.I18N.t("nav.habits") + "</div>";
 
       html += dayHabits
         .map(function (item) {
@@ -1120,13 +1181,13 @@ return (
    if (!dayTasks.length && !dayHabits.length) {
   html +=
     '<div class="empty-state">' +
-    '<div class="empty-state-icon">😴</div>' +
+    '<div class="empty-state-icon">' + svgIcon("moon", 40) + "</div>" +
     '<div class="empty-state-text">' +
     window.I18N.t("calendar.emptyDay") +
     "</div>" +
     "</div>";
 }
-html += '<div class="modal-section-title">📝 ' + L("یادداشت", "Note") + "</div>";
+html += '<div class="modal-section-title">' + svgIcon("note", 16) + " " + L("یادداشت", "Note") + "</div>";
 html += '<div id="calendarNoteView"></div>';
 window.UI.modal.open(window.Calendar.keyToJalaliFull(dateKey), html);
 if (window.Notes) {
@@ -1163,12 +1224,12 @@ window.I18N.t("trash.title") +
 (trashSummary.total ? " (" + window.I18N.faNum(trashSummary.total) + ")" : "");
 const permState = window.Reminder ? window.Reminder.permissionState() : "unsupported";
 const html =
-'<div class="modal-section-title">🌐 ' + window.I18N.t("common.language") + "</div>" +
+'<div class="modal-section-title">' + svgIcon("globe", 16) + " " + window.I18N.t("common.language") + "</div>" +
 '<div style="display:flex;gap:8px;margin-bottom:18px">' +
 '<button class="btn ' + (lang === "fa" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="fa" style="flex:1">فارسی</button>' +
 '<button class="btn ' + (lang === "en" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="en" style="flex:1">English</button>' +
 "</div>" +
-'<div class="modal-section-title">🔔 ' + window.I18N.t("reminder.title") + "</div>" +
+'<div class="modal-section-title">' + svgIcon("bell", 16) + " " + window.I18N.t("reminder.title") + "</div>" +
 '<div class="modal-item">' +
 '<div class="item-left"><label for="reminderToggle" style="cursor:pointer">' + window.I18N.t("reminder.enable") + "</label></div>" +
 '<input type="checkbox" id="reminderToggle"' + (reminder.enabled ? " checked" : "") + ' style="width:22px;height:22px;accent-color:var(--accent);cursor:pointer">' +
@@ -1182,18 +1243,18 @@ const html =
 '<span id="reminderPermStatus" style="font-size:12px;color:var(--text-3);font-weight:700">' + reminderPermLabel(permState) + "</span>" +
 "</div>" +
 '<button class="btn btn-ghost btn-sm" data-action="reminder-permission" style="width:100%;margin:4px 0 14px">' + window.I18N.t("reminder.enableNotification") + "</button>" +
-'<div class="modal-section-title">⚙️ ' + window.I18N.t("common.tools") + "</div>" +
+'<div class="modal-section-title">' + svgIcon("gear", 16) + " " + window.I18N.t("common.tools") + "</div>" +
 '<div style="display:grid;gap:8px">' +
-'<button class="btn btn-ghost" data-action="open-share">🔥 ' + window.I18N.t("common.streakCard") + "</button>" +
-'<button class="btn btn-ghost" data-action="open-trash">🗑️ ' + trashLabel + "</button>" +
-'<button class="btn btn-ghost" data-action="backup">📥 ' + window.I18N.t("common.backup") + "</button>" +
-'<button class="btn btn-ghost" data-action="open-weekly-review">📅 ' + L("مرور هفتگی", "Weekly review") + "</button>" +
-'<button class="btn btn-ghost" data-action="restore">📤 ' + window.I18N.t("common.restore") + "</button>" +
-'<button class="btn btn-danger" data-action="reset">🗑️ ' + window.I18N.t("common.reset") + "</button>" +
-'<button class="btn btn-ghost" data-action="open-transfer">🔗 ' + window.I18N.t("transfer.title") + "</button>" +
-'<button class="btn btn-ghost" data-action="open-pomodoro">🍅 ' + window.I18N.t("pomodoro.title") + "</button>" +
-'<button class="btn btn-ghost" data-action="open-help">❓ ' + window.I18N.t("common.help") + "</button>" +
-'<a class="btn btn-ghost" href="/rahnama/">📚 ' + window.I18N.t("common.articles") + "</a>" +
+'<button class="btn btn-ghost" data-action="open-share">' + svgIcon("flame", 16) + " " + window.I18N.t("common.streakCard") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-trash">' + svgIcon("trash", 16) + " " + trashLabel + "</button>" +
+'<button class="btn btn-ghost" data-action="backup">' + svgIcon("download", 16) + " " + window.I18N.t("common.backup") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-weekly-review">' + svgIcon("calMonth", 16) + " " + L("مرور هفتگی", "Weekly review") + "</button>" +
+'<button class="btn btn-ghost" data-action="restore">' + svgIcon("upload", 16) + " " + window.I18N.t("common.restore") + "</button>" +
+'<button class="btn btn-danger" data-action="reset">' + svgIcon("warn", 16) + " " + window.I18N.t("common.reset") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-transfer">' + svgIcon("qr", 16) + " " + window.I18N.t("transfer.title") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-pomodoro">' + svgIcon("timer", 16) + " " + window.I18N.t("pomodoro.title") + "</button>" +
+'<button class="btn btn-ghost" data-action="open-help">' + svgIcon("help", 16) + " " + window.I18N.t("common.help") + "</button>" +
+'<a class="btn btn-ghost" href="/rahnama/">' + svgIcon("book", 16) + " " + window.I18N.t("common.articles") + "</a>" +
 "</div>";
 const content = window.UI.modal.open(window.I18N.t("common.tools"), html);
 if (!content) return;
@@ -1252,7 +1313,7 @@ const rows = [
 ["1-6", L("رفتن به تب‌ها", "Switch tabs")]
 ];
 const html =
-'<div class="modal-section-title">⌨️ ' + L("کلیدهای میان‌بر", "Keyboard shortcuts") + "</div>" +
+'<div class="modal-section-title">' + svgIcon("keyboard", 16) + " " + L("کلیدهای میان‌بر", "Keyboard shortcuts") + "</div>" +
 rows.map(function (row) {
 return (
 '<div class="modal-item">' +
@@ -1432,7 +1493,7 @@ function closeMobileHabitForm() {
     /* Tasks */
     setText("#tab-tasks .page-header h2", "tasks.title");
     setText("#tab-tasks .page-header p", "tasks.subtitle");
-    setText("#focusTaskInput", "tasks.newBtn");
+    setButtonHTML("#focusTaskInput", "tasks.newBtn", "plus");
     setText("#tab-tasks .form-title", "tasks.formTitle");
 
     setPlaceholder("#taskInput", "tasks.namePlaceholder");
@@ -1447,7 +1508,7 @@ function closeMobileHabitForm() {
     setOptionText("taskPriority", "low", "tasks.priorityLow");
 
     setText("#addTaskBtn", "common.add");
-    setText("#clearDoneBtn", "tasks.clearDone");
+    setButtonHTML("#clearDoneBtn", "tasks.clearDone", "checkSquare");
 
     setHeadingPreserve('#tab-tasks .card:has(#taskList) .card-header h3', "tasks.listTitle", ".counter");
 
@@ -1529,11 +1590,10 @@ function closeMobileHabitForm() {
       const card = todayTasksContainer.closest(".card");
 
       if (card) {
-        const heading = card.querySelector(".card-header h3");
-
-        if (heading) {
-          heading.textContent = window.I18N.t("today.tasks");
-        }
+const headingText = card.querySelector(".card-header h3 .card-head-text");
+if (headingText) {
+headingText.textContent = window.I18N.t("today.tasks");
+}
       }
     }
 
@@ -1541,11 +1601,10 @@ function closeMobileHabitForm() {
       const card = todayHabitsContainer.closest(".card");
 
       if (card) {
-        const heading = card.querySelector(".card-header h3");
-
-        if (heading) {
-          heading.textContent = window.I18N.t("today.remainingHabits");
-        }
+const headingText = card.querySelector(".card-header h3 .card-head-text");
+if (headingText) {
+headingText.textContent = window.I18N.t("today.remainingHabits");
+}
       }
     }
 
@@ -1670,7 +1729,7 @@ const rows = [
 ["1-6", L("رفتن به تب‌ها", "Switch tabs")]
 ];
 const html =
-'<div class="modal-section-title">⌨️ ' + L("کلیدهای میان‌بر", "Keyboard shortcuts") + "</div>" +
+'<div class="modal-section-title">' + svgIcon("keyboard", 16) + " " + L("کلیدهای میان‌بر", "Keyboard shortcuts") + "</div>" +
 rows.map(function (row) {
 return (
 '<div class="modal-item">' +
@@ -1703,7 +1762,7 @@ habits: []
 if (!trash.tasks.length && !trash.habits.length) {
 const emptyHtml =
 '<div class="empty-state">' +
-'<div class="empty-state-icon">🗑️</div>' +
+'<div class="empty-state-icon">' + svgIcon("trash", 40) + "</div>" +
 '<div class="empty-state-text">' + window.I18N.t("trash.empty") + "</div>" +
 "</div>";
 
@@ -1714,7 +1773,7 @@ return;
 let html = "";
 
 if (trash.tasks.length) {
-html += '<div class="modal-section-title">📋 ' + window.I18N.t("trash.tasks") + "</div>";
+html += '<div class="modal-section-title">' + svgIcon("checkSquare", 16) + " " + window.I18N.t("trash.tasks") + "</div>";
 
 html += trash.tasks
 .slice()
@@ -1725,7 +1784,7 @@ return (Date.parse(b.deletedAt) || 0) - (Date.parse(a.deletedAt) || 0);
 return (
 '<div class="modal-item">' +
 '<div class="item-left">' +
-"<span>📋</span>" +
+'<span style="display:flex">' + svgIcon("checkSquare", 18) + "</span>" +
 '<span class="item-name">' + window.Utils.escapeHtml(task.name) + "</span>" +
 "</div>" +
 '<button class="btn btn-ghost btn-sm" data-action="restore-trash-task" data-id="' + task.id + '">' +
@@ -1738,7 +1797,7 @@ window.I18N.t("trash.restore") +
 }
 
 if (trash.habits.length) {
-html += '<div class="modal-section-title">🔥 ' + window.I18N.t("trash.habits") + "</div>";
+html += '<div class="modal-section-title">' + svgIcon("flame", 16) + " " + window.I18N.t("trash.habits") + "</div>";
 
 html += trash.habits
 .slice()
@@ -2203,7 +2262,7 @@ if (window.Calendar.getDayOfWeek(window.Calendar.keyToDate(today), "fa") !== 6) 
 if (localStorage.getItem("pd_weekly_review_" + today)) return;
 const hasData = window.Store.state.tasks.length || window.Store.state.habits.length;
 if (!hasData) return;
-window.UI.toast(L("📅 وقت مرور هفتگی است — یک دقیقه ببین هفته چطور گذشت", "📅 Weekly review time — see how your week went"), "info", {
+window.UI.toast(L("وقت مرور هفتگی است — یک دقیقه ببین هفته چطور گذشت", "Weekly review time — see how your week went"), "info", {
 duration: 8000,
 action: {
 label: L("مرور هفته", "Review week"),
