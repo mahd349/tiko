@@ -36,7 +36,9 @@
       window.UI.toast(message, type);
     }
   }
-
+function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
   function labelEl() {
     return document.getElementById("authLabel");
   }
