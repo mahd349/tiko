@@ -219,11 +219,14 @@ const WEEKDAY_FULL_EN = [
     return document.getElementById(id);
   }
 
-  function toast(message, type, options) {
-    if (window.UI && window.UI.toast) {
-      window.UI.toast(message, type, options);
-    }
-  }
+function toast(message, type, options) {
+if (window.UI && window.UI.toast) {
+window.UI.toast(message, type, options);
+}
+}
+function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 
   function refreshAll() {
     if (window.App && typeof window.App.renderAll === "function") {
@@ -305,7 +308,7 @@ return weekdayShort(day);
 })
 .join(separator);
 
-return "<span>🗓️ " + window.Utils.escapeHtml(labels) + "</span>";
+return '<span style="display:inline-flex;align-items:center;gap:4px">' + svgIcon("calMonth", 12) + " " + window.Utils.escapeHtml(labels) + "</span>";
 }
 
 function renderNewActiveDays() {
@@ -365,7 +368,12 @@ window.I18N.t("habits.activeDaysTitle") +
 window.I18N.t("habits.activeDaysHint") +
 "</p>";
 
+const advanced = el("habitAdvanced");
+if (advanced) {
+advanced.appendChild(block);
+} else {
 form.insertAdjacentElement("afterend", block);
+}
 
 const box = el("habitActiveDays");
 
@@ -875,7 +883,7 @@ activeDays: selectedDays.slice()
 
     const streakHTML =
       streaks.current > 0
-        ? '<span class="streak-badge">🔥 ' + window.I18N.days(streaks.current) + "</span>"
+        ? '<span class="streak-badge">' + svgIcon("flame", 13) + " " + window.I18N.days(streaks.current) + "</span>"
         : '<span class="streak-badge cold">' + window.I18N.t("habits.streakStart") + "</span>";
 
     return (
@@ -904,8 +912,8 @@ tagsMetaHTML(habit) +
       "</div>" +
       '<div class="habit-controls">' +
       controls +
-      '<button class="btn-icon" data-action="edit-habit" data-id="' + habit.id + '" aria-label="' + window.I18N.t("common.edit") + '">✏️</button>' +
-      '<button class="btn-icon danger" data-action="delete-habit" data-id="' + habit.id + '" aria-label="' + window.I18N.t("common.delete") + '">🗑️</button>' +
+     '<button class="btn-icon" data-action="edit-habit" data-id="' + habit.id + '" aria-label="' + window.I18N.t("common.edit") + '">' + svgIcon("edit", 16) + "</button>" +
+'<button class="btn-icon danger" data-action="delete-habit" data-id="' + habit.id + '" aria-label="' + window.I18N.t("common.delete") + '">' + svgIcon("trash", 16) + "</button>" +
       "</div>" +
       "</div>"
     );
@@ -1009,7 +1017,7 @@ window.I18N.faNum(doneCount) + " / " + window.I18N.faNum(activeHabits.length);
     if (!items.length) {
       list.innerHTML =
         '<div class="empty-state">' +
-        '<div class="empty-state-icon">🔥</div>' +
+        '<div class="empty-state-icon">' + svgIcon("flame", 40) + "</div>" +
         '<div class="empty-state-text">' + window.I18N.t("habits.emptyTitle") + "</div>" +
         '<div class="empty-state-sub">' + window.I18N.t("habits.emptySub") + "</div>" +
 '<button class="btn btn-primary btn-sm" data-action="focus-habit-form">' + window.I18N.t("habits.formTitle") + "</button>" +
@@ -1032,7 +1040,7 @@ enableHabitSwipe(list);
     if (!habits.length) {
       box.innerHTML =
         '<div class="empty-state">' +
-        '<div class="empty-state-icon">🔥</div>' +
+        '<div class="empty-state-icon">' + svgIcon("flame", 40) + "</div>" +
         '<div class="empty-state-text">' + window.I18N.t("habits.emptyTitle") + "</div>" +
         '<div class="empty-state-sub">' + window.I18N.t("habits.emptySub") + "</div>" +
         "</div>";
@@ -1078,7 +1086,7 @@ enableHabitSwipe(list);
     if (!habits.length) {
       box.innerHTML =
         '<div class="empty-state">' +
-        '<div class="empty-state-icon">🔥</div>' +
+        '<div class="empty-state-icon">' + svgIcon("flame", 40) + "</div>" +
         '<div class="empty-state-text">' + window.I18N.t("today.noHabits") + "</div>" +
         "</div>";
       return;
@@ -1097,7 +1105,7 @@ return !window.Store.habitDone(habit);
     if (!remaining.length) {
       box.innerHTML =
         '<div class="empty-state">' +
-        '<div class="empty-state-icon">🏆</div>' +
+        '<div class="empty-state-icon">' + svgIcon("trophy", 40) + "</div>" +
         '<div class="empty-state-text">' + window.I18N.t("today.allHabitsDone") + "</div>" +
         "</div>";
       return;
