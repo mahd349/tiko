@@ -20,6 +20,9 @@ if (window.UI && window.UI.toast) {
 window.UI.toast(message, type, options);
 }
 }
+  function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 
 function L(fa, en) {
 return window.I18N && window.I18N.lang === "en" ? en : fa;
