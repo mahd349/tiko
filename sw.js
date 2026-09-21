@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v23";
+const CACHE = "routine-v24";
 
 const CORE = [
   "/",
@@ -12,7 +12,8 @@ const CORE = [
   "/manifest.json",
   "/assets/css/main.css",
   "/assets/css/components.css",
-  "/assets/js/core/utils.js",
+  "/assets/js/ui/icons.js",
+"/assets/js/core/utils.js",
   "/assets/js/core/calendar.js",
   "/assets/js/core/i18n.js",
  "/assets/js/core/store.js",
