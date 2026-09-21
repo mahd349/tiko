@@ -28,7 +28,9 @@ accent2: style.getPropertyValue("--accent-2").trim() || "#6366f1",
 gridLine: style.getPropertyValue("--grid-line").trim() || "rgba(148, 163, 184, 0.06)"
 };
 }
-
+function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 function hexToRgb(hex) {
 hex = String(hex || "").replace("#", "");
 if (hex.length === 3) {
