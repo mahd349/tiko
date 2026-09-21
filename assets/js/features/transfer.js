@@ -13,6 +13,9 @@
   function toast(msg, type) {
     if (window.UI && window.UI.toast) window.UI.toast(msg, type);
   }
+  function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 
   function encodePayload() {
     var data = window.Store.exportData();
