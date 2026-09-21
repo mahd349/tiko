@@ -227,27 +227,27 @@
 
   <nav class="sidebar-nav" role="tablist" aria-label="بخش‌های اصلی">
     <button class="nav-item active" role="tab" aria-selected="true" data-tab="home" aria-controls="tab-home">
-      <span class="nav-icon" aria-hidden="true">🏠</span>
+      <span class="nav-icon" aria-hidden="true" data-icon="home"></span>
       <span class="nav-label">خانه</span>
     </button>
     <button class="nav-item" role="tab" aria-selected="false" data-tab="tasks" aria-controls="tab-tasks">
-      <span class="nav-icon" aria-hidden="true">✅</span>
+      <span class="nav-icon" aria-hidden="true" data-icon="checkSquare"></span>
       <span class="nav-label">وظایف</span>
     </button>
     <button class="nav-item" role="tab" aria-selected="false" data-tab="habits" aria-controls="tab-habits">
-      <span class="nav-icon" aria-hidden="true">🔥</span>
+      <span class="nav-icon" aria-hidden="true" data-icon="flame"></span>
       <span class="nav-label">عادت‌ها</span>
     </button>
     <button class="nav-item" role="tab" aria-selected="false" data-tab="today" aria-controls="tab-today">
-      <span class="nav-icon" aria-hidden="true">📅</span>
+      <span class="nav-icon" aria-hidden="true" data-icon="calendar"></span>
       <span class="nav-label">امروز</span>
     </button>
     <button class="nav-item" role="tab" aria-selected="false" data-tab="calendar" aria-controls="tab-calendar">
-      <span class="nav-icon" aria-hidden="true">🗓️</span>
+      <span class="nav-icon" aria-hidden="true" data-icon="calMonth"></span>
       <span class="nav-label">تقویم</span>
     </button>
     <button class="nav-item" role="tab" aria-selected="false" data-tab="stats" aria-controls="tab-stats">
-      <span class="nav-icon" aria-hidden="true">📊</span>
+      <span class="nav-icon" aria-hidden="true" data-icon="chart"></span>
       <span class="nav-label">گزارش‌ها</span>
     </button>
   </nav>
@@ -258,7 +258,7 @@
       <span class="nav-label">پوسته</span>
     </button>
     <button class="nav-item" data-action="menu" aria-label="ابزارها و تنظیمات">
-      <span class="nav-icon" aria-hidden="true">⚙️</span>
+      <span class="nav-icon" aria-hidden="true" data-icon="gear"></span>
       <span class="nav-label">ابزارها</span>
     </button>
     <div class="user-section" id="userSection">
@@ -385,10 +385,17 @@
 <option value="high" data-i18n="tasks.priorityHigh">🔴 مهم</option>
 <option value="low" data-i18n="tasks.priorityLow">⚪ کم‌اهمیت</option>
 </select>
+<button type="button" class="btn btn-ghost btn-sm form-advanced-toggle" id="taskAdvancedToggle" aria-expanded="false" aria-controls="taskAdvanced">
+<span data-icon="sliders"></span>
+<span data-i18n="form.moreSettings">تنظیمات بیشتر</span>
+<span class="adv-chevron" data-icon="chevronDown"></span>
+</button>
+<div class="form-advanced" id="taskAdvanced" hidden>
 <select id="taskProject" class="input" aria-label="پروژه"></select>
 <input type="text" id="taskTags" class="input" data-i18n-placeholder="tags.formPlaceholder" placeholder="برچسب‌ها (با ویرگول جدا کن)" maxlength="120" autocomplete="off" aria-label="برچسب‌ها">
-        <div id="recurrencePicker" style="width:100%"></div>
-        <button class="btn btn-primary" id="addTaskBtn" type="submit">افزودن</button>
+<div id="recurrencePicker" style="width:100%"></div>
+</div>
+<button class="btn btn-primary" id="addTaskBtn" type="submit">افزودن</button>
       </form>
       <p class="form-hint">تاریخ انتخاب‌شده: <strong id="taskDateJalali">—</strong></p>
     </div>
@@ -409,7 +416,7 @@
         <button class="btn btn-ghost btn-sm" id="clearDoneBtn">🧹 پاک‌کردن انجام‌شده‌ها</button>
       </div>
       <div class="search-wrap">
-        <span class="search-icon" aria-hidden="true">⌕</span>
+        <span class="search-icon" aria-hidden="true" data-icon="search"></span>
         <input type="text" class="input" id="taskSearch" placeholder="جستجو در وظایف…" aria-label="جستجو در وظایف">
       </div>
       <div class="filter-bar" id="taskFilters" role="group" aria-label="فیلتر وظایف">
@@ -459,10 +466,17 @@
           <option value="number">🔢 عددی</option>
         </select>
         <input type="number" id="habitGoal" class="input input-sm" placeholder="هدف" min="0" step="0.5" aria-label="هدف روزانه">
-        <input type="color" id="habitColor" class="input input-color" value="#a855f7" aria-label="رنگ عادت">
-        <select id="habitProject" class="input" aria-label="پروژه"></select>
+<input type="color" id="habitColor" class="input input-color" value="#a855f7" aria-label="رنگ عادت">
+<button type="button" class="btn btn-ghost btn-sm form-advanced-toggle" id="habitAdvancedToggle" aria-expanded="false" aria-controls="habitAdvanced">
+<span data-icon="sliders"></span>
+<span data-i18n="form.moreSettings">تنظیمات بیشتر</span>
+<span class="adv-chevron" data-icon="chevronDown"></span>
+</button>
+<div class="form-advanced" id="habitAdvanced" hidden>
+<select id="habitProject" class="input" aria-label="پروژه"></select>
 <input type="text" id="habitTags" class="input" placeholder="برچسب‌ها (با ویرگول جدا کن)" maxlength="120" autocomplete="off" aria-label="برچسب‌ها">
-        <button class="btn btn-primary" id="addHabitBtn" type="submit">افزودن</button>
+</div>
+<button class="btn btn-primary" id="addHabitBtn" type="submit">افزودن</button>
       </form>
       <p class="form-hint">هدف اختیاری است؛ نوار پیشرفت فقط با هدف نمایش داده می‌شود.</p>
     </div>
@@ -472,7 +486,7 @@
         <h3>عادت‌های من <span class="counter" id="habitCounter" aria-live="polite"></span></h3>
       </div>
       <div class="search-wrap">
-        <span class="search-icon" aria-hidden="true">⌕</span>
+        <span class="search-icon" aria-hidden="true" data-icon="search"></span>
         <input type="text" class="input" id="habitSearch" placeholder="جستجو در عادت‌ها…" aria-label="جستجو در عادت‌ها">
       </div>
       <div class="filter-bar" id="habitFilters" role="group" aria-label="فیلتر دسته"></div>
@@ -519,9 +533,9 @@
   <div class="card-header">
     <div>
       <span class="card-eyebrow" data-i18n="today.noteEyebrow">دفترچه</span>
-      <h3 data-i18n="today.noteTitle">📝 یادداشت امروز</h3>
-    </div>
-    <button class="btn btn-ghost btn-sm" data-action="search-notes">🔍 جستجو</button>
+     <h3><span class="card-head-icon" data-icon="note"></span><span data-i18n="today.noteTitle">یادداشت امروز</span></h3>
+</div>
+<button class="btn btn-ghost btn-sm" data-action="search-notes"><span data-icon="search"></span><span data-i18n="notes.search">جستجو</span></button>
   </div>
   <div id="todayNote"></div>
 </div>
@@ -544,9 +558,9 @@
           <h3 id="calendarMonthYear" aria-live="polite">—</h3>
         </div>
         <div class="toolbar-actions">
-          <button class="btn btn-ghost btn-sm" id="calPrev" aria-label="ماه قبل">▶</button>
+          <button class="btn btn-ghost btn-sm" id="calPrev" aria-label="ماه قبل"><span data-icon="chevronRight"></span></button>
           <button class="btn btn-ghost btn-sm" id="calToday">امروز</button>
-          <button class="btn btn-ghost btn-sm" id="calNext" aria-label="ماه بعد">◀</button>
+          <button class="btn btn-ghost btn-sm" id="calNext" aria-label="ماه بعد"><span data-icon="chevronLeft"></span></button>
         </div>
       </div>
       <div class="calendar-grid" id="calendarGrid" role="grid" aria-label="تقویم ماهانه"></div>
@@ -628,8 +642,8 @@
       </div>
       <p class="data-info">حجم فعلی: <strong id="storageSize">—</strong>. داده‌ها فقط در همین مرورگر ذخیره می‌شوند.</p>
       <div class="data-actions">
-        <button class="btn btn-ghost btn-sm" id="csvBtn">📄 خروجی CSV</button>
-        <button class="btn btn-ghost btn-sm" id="icsBtn">📆 خروجی تقویم (ICS)</button>
+        <button class="btn btn-ghost btn-sm" id="csvBtn"><span data-icon="chart"></span><span>خروجی CSV</span></button>
+<button class="btn btn-ghost btn-sm" id="icsBtn"><span data-icon="calendar"></span><span>خروجی تقویم (ICS)</span></button>
         <button class="btn btn-ghost btn-sm" id="reportCardBtn">🖼️ کارت گزارش</button>
 <button class="btn btn-ghost btn-sm" id="printReportBtn">🖨️ گزارش چاپی (PDF)</button>
         <button class="btn btn-ghost btn-sm" id="exportBtn">📥 دانلود پشتیبان</button>
@@ -666,27 +680,27 @@
     <h2 id="featuresHeading">ویژگی‌های تیکوچی</h2>
 <div class="features-grid">
 <article class="feature-card">
-<span class="feature-icon" aria-hidden="true">📋</span>
+<span class="feature-icon" aria-hidden="true" data-icon="checkSquare"></span>
 <h3 data-i18n="features.tasksTitle">مدیریت وظایف</h3>
 <p data-i18n="features.tasksDesc">وظایف روزانه با تاریخ و اولویت؛ کارهای عقب‌افتاده خودکار مشخص می‌شوند.</p>
 </article>
 <article class="feature-card">
-<span class="feature-icon" aria-hidden="true">🔥</span>
+<span class="feature-icon" aria-hidden="true" data-icon="flame"></span>
 <h3 data-i18n="features.streakTitle">استریک عادت‌ها</h3>
 <p data-i18n="features.streakDesc">روزهای پشت‌سرهم و بهترین رکورد هر عادت را ببینید.</p>
 </article>
 <article class="feature-card">
-<span class="feature-icon" aria-hidden="true">📅</span>
+<span class="feature-icon" aria-hidden="true" data-icon="calendar"></span>
 <h3 data-i18n="features.calendarTitle">تقویم شمسی</h3>
 <p data-i18n="features.calendarDesc">تقویم دقیق شمسی با نقشهٔ حرارتی ۶ ماه اخیر.</p>
 </article>
 <article class="feature-card">
-<span class="feature-icon" aria-hidden="true">📈</span>
+<span class="feature-icon" aria-hidden="true" data-icon="trendUp"></span>
 <h3 data-i18n="features.chartsTitle">نمودار پیشرفت</h3>
 <p data-i18n="features.chartsDesc">نرخ تکمیل هفتگی، روند ۳۰ روزه و نمودار هر عادت.</p>
 </article>
 <article class="feature-card">
-<span class="feature-icon" aria-hidden="true">🔒</span>
+<span class="feature-icon" aria-hidden="true" data-icon="shield"></span>
 <h3 data-i18n="features.privacyTitle">حریم خصوصی</h3>
 <p data-i18n="features.privacyDesc">هیچ داده‌ای به سرور ارسال نمی‌شود؛ پشتیبان کامل با یک کلیک.</p>
 </article>
@@ -740,11 +754,11 @@
 </button>
 <div class="fab-menu" id="fabMenu" role="menu" aria-label="منوی افزودن" hidden>
   <button class="fab-menu-item" data-action="fab-task" role="menuitem">
-    <span class="fab-menu-icon">📋</span>
+    <span class="fab-menu-icon" data-icon="checkSquare"></span>
     <span data-i18n="fab.task">وظیفه جدید</span>
   </button>
   <button class="fab-menu-item" data-action="fab-habit" role="menuitem">
-    <span class="fab-menu-icon">🔥</span>
+    <span class="fab-menu-icon" data-icon="flame"></span>
     <span data-i18n="fab.habit">عادت جدید</span>
   </button>
 </div>
@@ -752,23 +766,23 @@
 <!-- ===== MOBILE BOTTOM NAV ===== -->
 <nav class="mobile-nav" aria-label="ناوبری موبایل">
   <button class="mobile-nav-item active" data-tab="home" aria-label="خانه">
-    <span class="nav-icon" aria-hidden="true">🏠</span>
+    <span class="nav-icon" aria-hidden="true" data-icon="home"></span>
     <span class="nav-label">خانه</span>
   </button>
   <button class="mobile-nav-item" data-tab="tasks" aria-label="وظایف">
-    <span class="nav-icon" aria-hidden="true">✅</span>
+    <span class="nav-icon" aria-hidden="true" data-icon="checkSquare"></span>
     <span class="nav-label">وظایف</span>
   </button>
   <button class="mobile-nav-item" data-tab="habits" aria-label="عادت‌ها">
-    <span class="nav-icon" aria-hidden="true">🔥</span>
+    <span class="nav-icon" aria-hidden="true" data-icon="flame"></span>
     <span class="nav-label">عادت‌ها</span>
   </button>
   <button class="mobile-nav-item" data-tab="today" aria-label="امروز">
-    <span class="nav-icon" aria-hidden="true">📅</span>
+    <span class="nav-icon" aria-hidden="true" data-icon="calendar"></span>
     <span class="nav-label">امروز</span>
   </button>
   <button class="mobile-nav-item" data-tab="stats" aria-label="گزارش‌ها">
-    <span class="nav-icon" aria-hidden="true">📊</span>
+    <span class="nav-icon" aria-hidden="true" data-icon="chart"></span>
     <span class="nav-label">گزارش</span>
   </button>
 </nav>
