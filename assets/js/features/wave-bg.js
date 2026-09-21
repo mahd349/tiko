@@ -29,7 +29,9 @@ var dpr = 1;
 function L(fa, en) {
 return window.I18N && window.I18N.lang === "en" ? en : fa;
 }
-
+function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 function map(v, a, b, c, d) {
 return ((v - a) / (b - a)) * (d - c) + c;
 }
