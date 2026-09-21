@@ -3411,3 +3411,11 @@ color: var(--text-2);
 .card-head-icon svg { width: 16px; height: 16px; }
 .form-advanced-toggle [data-icon] svg { width: 15px; height: 15px; }
 .form-advanced .input { width: 100%; }
+
+.form-advanced .active-days-block {
+margin-bottom: 0;
+}
+.btn svg,
+.btn-icon svg {
+flex: 0 0 auto;
+}
