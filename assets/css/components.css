@@ -3389,3 +3389,11 @@ color: #fff;
 /* Softer blur on floating surfaces */
 .datepicker-popup { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .wave-toggle-btn, .anim-bg-toggle { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.card-head-icon {
+display: inline-flex;
+margin-inline-end: 6px;
+vertical-align: -2px;
+}
+.card-head-icon svg { width: 16px; height: 16px; }
+.form-advanced-toggle [data-icon] svg { width: 15px; height: 15px; }
+.form-advanced .input { width: 100%; }
