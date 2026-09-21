@@ -3394,6 +3394,20 @@ display: inline-flex;
 margin-inline-end: 6px;
 vertical-align: -2px;
 }
+.summary-ring-wrap {
+position: relative;
+display: grid;
+place-items: center;
+}
+.summary-ring-value {
+position: absolute;
+inset: 0;
+display: grid;
+place-items: center;
+font-size: 11.5px;
+font-weight: 900;
+color: var(--text-2);
+}
 .card-head-icon svg { width: 16px; height: 16px; }
 .form-advanced-toggle [data-icon] svg { width: 15px; height: 15px; }
 .form-advanced .input { width: 100%; }
