@@ -12,6 +12,9 @@ return window.I18N && window.I18N.lang === "en" ? en : fa;
 function toast(msg, type, options) {
 if (window.UI && window.UI.toast) window.UI.toast(msg, type, options);
 }
+  function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 function isStandalone() {
 return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
 }
