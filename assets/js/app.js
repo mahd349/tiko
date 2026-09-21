@@ -137,6 +137,10 @@ const span = node.querySelector("span");
 if (span) span.textContent = window.I18N.t(key);
 });
 }
+   function toneColor(pct) {
+const hue = Math.round(Math.max(0, Math.min(1, pct)) * 120);
+return "hsl(" + hue + ", 72%, 52%)";
+}
 
   function currentTheme() {
     return document.documentElement.getAttribute("data-theme") || "aurora";
