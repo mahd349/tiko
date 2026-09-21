@@ -2176,14 +2176,26 @@ function applyAnimationsPref() {
 const on = !window.Store || window.Store.state.settings.animations !== false;
 document.documentElement.setAttribute("data-animations", on ? "on" : "off");
 }
-   function bindToolsFallback() {
+function bindToolsFallback() {
 const toolsBtn = document.querySelector('[data-action="menu"]');
 if (!toolsBtn) return;
 toolsBtn.addEventListener("click", function (event) {
 event.stopPropagation();
 openToolsModal();
 });
-}function maybeShowWeeklyReview() {
+}
+function bindAdvancedToggles() {
+document.addEventListener("click", function (event) {
+const btn = event.target.closest(".form-advanced-toggle");
+if (!btn) return;
+const panel = document.getElementById(btn.getAttribute("aria-controls") || "");
+if (!panel) return;
+const willOpen = panel.hidden;
+panel.hidden = !willOpen;
+btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+});
+}
+   function maybeShowWeeklyReview() {
 if (!window.Store || !window.UI || !window.UI.toast) return;
 try {
 const today = window.Calendar.todayKey();
@@ -2214,9 +2226,10 @@ applyAnimationsPref();
 }
 });
 
-    bindSidebar();
+bindSidebar();
 bindGlobalClicks();
 bindToolsFallback();
+bindAdvancedToggles();
     bindCalendarToolbar();
     bindKeyboard();
     bindLanguageEvents();
