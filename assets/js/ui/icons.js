@@ -41,6 +41,7 @@ globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 
 help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.9.6c0 1.6-2.4 2.1-2.4 3.4M12 17h.01"/>',
 close: '<path d="M6 6l12 12M18 6 6 18"/>',
 chevronLeft: '<path d="m14 6-6 6 6 6"/>',
+chevronDown: '<path d="m6 9 6 6 6-6"/>',
 chevronRight: '<path d="m10 6 6 6-6 6"/>',
 print: '<path d="M7 8V3h10v5"/><rect x="4" y="8" width="16" height="8" rx="2"/><path d="M7 14h10v7H7Z"/>',
 qr: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><path d="M13.5 13.5h3v3h-3ZM18 18h2.5v2.5H18Z"/>',
