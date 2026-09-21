@@ -144,10 +144,10 @@ document.title = window.I18N ? window.I18N.t("app.name") : "Routine";
 return;
 }
 var label = mode === "focus"
-? L("🍅 فوکوس", "🍅 Focus")
+? L("فوکوس", "Focus")
 : mode === "short"
-? L("☕ استراحت کوتاه", "☕ Short break")
-: L("🌴 استراحت بلند", "🌴 Long break");
+? L("استراحت کوتاه", "Short break")
+: L("استراحت بلند", "Long break");
 document.title = formatMMSS(remaining) + " — " + label;
 }
 function renderDialog() {
@@ -173,9 +173,7 @@ statusEl.textContent = running
 : label;
 }
 if (mainBtn) {
-mainBtn.textContent = running
-? "⏸ " + L("توقف", "Pause")
-: "▶ " + L("شروع", "Start");
+: svgIcon("play", 16) + "<span>" + L("شروع", "Start") + "</span>";
 mainBtn.classList.toggle("btn-danger", running);
 mainBtn.classList.toggle("btn-primary", !running);
 }
@@ -271,7 +269,7 @@ window.I18N.t("app.name"),
 L("🍅 سشن فوکوس تمام شد! وقت استراحت است", "🍅 Focus session complete! Time for a break")
 );
 toast(
-"🍅 " + L("سشن فوکوس تمام شد", "Focus session done") + " — +" + window.I18N.faNum(15) + " ⚡",
+L("سشن فوکوس تمام شد", "Focus session done") + " — +" + window.I18N.faNum(15) + " ⚡",
 "success",
 { duration: 6000 }
 );
@@ -289,7 +287,7 @@ window.I18N.t("app.name"),
 L("استراحت تمام شد! آمادهٔ فوکوس بعدی؟", "Break is over! Ready for the next focus?")
 );
 toast(
-L("☕ استراحت تمام شد", "☕ Break is over"),
+L("استراحت تمام شد", "Break is over"),
 "info",
 { duration: 5000 }
 );
@@ -328,9 +326,9 @@ var s = settings();
 var html =
 '<div class="pomo-wrap">' +
 '<div class="pomo-modes" role="group" aria-label="' + L("انتخاب حالت", "Select mode") + '">' +
-'<button class="pomo-mode' + (mode === "focus" ? " active" : "") + '" data-pomo-mode="focus" aria-pressed="' + (mode === "focus") + '">🍅 ' + L("فوکوس", "Focus") + '<br><small>' + window.I18N.faNum(s.focus) + " " + L("دقیقه", "min") + "</small></button>" +
-'<button class="pomo-mode' + (mode === "short" ? " active" : "") + '" data-pomo-mode="short" aria-pressed="' + (mode === "short") + '">☕ ' + L("کوتاه", "Short") + '<br><small>' + window.I18N.faNum(s.short) + " " + L("دقیقه", "min") + "</small></button>" +
-'<button class="pomo-mode' + (mode === "long" ? " active" : "") + '" data-pomo-mode="long" aria-pressed="' + (mode === "long") + '">🌴 ' + L("بلند", "Long") + '<br><small>' + window.I18N.faNum(s.long) + " " + L("دقیقه", "min") + "</small></button>" +
+'<button class="pomo-mode' + (mode === "focus" ? " active" : "") + '" data-pomo-mode="focus" aria-pressed="' + (mode === "focus") + '">' + svgIcon("target", 16) + " " + L("فوکوس", "Focus") + '<br><small>' + window.I18N.faNum(s.focus) + " " + L("دقیقه", "min") + "</small></button>" +
+'<button class="pomo-mode' + (mode === "short" ? " active" : "") + '" data-pomo-mode="short" aria-pressed="' + (mode === "short") + '">' + svgIcon("coffee", 16) + " " + L("کوتاه", "Short") + '<br><small>' + window.I18N.faNum(s.short) + " " + L("دقیقه", "min") + "</small></button>" +
+'<button class="pomo-mode' + (mode === "long" ? " active" : "") + '" data-pomo-mode="long" aria-pressed="' + (mode === "long") + '">' + svgIcon("leaf", 16) + " " + L("بلند", "Long") + '<br><small>' + window.I18N.faNum(s.long) + " " + L("دقیقه", "min") + "</small></button>" +
 "</div>" +
 '<div class="pomo-time" id="pomoTime">' + (window.I18N.lang === "fa" ? window.Utils.toFa(formatMMSS(remaining)) : formatMMSS(remaining)) + "</div>" +
 '<div class="pomo-status" id="pomoStatus"></div>' +
@@ -358,14 +356,14 @@ L("شروع خودکار استراحت", "Auto-start break") +
 '<input type="checkbox" id="pomoAutoFocus"' + (s.autoStartFocus ? " checked" : "") + "> " +
 L("شروع خودکار فوکوس بعد از استراحت", "Auto-start next focus after break") +
 "</label>" +
-'<button class="btn btn-ghost btn-sm" id="pomoPermBtn" style="grid-column:1/-1">🔔 ' +
+'<button class="btn btn-ghost btn-sm" id="pomoPermBtn" style="grid-column:1/-1">' + svgIcon("bell", 15) + " " +
 L("فعال‌سازی اعلان مرورگر", "Enable browser notifications") +
 "</button>" +
 "</div>" +
 "</details>" +
 '<p class="pomo-hint">' + L("هر ۴ سشن فوکوس، یک استراحت بلند پیشنهاد می‌شود. سشن‌های فوکوس در گیمیفیکیشن امتیاز می‌گیرند.", "Every 4 focus sessions triggers a long break. Focus sessions earn gamification points.") + "</p>" +
 "</div>";
-var content = window.UI.modal.open("🍅 " + L("پومودورو", "Pomodoro"), html);
+var content = window.UI.modal.open(L("پومودورو", "Pomodoro"), html);
 if (!content) return;
 content.querySelectorAll("[data-pomo-mode]").forEach(function (btn) {
 btn.addEventListener("click", function () {
