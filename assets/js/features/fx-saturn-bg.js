@@ -434,7 +434,7 @@ var wrap = document.createElement("div");
 wrap.className = "modal-item";
 wrap.innerHTML =
 '<div class="item-left"><label for="fxSaturnCheck" style="cursor:pointer">' +
-L("پس‌زمینهٔ سیارهٔ ذره‌ای", "Particle Saturn background") +
+L("پس‌زمینهٔ سیاره ذره‌ای", "Particle Saturn background") +
 '<span id="fxSaturnHint" style="color:var(--warning);font-size:11px;font-weight:800"></span>' +
 "</label></div>" +
 '<input type="checkbox" id="fxSaturnCheck" style="width:22px;height:22px;accent-color:var(--accent);cursor:pointer">';
