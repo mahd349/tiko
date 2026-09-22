@@ -49,11 +49,14 @@ return String(h.id) === String(id);
 function findTemplate(id) {
 return TEMPLATES.find(function (t) { return t.id === id; }) || null;
 }
+function svgIcon(name, size) {
+return window.Icons ? window.Icons.svg(name, size || 16) : "";
+}
 function iconHTML(key, size) {
 if (window.Habits && window.Habits.iconHTML) {
 return window.Habits.iconHTML(key, size);
 }
-return '<span style="font-size:' + size + 'px;line-height:1">🎯</span>';
+return svgIcon(key || "target", size);
 }
 function markDirty() {
 cache.dirty = true;
@@ -146,7 +149,7 @@ medalDefs().forEach(function (m) {
 if (m.ok && !g.medals[m.id]) {
 g.medals[m.id] = window.Calendar.todayKey();
 changed = true;
-toast("🎖 " + L("مدال باز شد: ", "Medal unlocked: ") + L(m.fa, m.en), "success", { duration: 6000 });
+toast(L("مدال باز شد: ", "Medal unlocked: ") + L(m.fa, m.en), "success", { duration: 6000 });
 }
 });
 if (changed) save();
@@ -184,7 +187,7 @@ if (ch.completedAt) return;
 if (challengeDayCount(ch) >= ch.days) {
 ch.completedAt = window.Calendar.todayKey();
 changed = true;
-toast("🏁 " + L("چالش کامل شد: ", "Challenge completed: ") + ch.name + " (+" + window.I18N.faNum(POINTS.challenge) + " ⚡)", "success", { duration: 8000 });
+toast("🏁 " + L("چالش کامل شد: ", "Challenge completed: ") + ch.name + " (+" + window.I18N.faNum(POINTS.challenge) + ")", "success", { duration: 8000 });
 confetti();
 playWin();
 }
@@ -204,7 +207,7 @@ startDate: window.Calendar.todayKey()
 });
 save();
 window.UI.modal.close();
-toast("🎯 " + L("چالش شروع شد! موفق باشی 💪", "Challenge started! Good luck 💪"), "success");
+toast(L("چالش شروع شد! موفق باشی", "Challenge started! Good luck"), "success");
 render();
 }
 function abandonChallenge(id) {
@@ -297,7 +300,7 @@ return;
 }
 confetti();
 playWin();
-toast(L("🎉 فوق‌العاده! امروز ۱۰۰٪ کامل شد — ۲۰ امتیاز پاداش", "🎉 Amazing! Today is 100% done — +20 bonus points"), "success", { duration: 8000 });
+toast(L("فوق‌العاده! امروز ۱۰۰٪ کامل شد — ۲۰ امتیاز پاداش", "Amazing! Today is 100% done — +20 bonus points"), "success", { duration: 8000 });
 }
 /* ------------------------------
 UI: home card
@@ -317,19 +320,19 @@ var html =
 "</div>" +
 '<div class="game-xp">' +
 '<div class="game-xp-head">' +
-"<span>⚡ " + window.I18N.faNum(d.points) + " " + L("امتیاز", "points") + "</span>" +
+"<span>" + svgIcon("zap", 14) + " " + window.I18N.faNum(d.points) + " " + L("امتیاز", "points") + "</span>" +
 "<span>" + window.I18N.faNum(d.toNext) + " " + L("امتیاز تا سطح بعد", "points to next level") + "</span>" +
 "</div>" +
 '<div class="xp-bar"><span style="width:' + Math.round(d.levelPct * 100) + '%"></span></div>' +
 "</div>" +
-'<div class="game-flame">🔥 <strong>' + window.I18N.days(d.bestStreak) + "</strong></div>" +
+'<div class="game-flame">' + svgIcon("flame", 16) + " <strong>" + window.I18N.days(d.bestStreak) + "</strong></div>" +
 "</div>" +
 '<div class="game-medals-strip">' +
 (unlocked.length
 ? unlocked.slice(-10).map(function (m) {
-return '<span class="game-medal-chip" title="' + L(m.fa, m.en) + '">' + m.icon + "</span>";
+return '<span class="game-medal-chip" title="' + L(m.fa, m.en) + '">' + svgIcon(m.icon, 18) + "</span>";
 }).join("")
-: '<span class="game-hint">' + L("اولین وظیفه یا عادت را کامل کن تا اولین مدال باز شود 🌱", "Complete your first task or habit to unlock your first medal 🌱") + "</span>") +
+: '<span class="game-hint">' + L("اولین وظیفه یا عادت را کامل کن تا اولین مدال باز شود", "Complete your first task or habit to unlock your first medal") + "</span>") +
 "</div>" +
 active.map(function (ch) {
 var count = challengeDayCount(ch);
@@ -346,8 +349,8 @@ return (
 );
 }).join("") +
 '<div class="game-actions">' +
-'<button class="btn btn-ghost btn-sm" data-action="game-medals">🎖 ' + L("مدال‌ها", "Medals") + " (" + window.I18N.faNum(unlocked.length) + "/" + window.I18N.faNum(8) + ")</button>" +
-'<button class="btn btn-ghost btn-sm" data-action="game-challenges">🎯 ' + L("چالش‌ها", "Challenges") + "</button>" +
+'<button class="btn btn-ghost btn-sm" data-action="game-medals">' + svgIcon("award", 15) + " " + L("مدال‌ها", "Medals") + " (" + window.I18N.faNum(unlocked.length) + "/" + window.I18N.faNum(8) + ")</button>" +
+'<button class="btn btn-ghost btn-sm" data-action="game-challenges">' + svgIcon("target", 15) + " " + L("چالش‌ها", "Challenges") + "</button>" +
 "</div>";
 card.innerHTML = html;
 card.hidden = false;
@@ -366,7 +369,7 @@ medalDefs().map(function (m) {
 var date = g.medals[m.id];
 return (
 '<div class="medal' + (date ? "" : " locked") + '">' +
-'<div class="medal-icon">' + m.icon + "</div>" +
+'<div class="medal-icon">' + svgIcon(m.icon, 26) + "</div>" +
 '<div class="medal-name">' + L(m.fa, m.en) + "</div>" +
 '<div class="medal-desc">' +
 (date
@@ -377,7 +380,7 @@ return (
 );
 }).join("") +
 "</div>";
-window.UI.modal.open("🎖 " + L("مدال‌ها", "Medals"), html);
+window.UI.modal.open(L("مدال‌ها", "Medals"), html);
 }
 function openChallengesModal() {
 var g = game();
@@ -385,7 +388,7 @@ var active = g.challenges.filter(function (ch) { return !ch.completedAt; });
 var done = g.challenges.filter(function (ch) { return ch.completedAt; });
 var html = "";
 if (active.length) {
-html += '<div class="modal-section-title">🏃 ' + L("چالش‌های فعال", "Active challenges") + "</div>";
+html += '<div class="modal-section-title">' + svgIcon("zap", 16) + " " + L("چالش‌های فعال", "Active challenges") + "</div>";
 html += active.map(function (ch) {
 var count = challengeDayCount(ch);
 return (
@@ -397,7 +400,7 @@ return (
 }).join("");
 }
 if (done.length) {
-html += '<div class="modal-section-title">🏁 ' + L("تمام‌شده‌ها", "Completed") + "</div>";
+html += '<div class="modal-section-title">' + svgIcon("check", 16) + " " + L("تمام‌شده‌ها", "Completed") + "</div>";
 html += done.map(function (ch) {
 return (
 '<div class="modal-item">' +
@@ -407,7 +410,7 @@ return (
 );
 }).join("");
 }
-html += '<div class="modal-section-title">🎯 ' + L("قالب‌های آماده", "Ready templates") + "</div>";
+html += '<div class="modal-section-title">' + svgIcon("target", 16) + " " + L("قالب‌های آماده", "Ready templates") + "</div>";
 html += TEMPLATES.map(function (t) {
 return (
 '<div class="modal-item">' +
@@ -416,7 +419,7 @@ return (
 "</div>"
 );
 }).join("");
-window.UI.modal.open("🎯 " + L("چالش‌ها", "Challenges"), html);
+window.UI.modal.open(L("چالش‌ها", "Challenges"), html);
 }
 function openBindModal(tpl) {
 var habits = window.Store.state.habits.filter(function (h) { return h.category === tpl.cat; });
@@ -456,6 +459,14 @@ var habitId = sel && sel.value ? sel.value : null;
 if (tpl2) startChallenge(tpl2, habitId);
 } else if (action === "game-abandon") {
 abandonChallenge(id);
+} else if (action === "game-rewards") {
+if (window.Rewards && window.Rewards.open) {
+window.Rewards.open();
+} else if (window.Utils && window.Utils.loadScript) {
+window.Utils.loadScript("/assets/js/features/rewards.js").then(function () {
+if (window.Rewards && window.Rewards.open) window.Rewards.open();
+}).catch(function () {});
+}
 }
 });
 }
