@@ -62,7 +62,8 @@ report: "/assets/js/features/report-card.js",
 game: "/assets/js/features/game.js",
 wave: "/assets/js/features/wave-bg.js",
 animated: "/assets/js/features/animated-bg.js",
-fxSaturn: "/assets/js/features/fx-saturn-bg.js"
+fxSaturn: "/assets/js/features/fx-saturn-bg.js",
+fxFireball: "/assets/js/features/fx-fireball-bg.js"
 };
 let notesRequested = false;
 function ensureFeature(key) {
@@ -1295,6 +1296,9 @@ window.WaveBg.injectIntoToolsModal(content);
 if (window.FxSaturnBg && window.FxSaturnBg.injectIntoToolsModal && document.body.contains(content)) {
 window.FxSaturnBg.injectIntoToolsModal(content);
 }
+if (window.FxFireballBg && window.FxFireballBg.injectIntoToolsModal && document.body.contains(content)) {
+window.FxFireballBg.injectIntoToolsModal(content);
+}
       if (window.InstallPrompt && window.InstallPrompt.injectIntoToolsModal) {
 window.InstallPrompt.injectIntoToolsModal(content);
 }
@@ -2338,6 +2342,7 @@ ensureFeature("game").catch(function () {});
 ensureFeature("wave").catch(function () {});
 ensureFeature("animated").catch(function () {});
 ensureFeature("fxSaturn").catch(function () {});
+ensureFeature("fxFireball").catch(function () {});
 
     clockTimer = setInterval(renderClock, 1000);
 
