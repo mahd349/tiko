@@ -134,13 +134,13 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       var snap = window.Store.snapshot();
       window.Store.importData(parsed);
       if (window.App && window.App.renderAll) window.App.renderAll();
-      toast(L("✅ داده‌ها با موفقیت دریافت شد", "✅ Data received successfully"), "success", {
+      toast(L("داده‌ها با موفقیت دریافت شد", "Data received successfully"), "success", {
         action: {
           label: L("بازگشت", "Undo"),
           onClick: function () {
             window.Store.restoreSnapshot(snap);
             if (window.App && window.App.renderAll) window.App.renderAll();
-            toast(L("↩️ بازگردانی شد", "↩️ Undone"), "success");
+            toast(L("بازگردانی شد", "Undone"), "success");
           }
         }
       });
@@ -156,8 +156,8 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
 
     var html =
       '<div class="transfer-tabs">' +
-      '<button class="transfer-tab active" data-tab="send">' + L("📤 ارسال", "📤 Send") + "</button>" +
-      '<button class="transfer-tab" data-tab="receive">' + L("📥 دریافت", "📥 Receive") + "</button>" +
+      '<button class="transfer-tab active" data-tab="send">' + svgIcon("upload", 15) + " " + L("ارسال", "Send") + "</button>" +
+      '<button class="transfer-tab" data-tab="receive">' + svgIcon("download", 15) + " " + L("دریافت", "Receive") + "</button>" +
       "</div>" +
       '<div id="transferSendPane" class="transfer-pane">' +
       '<p class="transfer-hint">' +
@@ -166,9 +166,9 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
         "Scan this code on another device or copy the text code."
       ) +
       "</p>" +
-      '<div id="qrContainer" style="display:flex;justify-content:center;align-items:center;min-height:280px;background:#fff;border-radius:12px;padding:12px;margin-bottom:12px"><span style="color:#888">⏳</span></div>' +
+      '<div id="qrContainer" style="display:flex;justify-content:center;align-items:center;min-height:280px;background:#fff;border-radius:12px;padding:12px;margin-bottom:12px">' + svgIcon("timer", 22) + '</div>' +
       '<textarea id="transferCodeText" class="input" readonly rows="3" style="font-family:monospace;font-size:11px;resize:none"></textarea>' +
-      '<button class="btn btn-ghost btn-sm" data-action="copy-transfer-code" style="width:100%;margin-top:10px">📋 ' +
+      '<button class="btn btn-ghost btn-sm" data-action="copy-transfer-code" style="width:100%;margin-top:10px">' + svgIcon("copy", 15) + " " +
       L("کپی کد", "Copy code") +
       "</button>" +
       "</div>" +
@@ -180,18 +180,18 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       ) +
       "</p>" +
       '<div id="qrScanner" style="border-radius:12px;overflow:hidden;margin-bottom:12px;background:var(--surface);min-height:60px"></div>' +
-      '<button class="btn btn-ghost btn-sm" id="startScanBtn" style="width:100%;margin-bottom:10px">📷 ' +
+      '<button class="btn btn-ghost btn-sm" id="startScanBtn" style="width:100%;margin-bottom:10px">' + svgIcon("camera", 15) + " " +
       L("شروع اسکن با دوربین", "Start camera scan") +
       "</button>" +
       '<textarea id="pasteCodeText" class="input" rows="3" placeholder="' +
       L("یا کد متنی را اینجا پیست کنید…", "Or paste text code here…") +
       '" style="font-family:monospace;font-size:11px;resize:none"></textarea>' +
-      '<button class="btn btn-primary btn-sm" id="applyCodeBtn" style="width:100%;margin-top:10px">✅ ' +
+      '<button class="btn btn-primary btn-sm" id="applyCodeBtn" style="width:100%;margin-top:10px">' + svgIcon("check", 15) + " " +
       L("اعمال کد", "Apply code") +
       "</button>" +
       "</div>";
 
-    var content = window.UI.modal.open(L("🔗 انتقال به دستگاه دیگر", "🔗 Transfer to another device"), html);
+    var content = window.UI.modal.open(L("انتقال به دستگاه دیگر", "Transfer to another device"), html);
     if (!content) return;
 
     var tabs = content.querySelectorAll(".transfer-tab");
@@ -243,11 +243,11 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
         if (!codeTextEl.value) return;
         try {
           navigator.clipboard.writeText(codeTextEl.value);
-          toast(L("📋 کد کپی شد", "📋 Code copied"), "success");
+          toast(L("کد کپی شد", "Code copied"), "success");
         } catch (e) {
           codeTextEl.select();
           try { document.execCommand("copy"); } catch (err) {}
-          toast(L("📋 کد کپی شد", "📋 Code copied"), "success");
+          toast(L("کد کپی شد", "Code copied"), "success");
         }
       });
     }
