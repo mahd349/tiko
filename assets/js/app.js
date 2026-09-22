@@ -2338,7 +2338,6 @@ ensureFeature("game").catch(function () {});
 ensureFeature("wave").catch(function () {});
 ensureFeature("animated").catch(function () {});
 ensureFeature("fxSaturn").catch(function () {});
-});
 
     clockTimer = setInterval(renderClock, 1000);
 
