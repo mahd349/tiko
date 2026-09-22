@@ -3,7 +3,7 @@
    Offline support + stale-while-revalidate caching
 ================================================================ */
 
-const CACHE = "routine-v28";
+const CACHE = "routine-v29";
 
 const CORE = [
   "/",
@@ -41,6 +41,8 @@ const CORE = [
    "/assets/js/features/animated-bg.js",
    "/assets/js/features/notes.js",
    "/assets/js/features/fx-saturn-bg.js",
+   "/assets/js/core/updater.js",
+"/assets/js/features/autosave.js",
   "/rahnama/styles.css",
   "/rahnama/index.html",
    "/rahnama/chand-rooz-adat/",
@@ -88,9 +90,17 @@ self.addEventListener("activate", function (event) {
             })
         );
       })
-      .then(function () {
-        return self.clients.claim();
-      })
+.then(function () {
+return self.clients.claim();
+})
+.then(function () {
+return self.clients.matchAll({ type: "window" });
+})
+.then(function (clients) {
+clients.forEach(function (client) {
+client.postMessage({ type: "sw-update", version: CACHE });
+});
+});
   );
 });
 
