@@ -55,7 +55,7 @@ var bar = document.createElement("div");
 bar.id = "installBanner";
 bar.className = "install-banner";
 bar.innerHTML =
-'<span class="install-banner-icon" aria-hidden="true">📲</span>' +
+'<span class="install-banner-icon" aria-hidden="true">' + svgIcon("phone", 20) + "</span>" +
 '<div class="install-banner-text"><strong>' + L("تیکوچی را نصب کن", "Install TikoChi") + "</strong><span>" +
 L("مثل یک اپ واقعی، آفلاین و تمام‌صفحه.", "Like a real app: offline & full-screen.") +
 "</span></div>" +
@@ -86,7 +86,7 @@ var wrap = document.createElement("div");
 wrap.id = "installToolsRow";
 wrap.className = "modal-item";
 wrap.innerHTML =
-'<div class="item-left"><span>📲</span><span class="item-name">' + L("نصب به‌عنوان اپ", "Install as app") + "</span></div>" +
+'<div class="item-left"><span style="display:flex">' + svgIcon("phone", 18) + "</span>"<span class="item-name">' + L("نصب به‌عنوان اپ", "Install as app") + "</span></div>" +
 '<button class="btn btn-ghost btn-sm" id="installToolsBtn">' +
 (isStandalone() ? L("نصب شده ✔", "Installed ✔") : supported ? L("نصب", "Install") : L("راهنما", "Guide")) +
 "</button>";
@@ -104,7 +104,7 @@ deferred = event;
 window.addEventListener("appinstalled", function () {
 deferred = null;
 removeBanner();
-toast(L("🎉 تیکوچی نصب شد!", "🎉 TikoChi installed!"), "success");
+toast(L("تیکوچی نصب شد!", "TikoChi installed!"), "success");
 });
 }
 window.InstallPrompt = {
