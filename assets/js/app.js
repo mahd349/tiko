@@ -2418,13 +2418,13 @@ switchTab("home");
 }
 
 window.App = {
-    renderAll: renderAll,
-    switchTab: switchTab,
-    renderToday: renderToday,
-    renderHome: renderHome,
-    openDayModal: openDayModal,
-    openToolsModal: openToolsModal,
-    openHelpModal: openHelpModal,
+renderAll: renderAll,
+switchTab: switchTab,
+renderToday: renderToday,
+renderHome: renderHome,
+openDayModal: openDayModal,
+openToolsModal: openToolsModal,
+openHelpModal: openHelpModal,
 cycleTheme: cycleTheme,
 toggleFabMenu: toggleFabMenu,
 closeFabMenu: closeFabMenu,
@@ -2432,7 +2432,6 @@ openMobileTaskForm: openMobileTaskForm,
 closeMobileTaskForm: closeMobileTaskForm,
 openMobileHabitForm: openMobileHabitForm,
 closeMobileHabitForm: closeMobileHabitForm,
-  };
-
-  window.Utils.onDomReady(init);
+};
+window.Utils.onDomReady(init);
 })();
