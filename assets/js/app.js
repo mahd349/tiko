@@ -2413,11 +2413,11 @@ switchTab(hash);
 } else if (isMobile) {
   switchTab("today");
 } else {
-  switchTab("home");
+switchTab("home");
 }
-  
+}
 
-  window.App = {
+window.App = {
     renderAll: renderAll,
     switchTab: switchTab,
     renderToday: renderToday,
