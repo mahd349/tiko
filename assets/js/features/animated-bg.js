@@ -232,7 +232,7 @@ if (existing) return;
 var wrap = document.createElement("div");
 wrap.className = "anim-bg-modal-block";
 wrap.innerHTML =
-'<div class="modal-section-title">✨ ' +
+'<div class="modal-section-title">' + svgIcon("sparkle", 16) + " " +
 (window.I18N ? window.I18N.t("bgAnim.title") : "پس‌زمینه متحرک") +
 "</div>" +
 '<div class="modal-item">' +
