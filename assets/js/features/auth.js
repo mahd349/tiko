@@ -133,23 +133,47 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       prompt: "select_account"
     });
 
-    auth
-      .signInWithPopup(provider)
-      .then(function (result) {
-        currentUser = result.user;
-        render();
-        toast(window.I18N.t("auth.connected"), "success");
-      })
-      .catch(function (error) {
-        console.error(error);
-
-        if (error && error.code === "auth/popup-closed-by-user") {
-          return;
-        }
-
-        toast(window.I18N.t("auth.error"), "error");
-      });
-  }
+   auth
+.signInWithPopup(provider)
+.then(function (result) {
+currentUser = result.user;
+render();
+toast(window.I18N.t("auth.connected"), "success");
+})
+.catch(function (error) {
+console.error(error);
+if (
+error &&
+(error.code === "auth/popup-blocked" ||
+error.code === "auth/operation-not-supported" ||
+error.code === "auth/cancelled-popup-request")
+) {
+auth.signInWithRedirect(provider).catch(function () {
+toast(window.I18N.t("auth.error"), "error");
+});
+return;
+}
+if (error && error.code === "auth/popup-closed-by-user") {
+toast(
+window.I18N.lang === "en"
+? "The popup closed before finishing. Retry, or use the full-page method."
+: "پاپ‌آپ قبل از پایان بسته شد؛ دوباره تلاش کن یا از روش تمام‌صفحه استفاده کن.",
+"info",
+{
+duration: 9000,
+action: {
+label: window.I18N.lang === "en" ? "Full-page sign-in" : "ورود تمام‌صفحه",
+onClick: function () {
+auth.signInWithRedirect(provider).catch(function () {});
+}
+}
+}
+);
+return;
+}
+toast(window.I18N.t("auth.error"), "error");
+});
+}
 
   function logout() {
     if (!auth) return;
@@ -186,12 +210,25 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
 
     btn.addEventListener("click", onAuthClick);
 
-    if (window.firebase && isConfigured()) {
-      ensureFirebase();
-    }
-
-    render();
-  }
+if (window.firebase && isConfigured()) {
+if (ensureFirebase() && auth && auth.getRedirectResult) {
+auth.getRedirectResult()
+.then(function (result) {
+if (result && result.user) {
+currentUser = result.user;
+render();
+toast(window.I18N.t("auth.connected"), "success");
+}
+})
+.catch(function (error) {
+if (error && error.code !== "auth/no-auth-event-was-triggered") {
+console.error(error);
+}
+});
+}
+}
+render();
+}
 
   window.Auth = {
     init: init,
