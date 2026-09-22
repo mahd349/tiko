@@ -63,7 +63,8 @@ game: "/assets/js/features/game.js",
 wave: "/assets/js/features/wave-bg.js",
 animated: "/assets/js/features/animated-bg.js",
 fxSaturn: "/assets/js/features/fx-saturn-bg.js",
-fxFireball: "/assets/js/features/fx-fireball-bg.js"
+fxFireball: "/assets/js/features/fx-fireball-bg.js",
+   rewards: "/assets/js/features/rewards.js"
 };
 let notesRequested = false;
 function ensureFeature(key) {
@@ -2395,6 +2396,7 @@ ensureFeature("wave").catch(function () {});
 ensureFeature("animated").catch(function () {});
 ensureFeature("fxSaturn").catch(function () {});
 ensureFeature("fxFireball").catch(function () {});
+ensureFeature("rewards").catch(function () {});
 
     clockTimer = setInterval(renderClock, 1000);
 
