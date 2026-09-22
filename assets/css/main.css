@@ -1401,6 +1401,60 @@ html[data-animations="off"] .animated-bg-canvas {
 animation: none !important;
 transition: none !important;
 }
+
+/* ============================
+SECTION-THEMED NAV MOTIFS
+============================ */
+.sidebar-nav .nav-item {
+position: relative;
+overflow: hidden;
+}
+.sidebar-nav .nav-item::after {
+content: "";
+position: absolute;
+inset-inline-end: 8px;
+top: 50%;
+transform: translateY(-50%) rotate(-4deg);
+width: 46px;
+height: 30px;
+pointer-events: none;
+background: currentColor;
+opacity: 0.09;
+-webkit-mask: var(--nav-motif) no-repeat center / contain;
+mask: var(--nav-motif) no-repeat center / contain;
+transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.sidebar-nav .nav-item:hover::after {
+opacity: 0.16;
+transform: translateY(-50%) rotate(0deg);
+}
+.sidebar-nav .nav-item.active::after {
+opacity: 0.22;
+}
+.nav-item[data-tab="home"] {
+--nav-motif: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2032'%3E%3Cpath%20d='M4%2015%2014%206l10%209'%20fill='none'%20stroke='%23000'%20stroke-width='2.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3Cpath%20d='M7%2014v12h14V14'%20fill='none'%20stroke='%23000'%20stroke-width='2.4'%20stroke-linejoin='round'/%3E%3Ccircle%20cx='36'%20cy='10'%20r='5'%20fill='%23000'/%3E%3Cpath%20d='M30%2026h14'%20stroke='%23000'%20stroke-width='2.4'%20stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.nav-item[data-tab="tasks"] {
+--nav-motif: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2032'%3E%3Cpath%20d='m4%208%204%204%207-8'%20fill='none'%20stroke='%23000'%20stroke-width='2.6'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3Cpath%20d='m20%2018%203%203%206-7'%20fill='none'%20stroke='%23000'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3Cpath%20d='m34%208%203%203%205-6'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3Crect%20x='30'%20y='20'%20width='12'%20height='9'%20rx='2.5'%20fill='none'%20stroke='%23000'%20stroke-width='2'/%3E%3C/svg%3E");
+}
+.nav-item[data-tab="habits"] {
+--nav-motif: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2032'%3E%3Cpath%20d='M8%204c4%205%206%208%206%2011a6%206%200%200%201-12%200c0-3%202-6%206-11Z'%20fill='%23000'/%3E%3Cpath%20d='M28%2026c0-8%205-12%2014-13-1%209-5%2013-11%2013Z'%20fill='%23000'/%3E%3Cpath%20d='M24%206c2%203%204%204%204%207a4%204%200%200%201-8%200c0-2%201-4%204-7Z'%20fill='%23000'%20opacity='.7'/%3E%3C/svg%3E");
+}
+.nav-item[data-tab="today"] {
+--nav-motif: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2032'%3E%3Ccircle%20cx='14'%20cy='16'%20r='6'%20fill='%23000'/%3E%3Cpath%20d='M14%204v3M14%2025v3M2%2016h3M23%2016h3M5.5%207.5l2%202M20.5%2022.5l2%202M22.5%207.5l-2%202M7.5%2022.5l-2%202'%20stroke='%23000'%20stroke-width='2.2'%20stroke-linecap='round'%20fill='none'/%3E%3Ccircle%20cx='36'%20cy='16'%20r='9'%20fill='none'%20stroke='%23000'%20stroke-width='2.4'/%3E%3Cpath%20d='M36%2010v6l4%203'%20fill='none'%20stroke='%23000'%20stroke-width='2.2'%20stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.nav-item[data-tab="calendar"] {
+--nav-motif: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2032'%3E%3Ctext%20x='2'%20y='14'%20font-size='13'%20font-family='sans-serif'%20fill='%23000'%3E1%3C/text%3E%3Ctext%20x='16'%20y='26'%20font-size='16'%20font-family='sans-serif'%20fill='%23000'%3E7%3C/text%3E%3Ctext%20x='29'%20y='12'%20font-size='11'%20font-family='sans-serif'%20fill='%23000'%3E15%3C/text%3E%3Ctext%20x='35'%20y='28'%20font-size='14'%20font-family='sans-serif'%20fill='%23000'%3E23%3C/text%3E%3Crect%20x='12'%20y='3'%20width='10'%20height='8'%20rx='2'%20fill='none'%20stroke='%23000'%20stroke-width='1.8'/%3E%3C/svg%3E");
+}
+.nav-item[data-tab="stats"] {
+--nav-motif: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2032'%3E%3Crect%20x='3'%20y='18'%20width='5'%20height='11'%20rx='1.5'%20fill='%23000'/%3E%3Crect%20x='11'%20y='10'%20width='5'%20height='19'%20rx='1.5'%20fill='%23000'/%3E%3Crect%20x='19'%20y='22'%20width='5'%20height='7'%20rx='1.5'%20fill='%23000'/%3E%3Crect%20x='27'%20y='6'%20width='5'%20height='23'%20rx='1.5'%20fill='%23000'/%3E%3Crect%20x='35'%20y='14'%20width='5'%20height='15'%20rx='1.5'%20fill='%23000'/%3E%3Cpath%20d='M4%2012%2014%206l8%208%2010-9%208%206'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20opacity='.8'/%3E%3C/svg%3E");
+}
+/* Sidebar icon-only state: motif would crowd the button */
+@media (max-width: 992px) and (min-width: 901px) {
+.sidebar-nav .nav-item::after {
+display: none;
+}
+}
 /* ==== COMPACT DENSITY PATCH ==== */
 @media (min-width: 993px) { :root { --sidebar-width: 240px; } }
 .hero { min-height: 260px; }
