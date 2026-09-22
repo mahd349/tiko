@@ -86,7 +86,7 @@ var wrap = document.createElement("div");
 wrap.id = "installToolsRow";
 wrap.className = "modal-item";
 wrap.innerHTML =
-'<div class="item-left"><span style="display:flex">' + svgIcon("phone", 18) + "</span>"<span class="item-name">' + L("نصب به‌عنوان اپ", "Install as app") + "</span></div>" +
+'<div class="item-left"><span style="display:flex">' + svgIcon("phone", 18) + '</span><span class="item-name">' + L("نصب به‌عنوان اپ", "Install as app") + "</span></div>" +
 '<button class="btn btn-ghost btn-sm" id="installToolsBtn">' +
 (isStandalone() ? L("نصب شده ✔", "Installed ✔") : supported ? L("نصب", "Install") : L("راهنما", "Guide")) +
 "</button>";
