@@ -87,7 +87,7 @@ box.innerHTML =
 L("یادداشت امروز را اینجا بنویس...", "Write today's note here...") +
 '" rows="4">' + escapeHtml(note) + "</textarea>" +
 '<div class="note-actions">' +
-'<button class="btn btn-ghost btn-sm" id="todayNoteSave">💾 ' +
+'<button class="btn btn-ghost btn-sm" id="todayNoteSave">' + svgIcon("save", 15) + " " +
 L("ذخیره", "Save") + "</button>" +
 '<span class="note-hint">' +
 L("**متن** → bold، *متن* → italic، - → لیست", "**text** → bold, *text* → italic, - → list") +
@@ -108,7 +108,7 @@ input.addEventListener("keydown", function (event) {
 if ((event.ctrlKey || event.metaKey) && event.key === "s") {
 event.preventDefault();
 setNote(today, input.value);
-toast(L("✅ یادداشت ذخیره شد", "✅ Note saved"), "success");
+toast(L("یادداشت ذخیره شد", "Note saved"), "success");
 }
 });
 }
@@ -123,7 +123,7 @@ box.innerHTML =
 '<textarea id="calNoteInput" class="input note-input" placeholder="' +
 L("یادداشت این روز...", "Note for this day...") +
 '" rows="5">' + escapeHtml(note) + "</textarea>" +
-'<button class="btn btn-ghost btn-sm" id="calNoteSave">💾 ' +
+'<button class="btn btn-ghost btn-sm" id="calNoteSave">' + svgIcon("save", 15) + " " +
 L("ذخیره", "Save") + "</button>" +
 "</div>";
 var input = el("calNoteInput");
@@ -163,7 +163,7 @@ var html =
 L("جستجو در یادداشت‌ها...", "Search notes...") +
 '" autocomplete="off">' +
 '<div id="noteSearchResults" style="margin-top:14px;max-height:400px;overflow:auto"></div>';
-var content = window.UI.modal.open(L("📝 جستجوی یادداشت‌ها", "📝 Search notes"), html);
+var content = window.UI.modal.open(L("جستجوی یادداشت‌ها", "Search notes"), html);
 if (!content) return;
 var input = el("noteSearchInput");
 var resultsBox = el("noteSearchResults");
