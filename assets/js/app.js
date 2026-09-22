@@ -2415,7 +2415,7 @@ switchTab(hash);
 } else {
   switchTab("home");
 }
-  }
+  
 
   window.App = {
     renderAll: renderAll,
