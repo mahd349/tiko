@@ -61,13 +61,13 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
         currentUser.email ||
         window.I18N.t("auth.connected");
 
-      if (icon) icon.textContent = "👤";
+      if (icon) icon.innerHTML = window.Icons ? window.Icons.svg("user", 20) : "";
 
       btn.title = currentUser.email || currentUser.displayName || "";
     } else {
       label.textContent = window.I18N.t("auth.login");
 
-      if (icon) icon.textContent = "👤";
+      if (icon) icon.innerHTML = window.Icons ? window.Icons.svg("user", 20) : "";
 
       btn.title = window.I18N.t("auth.login");
     }
@@ -90,7 +90,7 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       "<p style=\"margin-top:12px\">بعد از ذخیره، صفحه را رفرش کن.</p>" +
       "</div>";
 
-    window.UI.modal.open("🔐 " + window.I18N.t("auth.login"), html);
+    window.UI.modal.open(window.I18N.t("auth.login"), html);window.UI.modal.open(window.I18N.t("auth.login"), html);
   }
 
   function ensureFirebase() {
