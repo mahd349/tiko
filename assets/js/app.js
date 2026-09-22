@@ -61,7 +61,8 @@ notes: "/assets/js/features/notes.js",
 report: "/assets/js/features/report-card.js",
 game: "/assets/js/features/game.js",
 wave: "/assets/js/features/wave-bg.js",
-animated: "/assets/js/features/animated-bg.js"
+animated: "/assets/js/features/animated-bg.js",
+fxSaturn: "/assets/js/features/fx-saturn-bg.js"
 };
 let notesRequested = false;
 function ensureFeature(key) {
@@ -1288,8 +1289,11 @@ ensureFeature("animated").then(function () {
    if (window.AnimatedBg && window.AnimatedBg.injectIntoToolsModal && document.body.contains(content)) {
 window.AnimatedBg.injectIntoToolsModal(content);
 }
-   if (window.WaveBg && window.WaveBg.injectIntoToolsModal && document.body.contains(content)) {
+if (window.WaveBg && window.WaveBg.injectIntoToolsModal && document.body.contains(content)) {
 window.WaveBg.injectIntoToolsModal(content);
+}
+if (window.FxSaturnBg && window.FxSaturnBg.injectIntoToolsModal && document.body.contains(content)) {
+window.FxSaturnBg.injectIntoToolsModal(content);
 }
       if (window.InstallPrompt && window.InstallPrompt.injectIntoToolsModal) {
 window.InstallPrompt.injectIntoToolsModal(content);
@@ -2333,6 +2337,7 @@ if (window.InstallPrompt && window.InstallPrompt.maybeShow) window.InstallPrompt
 ensureFeature("game").catch(function () {});
 ensureFeature("wave").catch(function () {});
 ensureFeature("animated").catch(function () {});
+ensureFeature("fxSaturn").catch(function () {});
 });
 
     clockTimer = setInterval(renderClock, 1000);
