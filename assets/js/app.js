@@ -1229,6 +1229,10 @@ const trashLabel =
 window.I18N.t("trash.title") +
 (trashSummary.total ? " (" + window.I18N.faNum(trashSummary.total) + ")" : "");
 const permState = window.Reminder ? window.Reminder.permissionState() : "unsupported";
+const autoUnlocked = !!(window.AutoSave && window.AutoSave.unlocked());
+const autoCfg = window.Store.state.settings.autoSave || { enabled: false, intervalHours: 24 };
+const autoOn = autoUnlocked && autoCfg.enabled;
+const autoHours = autoCfg.intervalHours;
 const html =
 '<div class="modal-section-title">' + svgIcon("globe", 16) + " " + window.I18N.t("common.language") + "</div>" +
 '<div style="display:flex;gap:8px;margin-bottom:18px">' +
@@ -1262,6 +1266,28 @@ const html =
 '<button class="btn btn-ghost" data-action="open-help">' + svgIcon("help", 16) + " " + window.I18N.t("common.help") + "</button>" +
 '<a class="btn btn-ghost" href="/rahnama/">' + svgIcon("book", 16) + " " + window.I18N.t("common.articles") + "</a>" +
 "</div>";
+html +=
+'<div class="modal-section-title">' + svgIcon("save", 16) + " " + L("ذخیره خودکار", "Auto-save") +
+(autoUnlocked ? "" : ' <span style="color:var(--warning);font-size:11px;font-weight:800">' + L("(قفل — سطح ۴)", "(locked — level 4)") + "</span>") +
+"</div>" +
+'<div class="modal-item">' +
+'<div class="item-left"><label for="autoSaveToggle" style="cursor:pointer">' +
+L("ذخیرهٔ خودکار نسخهٔ پشتیبان روی همین دستگاه", "Auto-save backup snapshots on this device") +
+"</label></div>" +
+'<input type="checkbox" id="autoSaveToggle"' +
+(autoOn ? " checked" : "") + (autoUnlocked ? "" : " disabled") +
+' style="width:22px;height:22px;accent-color:var(--accent);cursor:pointer">' +
+"</div>" +
+'<div class="modal-item">' +
+'<div class="item-left"><label for="autoSaveInterval">' + L("هر چند ساعت یک‌بار؟", "Every how many hours?") + "</label></div>" +
+'<select id="autoSaveInterval" class="input" style="width:110px"' + (autoUnlocked ? "" : " disabled") + ">" +
+[6, 12, 24, 48].map(function (h) {
+return '<option value="' + h + '"' + (autoHours === h ? " selected" : "") + ">" + window.I18N.faNum(h) + "</option>";
+}).join("") +
+"</select></div>" +
+'<button class="btn btn-ghost btn-sm" id="autoSaveRestore" style="width:100%;margin:4px 0 14px"' + (autoUnlocked ? "" : " disabled") + ">" +
+svgIcon("reset", 15) + " " + L("بازیابی از آخرین ذخیرهٔ خودکار", "Restore from latest auto-save") +
+"</button>";
 const content = window.UI.modal.open(window.I18N.t("common.tools"), html);
 if (!content) return;
 const toggle = content.querySelector("#reminderToggle");
@@ -1308,6 +1334,32 @@ const current =
 window.Store.state.settings.reminder || { enabled: false, time: "20:00" };
 window.Store.updateSettings({
 reminder: { enabled: current.enabled, time: timeInput.value || "20:00" }
+});
+});
+}
+const autoToggle = content.querySelector("#autoSaveToggle");
+if (autoToggle) {
+autoToggle.addEventListener("change", function () {
+window.Store.updateSettings({ autoSave: { enabled: autoToggle.checked } });
+});
+}
+const autoInterval = content.querySelector("#autoSaveInterval");
+if (autoInterval) {
+autoInterval.addEventListener("change", function () {
+window.Store.updateSettings({ autoSave: { intervalHours: Number(autoInterval.value) || 24 } });
+});
+}
+const autoRestore = content.querySelector("#autoSaveRestore");
+if (autoRestore) {
+autoRestore.addEventListener("click", function () {
+if (!window.AutoSave) return;
+window.AutoSave.restoreLatest()
+.then(function () {
+window.UI.modal.close();
+if (window.App && window.App.renderAll) window.App.renderAll();
+})
+.catch(function () {
+window.UI.toast(L("ذخیرهٔ خودکاری یافت نشد", "No auto-save found"), "error");
 });
 });
 }
