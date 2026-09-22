@@ -2381,7 +2381,8 @@ switchTab("stats");
 setTimeout(function () {
 if (window.Stats && window.Stats.openWeeklyReview) window.Stats.openWeeklyReview();
 }, 250);
-}}
+   }
+}
 } catch (error) {
 // ignore
 }
