@@ -306,7 +306,7 @@ var btn = document.getElementById("waveToggleBtn");
 if (!btn) return;
 var icon = btn.querySelector(".wave-toggle-icon");
 var label = btn.querySelector(".wave-toggle-label");
-if (icon) icon.textContent = isActive ? "✦" : "✨";
+if (icon) icon.innerHTML = svgIcon("wave", 16);
 if (label) label.textContent = isActive
 ? L("پس‌زمینه متحرک: روشن", "Animated bg: on")
 : L("پس‌زمینه متحرک: خاموش", "Animated bg: off");
@@ -343,7 +343,7 @@ break;
 var wrap = document.createElement("div");
 wrap.className = "wave-modal-block";
 wrap.innerHTML =
-'<div class="modal-section-title">✨ ' + L("پس‌زمینه متحرک", "Animated background") + "</div>" +
+'<div class="modal-section-title">' + svgIcon("wave", 16) + " " + L("پس‌زمینه متحرک", "Animated background") + "</div>" +
 '<div class="modal-item">' +
 '<div class="item-left">' +
 '<label for="waveModalCheck" style="cursor:pointer">' +
