@@ -215,12 +215,14 @@ border: 1px solid var(--border);
    3. FORMS
 ============================ */
 .form-card {
-  border-color: var(--accent-line);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 88%, var(--accent) 12%),
-    var(--surface)
-  );
+position: relative;
+z-index: 40;
+border-color: var(--accent-line);
+background: linear-gradient(
+180deg,
+color-mix(in srgb, var(--surface) 88%, var(--accent) 12%),
+var(--surface)
+);
 }
 
 .form-title {
