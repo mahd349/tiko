@@ -1230,7 +1230,7 @@ const autoUnlocked = !!(window.AutoSave && window.AutoSave.unlocked());
 const autoCfg = window.Store.state.settings.autoSave || { enabled: false, intervalHours: 24 };
 const autoOn = autoUnlocked && autoCfg.enabled;
 const autoHours = autoCfg.intervalHours;
-const html =
+let html =
 '<div class="modal-section-title">' + svgIcon("globe", 16) + " " + window.I18N.t("common.language") + "</div>" +
 '<div style="display:flex;gap:8px;margin-bottom:18px">' +
 '<button class="btn ' + (lang === "fa" ? "btn-primary" : "btn-ghost") + '" data-action="set-lang" data-lang="fa" style="flex:1">فارسی</button>' +
