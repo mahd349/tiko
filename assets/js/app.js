@@ -2358,7 +2358,7 @@ if (window.Stats && window.Stats.openWeeklyReview) window.Stats.openWeeklyReview
 } catch (error) {
 // ignore
 }
-
+})();
 setTimeout(function () {
 if (window.InstallPrompt && window.InstallPrompt.maybeShow) window.InstallPrompt.maybeShow();
 }, 4000);
@@ -2390,6 +2390,7 @@ switchTab(hash);
 switchTab("home");
 }
 });
+}
 
 window.App = {
 renderAll: renderAll,
