@@ -72,11 +72,15 @@ const state = {
     animations: true,
     sounds: false,
     density: "comfortable",
-    reminder: {
-      enabled: false,
-      time: "20:00"
-    }
-  },
+reminder: {
+enabled: false,
+time: "20:00"
+},
+autoSave: {
+enabled: false,
+intervalHours: 24
+}
+},
   trash: {
     tasks: [],
     habits: []
@@ -406,6 +410,14 @@ enabled: !!raw.enabled,
 time: normalizedTime
 };
 }
+function normalizeAutoSave(raw) {
+raw = raw || {};
+var hours = Number(raw.intervalHours);
+return {
+enabled: !!raw.enabled,
+intervalHours: [6, 12, 24, 48].indexOf(hours) !== -1 ? hours : 24
+};
+}
 function normalizeSettings(raw) {
 raw = raw || {};
 
@@ -415,7 +427,8 @@ lang: raw.lang === "en" ? "en" : "fa",
 animations: raw.animations !== false,
 sounds: !!raw.sounds,
 density: raw.density === "compact" ? "compact" : "comfortable",
-reminder: normalizeReminder(raw.reminder)
+reminder: normalizeReminder(raw.reminder),
+autoSave: normalizeAutoSave(raw.autoSave)
 };
 }
 
@@ -1577,6 +1590,13 @@ merged.reminder = Object.assign(
 {},
 state.settings.reminder || {},
 patch.reminder
+);
+}
+if (window.Utils.isPlainObject(patch.autoSave)) {
+merged.autoSave = Object.assign(
+{},
+state.settings.autoSave || {},
+patch.autoSave
 );
 }
 
