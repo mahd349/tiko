@@ -135,7 +135,7 @@ return [
 { id: "first_step", icon: "leaf", fa: "قدم اول", en: "First step", df: "اولین وظیفه یا عادت را کامل کن", de: "Complete your first task or habit", ok: d.points > 0, pr: null },
 { id: "streak_3", icon: "flame", fa: "۳ روز پیاپی", en: "3-day streak", df: "به استریک ۳ روزهٔ یک عادت برس", de: "Reach a 3-day habit streak", ok: d.bestStreak >= 3, pr: pr(d.bestStreak, 3) },
 { id: "streak_7", icon: "zap", fa: "۷ روز پیاپی", en: "7-day streak", df: "به استریک ۷ روزهٔ یک عادت برس", de: "Reach a 7-day habit streak", ok: d.bestStreak >= 7, pr: pr(d.bestStreak, 7) },
-{ id: "streak_21", icon: "trophy" fa: "۲۱ روز پیاپی", en: "21-day streak", df: "به استریک ۲۱ روزهٔ یک عادت برس", de: "Reach a 21-day habit streak", ok: d.bestStreak >= 21, pr: pr(d.bestStreak, 21) },
+{ id: "streak_21", icon: "trophy", fa: "۲۱ روز پیاپی", en: "21-day streak", df: "به استریک ۲۱ روزهٔ یک عادت برس", de: "Reach a 21-day habit streak", ok: d.bestStreak >= 21, pr: pr(d.bestStreak, 21) },
 { id: "streak_66", icon: "gem", fa: "۶۶ روز پیاپی", en: "66-day streak", df: "به استریک ۶۶ روزهٔ یک عادت برس", de: "Reach a 66-day habit streak", ok: d.bestStreak >= 66, pr: pr(d.bestStreak, 66) },
 { id: "streak_100", icon: "crown", fa: "۱۰۰ روز پیاپی", en: "100-day streak", df: "به استریک ۱۰۰ روزهٔ یک عادت برس", de: "Reach a 100-day habit streak", ok: d.bestStreak >= 100, pr: pr(d.bestStreak, 100) },
 { id: "week_master", icon: "award", fa: "استاد هفته", en: "Week master", df: "۷ روز پیاپی با پیشرفت حداقل ۷۰٪", de: "7 consecutive days at 70%+ progress", ok: d.maxRun70 >= 7, pr: pr(d.maxRun70, 7) },
