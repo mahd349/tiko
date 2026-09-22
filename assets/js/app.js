@@ -16,8 +16,9 @@
 (function () {
   "use strict";
 
-  let activeTab = "home";
-  let clockTimer = null;
+let activeTab = "home";
+let clockTimer = null;
+let appInitialized = false;
 
   const calView = {
     jy: null,
@@ -350,11 +351,6 @@ applyRouteMeta(tab);
   /* ------------------------------
      Home dashboard
   ------------------------------ */
-
-function toneColor(pct) {
-const hue = Math.round(Math.max(0, Math.min(1, pct)) * 120);
-return "hsl(" + hue + ", 72%, 52%)";
-}
 function summarySparkHTML(keys, pcts) {
 return (
 '<div class="summary-spark">' +
@@ -543,7 +539,7 @@ return (
       '<div class="home-list">' +
       habits
         .map(function (habit) {
-          const log = window.Store.getLog(habit.id);
+          const log = window.Store.getLog(habit.id) || { checked: false, value: 0, seconds: 0 };
           let value = "";
 
           if (habit.type === "checkbox") {
@@ -559,7 +555,7 @@ return (
           return (
             '<div class="home-row">' +
             '<span class="home-habit-icon" style="color:' + habit.color + '">' +
-            window.Habits.iconHTML(habit.emoji, 18) +
+            (window.Habits && window.Habits.iconHTML ? window.Habits.iconHTML(habit.emoji, 18) : "🔥") +
             "</span>" +
             '<span class="main">' + window.Utils.escapeHtml(habit.name) + "</span>" +
             '<span class="home-pill">' + value + "</span>" +
@@ -1101,7 +1097,7 @@ avg +
       .map(function (habit) {
         return {
           habit: habit,
-          log: window.Store.getLog(habit.id, dateKey)
+          log: window.Store.getLog(habit.id, dateKey) || { checked: false, value: 0, seconds: 0 }
         };
       })
       .filter(function (item) {
@@ -1134,7 +1130,7 @@ return (
 '<div class="modal-item">' +
 '<div class="item-left">' +
 '<span style="display:flex">' + (taskDone ? svgIcon("check", 18) : svgIcon("square", 18)) + "</span>" +
-            '<span class="item-name' + (task.done ? " done" : "") + '">' +
+            '<span class="item-name' + (taskDone ? " done" : "") + '">' +
             window.Utils.escapeHtml(task.name) +
             "</span>" +
             "</div>" +
@@ -1172,8 +1168,8 @@ return (
             '<div class="modal-item">' +
             '<div class="item-left">' +
             '<span style="display:flex;color:' + item.habit.color + '">' +
-            window.Habits.iconHTML(item.habit.emoji, 19) +
-            "</span>" +
+            (window.Habits && window.Habits.iconHTML ? window.Habits.iconHTML(item.habit.emoji, 19) : "🔥") +
+             "</span>" +
             '<span class="item-name">' + window.Utils.escapeHtml(item.habit.name) + "</span>" +
             "</div>" +
             '<span class="modal-tag' + (window.Store.habitDone(item.habit, dateKey) ? " done" : "") + '">' +
@@ -1575,7 +1571,16 @@ function closeMobileHabitForm() {
     setText("#addTaskBtn", "common.add");
     setButtonHTML("#clearDoneBtn", "tasks.clearDone", "checkSquare");
 
-    setHeadingPreserve('#tab-tasks .card:has(#taskList) .card-header h3', "tasks.listTitle", ".counter");
+    (function () {
+const taskListNode = document.querySelector("#tab-tasks #taskList");
+const taskCard = taskListNode ? taskListNode.closest(".card") : null;
+const taskHeading = taskCard ? taskCard.querySelector(".card-header h3") : null;
+if (taskHeading) {
+const preserved = taskHeading.querySelector(".counter");
+taskHeading.textContent = window.I18N.t("tasks.listTitle") + " ";
+if (preserved) taskHeading.appendChild(preserved);
+}
+})();
 
     const taskFilterKeys = {
       all: "common.all",
@@ -1781,40 +1786,6 @@ window.Stats.exportBackup();
 });
 }
 
-function openHelpModal() {
-if (!window.UI || !window.UI.modal) return;
-const rows = [
-["N", L("وظیفهٔ جدید", "New task")],
-["H", L("تب عادت‌ها", "Habits tab")],
-["T", L("تغییر پوسته", "Cycle theme")],
-["S", L("کارت استریک", "Streak card")],
-["L", L("تغییر زبان", "Toggle language")],
-["M", L("ابزارها", "Tools")],
-["/", L("جستجو", "Search")],
-["1-6", L("رفتن به تب‌ها", "Switch tabs")]
-];
-const html =
-'<div class="modal-section-title">' + svgIcon("keyboard", 16) + " " + L("کلیدهای میان‌بر", "Keyboard shortcuts") + "</div>" +
-rows.map(function (row) {
-return (
-'<div class="modal-item">' +
-'<div class="item-left"><span class="modal-tag">' + row[0] + "</span></div>" +
-'<span class="item-name">' + row[1] + "</span>" +
-"</div>"
-);
-}).join("") +
-'<div class="sc-actions" style="margin-top:18px">' +
-'<button class="btn btn-ghost" data-action="close-modal">' + window.I18N.t("common.close") + "</button>" +
-"</div>";
-const content = window.UI.modal.open(window.I18N.t("common.help"), html);
-if (!content) return;
-const closeBtn = content.querySelector('[data-action="close-modal"]');
-if (closeBtn) {
-closeBtn.addEventListener("click", function () {
-window.UI.modal.close();
-});
-}
-}
    
 function openTrashModal() {
 if (!window.UI || !window.UI.modal || !window.Store) return;
@@ -2148,9 +2119,11 @@ if (action === "fab-habit") {
   closeFabMenu();
   openMobileHabitForm();
 }
-       if (action === "fab-pomodoro") {
-  closeFabMenu();
-  if (window.Pomodoro && window.Pomodoro.open) window.Pomodoro.open();
+if (action === "fab-pomodoro") {
+closeFabMenu();
+ensureFeature("pomodoro").then(function () {
+if (window.Pomodoro && window.Pomodoro.open) window.Pomodoro.open();
+}).catch(featureLoadFailed);
 }
     });
   }
@@ -2296,10 +2269,6 @@ return;
   /* ------------------------------
      Init
   ------------------------------ */
-function applyAnimationsPref() {
-const on = !window.Store || window.Store.state.settings.animations !== false;
-document.documentElement.setAttribute("data-animations", on ? "on" : "off");
-}
 function bindToolsFallback() {
 const toolsBtn = document.querySelector('[data-action="menu"]');
 if (!toolsBtn) return;
@@ -2327,6 +2296,7 @@ if (window.Calendar.getDayOfWeek(window.Calendar.keyToDate(today), "fa") !== 6) 
 if (localStorage.getItem("pd_weekly_review_" + today)) return;
 const hasData = window.Store.state.tasks.length || window.Store.state.habits.length;
 if (!hasData) return;
+localStorage.setItem("pd_weekly_review_" + today, "1");
 window.UI.toast(L("وقت مرور هفتگی است — یک دقیقه ببین هفته چطور گذشت", "Weekly review time — see how your week went"), "info", {
 duration: 8000,
 action: {
@@ -2342,6 +2312,8 @@ if (window.Stats && window.Stats.openWeeklyReview) window.Stats.openWeeklyReview
 }
    
 function init() {
+if (appInitialized) return;
+appInitialized = true;
 applyAnimationsPref();
 applyTheme(window.Store.state.settings.theme);
 window.Store.subscribe(function (action) {
@@ -2399,7 +2371,8 @@ ensureFeature("fxSaturn").catch(function () {});
 ensureFeature("fxFireball").catch(function () {});
 ensureFeature("rewards").catch(function () {});
 
-    clockTimer = setInterval(renderClock, 1000);
+    if (clockTimer) clearInterval(clockTimer);
+clockTimer = setInterval(renderClock, 1000);
 
 const cleanPath = (location.pathname || "/").replace(/\/+$/, "") || "/";
 const pathTab = Object.keys(ROUTE_PATH).filter(function (key) {
