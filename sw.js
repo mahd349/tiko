@@ -42,7 +42,6 @@ const CORE = [
    "/assets/js/features/animated-bg.js",
    "/assets/js/features/notes.js",
    "/assets/js/features/fx-saturn-bg.js",
-   "/assets/js/core/updater.js",
 "/assets/js/features/autosave.js",
   "/rahnama/styles.css",
   "/rahnama/index.html",
@@ -93,15 +92,7 @@ return caches.delete(key);
 })
 .then(function () {
 return self.clients.claim();
-})
-.then(function () {
-return self.clients.matchAll({ type: "window" });
-})
-.then(function (clients) {
-clients.forEach(function (client) {
-client.postMessage({ type: "sw-update", version: CACHE });
 });
-})
 );
 });
 
