@@ -177,7 +177,25 @@ const WEEKDAY_FULL_EN = [
   ["sunrise", "طلوع", "Sunrise"],
   ["map", "سفر", "Travel"]
 ];
-
+const ICON_LABEL_EN = {
+  droplet: "Water", run: "Running", book: "Reading", lotus: "Meditation",
+  dumbbell: "Weights", music: "Music", code: "Coding", food: "Nutrition",
+  moon: "Sleep", nosmoke: "Quit smoking", wallet: "Saving", palette: "Painting",
+  broom: "Cleaning", pen: "Writing", target: "Goal", sun: "Early morning",
+  walk: "Walking", brain: "Focus", nophone: "No phone", sprout: "Plant",
+  bike: "Biking", heart: "Health", coffee: "Coffee", chat: "Socializing",
+  star: "Star", camera: "Photography", film: "Movie", zap: "Energy",
+  smile: "Good mood", gift: "Giving", globe: "Foreign language", award: "Success",
+  headphones: "Podcast", mic: "Recording", trend: "Growth", users: "Friends",
+  video: "Video", wind: "Deep breathing", sunrise: "Sunrise", map: "Travel"
+};
+function iconLabel(id) {
+  if (window.I18N && window.I18N.lang === "en" && ICON_LABEL_EN[id]) {
+    return ICON_LABEL_EN[id];
+  }
+  const item = ICON_LIST.find(function (i) { return i[0] === id; });
+  return item ? item[1] : id;
+}
 function iconLabel(id) {
   const item = ICON_LIST.find(function (i) { return i[0] === id; });
   if (!item) return id;
@@ -404,16 +422,19 @@ function initIconPicker() {
   hidden.value = normalizeIcon(hidden.value || DEFAULT_ICON);
 
   function renderOptions() {
-    pop.innerHTML = ICON_LIST.map(function (item) {
-      const id = item[0];
-      const label = iconLabel(id);
-      return (
-        '<button type="button" class="icon-opt" role="option" data-icon="' + id + '" aria-selected="' +
-        (id === hidden.value ? "true" : "false") + '" title="' + label + '">' +
-        iconHTML(id, 19) +
-        "</button>"
-      );
-    }).join("");
+ function renderOptions() {
+   pop.innerHTML = ICON_LIST.map(function (item) {
+     const id = item[0];
+     return (
+       '<button type="button" class="icon-opt" role="option" data-icon="' + id + '" aria-selected="' +
+       (id === hidden.value ? "true" : "false") + '" title="' + window.Utils.escapeHtml(iconLabel(id)) + '">' +
+       iconHTML(id, 19) +
+       "</button>"
+     );
+   }).join("");
+ }
+ window.refreshHabitIconPicker = renderOptions;
+ renderOptions();
   }
 
   function paint() {
@@ -796,8 +817,8 @@ renderEditActiveDays();
 
 function renderEditIconGrid() {
   if (!iconGrid) return;
-  iconGrid.innerHTML = ICON_LIST.map(function (item) {
-    const iconId = item[0];
+   iconGrid.innerHTML = ICON_LIST.map(function (item) {
+     const iconId = item[0];
     const label = iconLabel(iconId);
     return (
       '<button type="button" class="icon-opt" role="option" data-icon="' + iconId + '" aria-selected="' +
@@ -1288,9 +1309,10 @@ renderHabitProjectOptions();
 }
 });
 document.addEventListener("i18n:changed", function () {
-  renderNewActiveDays();
-  renderCatFilters();
-  renderHabitProjectOptions();
+renderNewActiveDays();
+renderCatFilters();
+renderHabitProjectOptions();
+if (window.refreshHabitIconPicker) window.refreshHabitIconPicker();;
   if (window.refreshHabitIconPicker) window.refreshHabitIconPicker();
   var tags = el("habitTags");
   if (tags) tags.placeholder = window.I18N.t("tags.formPlaceholder");
