@@ -1,8 +1,9 @@
 /* ================================================================
 ROUTINE — FEATURES / AUTH.JS
 Google sign-in with Firebase Auth (compat SDK).
-⚠️ Replace FIREBASE_CONFIG with your Firebase project config.
-Firebase Console → Project Settings → Your apps → Web app.
+Popup first; any popup failure falls back to full-page redirect.
+Redirect result is consumed at script-eval time (before any router
+can rewrite the URL), and real error codes are surfaced in toasts.
 ================================================================ */
 (function () {
   "use strict";
@@ -33,10 +34,6 @@ Firebase Console → Project Settings → Your apps → Web app.
     if (window.UI && window.UI.toast) {
       window.UI.toast(message, type, opts);
     }
-  }
-
-  function svgIcon(name, size) {
-    return window.Icons ? window.Icons.svg(name, size || 16) : "";
   }
 
   function labelEl() {
@@ -74,10 +71,10 @@ Firebase Console → Project Settings → Your apps → Web app.
       '<ol style="padding-inline-start:18px;display:grid;gap:6px">' +
       "<li>برو به <strong>console.firebase.google.com</strong></li>" +
       "<li>یک پروژه بساز.</li>" +
-      '<li>از منوی <strong>Authentication</strong> گزینهٔ <strong>Sign-in method</strong> را باز کن و <strong>Google</strong> را فعال کن.</li>' +
-      '<li>از <strong>Project Settings → General → Your apps</strong> یک Web app اضافه کن.</li>' +
-      '<li>مقادیر کانفیگ را در فایل <code>assets/js/features/auth.js</code> جایگزین کن.</li>' +
-      '<li>دامنهٔ سایتت را در Firebase در بخش <strong>Authorized domains</strong> اضافه کن.</li>' +
+      "<li>از منوی <strong>Authentication</strong> گزینهٔ <strong>Sign-in method</strong> را باز کن و <strong>Google</strong> را فعال کن.</li>" +
+      "<li>از <strong>Project Settings → General → Your apps</strong> یک Web app اضافه کن.</li>" +
+      "<li>مقادیر کانفیگ را در فایل <code>assets/js/features/auth.js</code> جایگزین کن.</li>" +
+      "<li>دامنهٔ سایتت را در Firebase در بخش <strong>Authorized domains</strong> اضافه کن.</li>" +
       "</ol>" +
       '<p style="margin-top:12px">بعد از ذخیره، صفحه را رفرش کن.</p>' +
       "</div>";
@@ -110,12 +107,27 @@ Firebase Console → Project Settings → Your apps → Web app.
     return true;
   }
 
+  function errorCode(error) {
+    return error && error.code ? error.code : "unknown";
+  }
+
+  function failToast(error) {
+    toast(window.I18N.t("auth.error") + " (" + errorCode(error) + ")", "error", {
+      duration: 9000
+    });
+  }
+
+  function startRedirect(provider) {
+    auth.signInWithRedirect(provider).catch(function (error) {
+      console.error(error);
+      failToast(error);
+    });
+  }
+
   function login() {
     if (!ensureFirebase()) return;
     const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({
-      prompt: "select_account"
-    });
+    provider.setCustomParameters({ prompt: "select_account" });
     auth
       .signInWithPopup(provider)
       .then(function (result) {
@@ -125,75 +137,30 @@ Firebase Console → Project Settings → Your apps → Web app.
       })
       .catch(function (error) {
         console.error(error);
-        const code = error && error.code ? error.code : "unknown";
-
-        // Popup blocked or not supported → fall back to redirect
-        if (
-          code === "auth/popup-blocked" ||
-          code === "auth/operation-not-supported" ||
-          code === "auth/cancelled-popup-request"
-        ) {
-          auth.signInWithRedirect(provider).catch(function (err) {
-            const redirectCode = err && err.code ? err.code : "unknown";
-            toast(
-              window.I18N.t("auth.error") + " (" + redirectCode + ")",
-              "error",
-              { duration: 9000 }
-            );
-          });
-          return;
-        }
-
-        // Popup closed by user
-        if (code === "auth/popup-closed-by-user") {
-          toast(
-            window.I18N.lang === "en"
-              ? "The popup closed before finishing. Retry, or use the full-page method."
-              : "پاپ‌آپ قبل از پایان بسته شد؛ دوباره تلاش کن یا از روش تمام‌صفحه استفاده کن.",
-            "info",
-            {
-              duration: 9000,
-              action: {
-                label: window.I18N.lang === "en" ? "Full-page sign-in" : "ورود تمام‌صفحه",
-                onClick: function () {
-                  auth.signInWithRedirect(provider).catch(function () {});
-                }
-              }
-            }
-          );
-          return;
-        }
-
-        // Unauthorized domain — رایج‌ترین مشکل در deployهای جدید
+        const code = errorCode(error);
         if (code === "auth/unauthorized-domain") {
           toast(
             window.I18N.lang === "en"
-              ? "This domain is not authorized for sign-in. Add it to Firebase Console → Authentication → Settings → Authorized domains."
-              : "این دامنه برای ورود مجاز نیست. آن را در Firebase Console → Authentication → Settings → Authorized domains اضافه کن.",
+              ? "This domain is not authorized for sign-in. Add it in Firebase Console → Authentication → Settings → Authorized domains."
+              : "این دامنه برای ورود مجاز نیست؛ آن را در Firebase Console → Authentication → Settings → Authorized domains اضافه کن.",
             "error",
             { duration: 12000 }
           );
           return;
         }
-
-        // Network or other error
         if (code === "auth/network-request-failed") {
           toast(
             window.I18N.lang === "en"
               ? "Network error. Check your connection and try again."
-              : "خطای شبکه. اتصال اینترنت را بررسی کن و دوباره تلاش کن.",
+              : "خطای شبکه؛ اتصال را بررسی کن و دوباره تلاش کن.",
             "error",
             { duration: 8000 }
           );
           return;
         }
-
-        // General error with code for debugging
-        toast(
-          window.I18N.t("auth.error") + " (" + code + ")",
-          "error",
-          { duration: 8000 }
-        );
+        // Any popup failure (blocked, closed, COOP-broken, unsupported)
+        // falls back to the full-page redirect without user interaction.
+        startRedirect(provider);
       });
   }
 
@@ -208,7 +175,7 @@ Firebase Console → Project Settings → Your apps → Web app.
       })
       .catch(function (error) {
         console.error(error);
-        toast(window.I18N.t("auth.error"), "error");
+        failToast(error);
       });
   }
 
@@ -224,29 +191,36 @@ Firebase Console → Project Settings → Your apps → Web app.
     }
   }
 
+  function consumeRedirectResult() {
+    if (!ensureFirebase() || !auth || !auth.getRedirectResult) return;
+    auth
+      .getRedirectResult()
+      .then(function (result) {
+        if (result && result.user) {
+          currentUser = result.user;
+          render();
+          toast(window.I18N.t("auth.connected"), "success");
+        }
+      })
+      .catch(function (error) {
+        const code = errorCode(error);
+        if (code === "auth/no-auth-event-was-triggered") return;
+        console.error(error);
+        failToast(error);
+      });
+  }
+
   function init() {
     const btn = buttonEl();
     if (!btn) return;
     btn.addEventListener("click", onAuthClick);
-
-    if (window.firebase && isConfigured()) {
-      if (ensureFirebase() && auth && auth.getRedirectResult) {
-        auth.getRedirectResult()
-          .then(function (result) {
-            if (result && result.user) {
-              currentUser = result.user;
-              render();
-              toast(window.I18N.t("auth.connected"), "success");
-            }
-          })
-          .catch(function (error) {
-            if (error && error.code !== "auth/no-auth-event-was-triggered") {
-              console.error(error);
-            }
-          });
-      }
-    }
     render();
+  }
+
+  // Consume the redirect result as early as possible so no router
+  // or history.replaceState can wipe the OAuth fragment first.
+  if (window.firebase && isConfigured()) {
+    consumeRedirectResult();
   }
 
   window.Auth = {
