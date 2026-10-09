@@ -1,8 +1,10 @@
 /* ================================================================
 ROUTINE — SERVICE WORKER
 Offline support + stale-while-revalidate caching
+v38: never return undefined from respondWith; re-warm empty cache;
+bypass immutable HTTP cache when (re)caching same-origin assets
 ================================================================ */
-const CACHE = "routine-v37";
+const CACHE = "routine-v38";
 
 const CORE = [
   "/",
@@ -45,18 +47,20 @@ const CORE = [
   "/assets/js/features/autosave.js",
   "/rahnama/styles.css",
   "/rahnama/index.html",
-  "/rahnama/chand-rooz-adat/",
-  "/rahnama/ghanoon-do-daghighe/",
-  "/rahnama/esterik-chist/",
-  "/rahnama/barnamerizi-rooz-shamsi/",
-  "/rahnama/technique-pomodoro/",
-  "/rahnama/si-ideh-adat/",
-  "/rahnama/khab-e-zood/",
-  "/rahnama/ahmal-kari/",
-  "/rahnama/afzayesh-tamarkoz/",
-  "/rahnama/kholase-adat-haye-atomi/",
   "/en/index.html"
 ];
+
+function freshRequest(url) {
+  return new Request(url, { cache: "no-store" });
+}
+
+function offlineResponse() {
+  return new Response(
+    '<!doctype html><meta charset="utf-8"><title>Offline</title>' +
+      '<p style="font-family:sans-serif;text-align:center;padding:40px">آفلاین هستید و این صفحه در کش نیست.</p>',
+    { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
 
 self.addEventListener("install", function (event) {
   event.waitUntil(
@@ -65,7 +69,7 @@ self.addEventListener("install", function (event) {
       .then(function (cache) {
         return Promise.all(
           CORE.map(function (url) {
-            return cache.add(url).catch(function () {});
+            return cache.add(freshRequest(url)).catch(function () {});
           })
         );
       })
@@ -92,18 +96,32 @@ self.addEventListener("activate", function (event) {
         });
       })
       .then(function (hadOldCaches) {
-        return self.clients.claim().then(function () {
-          // Force-update migration: اگر کش قدیمی داشتیم، به همهٔ clients بگو reload کنند
-          if (hadOldCaches) {
-            return self.clients
-              .matchAll({ type: "window", includeUncontrolled: true })
-              .then(function (clients) {
-                clients.forEach(function (client) {
-                  client.postMessage({ type: "sw-update", version: CACHE });
-                });
-              });
-          }
-        });
+        return caches
+          .open(CACHE)
+          .then(function (cache) {
+            return cache.match("/index.html").then(function (hit) {
+              if (!hit) {
+                return Promise.all(
+                  CORE.map(function (url) {
+                    return cache.add(freshRequest(url)).catch(function () {});
+                  })
+                );
+              }
+            });
+          })
+          .then(function () {
+            return self.clients.claim().then(function () {
+              if (hadOldCaches) {
+                return self.clients
+                  .matchAll({ type: "window", includeUncontrolled: true })
+                  .then(function (clients) {
+                    clients.forEach(function (client) {
+                      client.postMessage({ type: "sw-update", version: CACHE });
+                    });
+                  });
+              }
+            });
+          });
       })
   );
 });
@@ -125,7 +143,7 @@ self.addEventListener("fetch", function (event) {
 
   const sameOrigin = url.origin === self.location.origin;
 
-  /* Navigation: network-first, offline fallback */
+  /* Navigation: network-first, offline fallback (never undefined) */
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -140,7 +158,11 @@ self.addEventListener("fetch", function (event) {
         })
         .catch(function () {
           return caches.match(req).then(function (cached) {
-            return cached || caches.match("/index.html");
+            if (cached) return cached;
+            return caches.match("/index.html").then(function (fallback) {
+              if (fallback) return fallback;
+              return offlineResponse();
+            });
           });
         })
     );
@@ -151,7 +173,8 @@ self.addEventListener("fetch", function (event) {
   if (sameOrigin || isCacheableHost(url.hostname)) {
     event.respondWith(
       caches.match(req).then(function (cached) {
-        const network = fetch(req)
+        const networkRequest = sameOrigin ? freshRequest(req.url) : req;
+        const network = fetch(networkRequest)
           .then(function (res) {
             if (res && (res.ok || res.type === "opaque")) {
               const copy = res.clone();
@@ -162,7 +185,8 @@ self.addEventListener("fetch", function (event) {
             return res;
           })
           .catch(function () {
-            return cached;
+            if (cached) return cached;
+            return new Response("", { status: 503, statusText: "Offline" });
           });
         return cached || network;
       })
