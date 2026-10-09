@@ -65,7 +65,8 @@ wave: "/assets/js/features/wave-bg.js",
 animated: "/assets/js/features/animated-bg.js",
 fxSaturn: "/assets/js/features/fx-saturn-bg.js",
 fxFireball: "/assets/js/features/fx-fireball-bg.js",
-   rewards: "/assets/js/features/rewards.js"
+   rewards: "/assets/js/features/rewards.js",
+   inbox: "/assets/js/features/admin-inbox.js"
 };
 let notesRequested = false;
 function ensureFeature(key) {
@@ -2102,6 +2103,13 @@ return;
        if (action === "open-weekly-review") {
 window.UI.modal.close();
 if (window.Stats && window.Stats.openWeeklyReview) window.Stats.openWeeklyReview();
+return;
+}
+       if (action === "open-inbox") {
+window.UI.modal.close();
+ensureFeature("inbox").then(function () {
+if (window.AdminInbox && window.AdminInbox.open) window.AdminInbox.open();
+}).catch(featureLoadFailed);
 return;
 }
 
