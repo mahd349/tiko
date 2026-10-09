@@ -1,6 +1,5 @@
 (function () {
   "use strict";
-
   var MAX_QR_BYTES = 2500;
   var qrLibLoaded = false;
   var scannerLibLoaded = false;
@@ -13,9 +12,10 @@
   function toast(msg, type) {
     if (window.UI && window.UI.toast) window.UI.toast(msg, type);
   }
+
   function svgIcon(name, size) {
-return window.Icons ? window.Icons.svg(name, size || 16) : "";
-}
+    return window.Icons ? window.Icons.svg(name, size || 16) : "";
+  }
 
   function encodePayload() {
     var data = window.Store.exportData();
@@ -25,7 +25,7 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       slim.logs = {};
       json = JSON.stringify(slim);
       if (json.length > MAX_QR_BYTES) {
-        return { ok: false, tooBig: true, size: json.length };
+        return { ok: false, tooBig: true, size: json.length, json: json };
       }
       return { ok: true, json: json, slim: true };
     }
@@ -66,8 +66,10 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
         { width: 280, margin: 2, errorCorrectionLevel: "M" },
         function (err, canvas) {
           if (err) {
-            container.innerHTML = '<p style="color:var(--danger);text-align:center;padding:20px">' +
-              L("خطا در ساخت QR", "QR generation failed") + "</p>";
+            container.innerHTML =
+              '<p style="color:var(--danger);text-align:center;padding:20px">' +
+              L("خطا در ساخت QR", "QR generation failed") +
+              "</p>";
             return;
           }
           canvas.style.maxWidth = "100%";
@@ -98,10 +100,8 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
           .catch(function () {
             container.innerHTML =
               '<p style="color:var(--warning);text-align:center;padding:20px">' +
-              L(
-                "دسترسی به دوربین رد شد یا در دسترس نیست. لطفاً کد متنی را پیست کنید.",
-                "Camera access denied or unavailable. Please paste the text code."
-              ) +
+              L("دسترسی به دوربین رد شد یا در دسترس نیست. لطفاً کد متنی را پیست کنید.",
+                "Camera access denied or unavailable. Please paste the text code.") +
               "</p>";
           });
       } catch (e) {
@@ -153,7 +153,6 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
 
   function openTransferModal() {
     if (!window.UI || !window.UI.modal) return;
-
     var html =
       '<div class="transfer-tabs">' +
       '<button class="transfer-tab active" data-tab="send">' + svgIcon("upload", 15) + " " + L("ارسال", "Send") + "</button>" +
@@ -161,12 +160,10 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       "</div>" +
       '<div id="transferSendPane" class="transfer-pane">' +
       '<p class="transfer-hint">' +
-      L(
-        "این کد را در دستگاه دیگر اسکن کنید یا کد متنی را کپی و پیست کنید.",
-        "Scan this code on another device or copy the text code."
-      ) +
+      L("این کد را در دستگاه دیگر اسکن کنید یا کد متنی را کپی و پیست کنید.",
+        "Scan this code on another device or copy the text code.") +
       "</p>" +
-      '<div id="qrContainer" style="display:flex;justify-content:center;align-items:center;min-height:280px;background:#fff;border-radius:12px;padding:12px;margin-bottom:12px">' + svgIcon("timer", 22) + '</div>' +
+      '<div id="qrContainer" style="display:flex;justify-content:center;align-items:center;min-height:280px;background:#fff;border-radius:12px;padding:12px;margin-bottom:12px">' + svgIcon("timer", 22) + "</div>" +
       '<textarea id="transferCodeText" class="input" readonly rows="3" style="font-family:monospace;font-size:11px;resize:none"></textarea>' +
       '<button class="btn btn-ghost btn-sm" data-action="copy-transfer-code" style="width:100%;margin-top:10px">' + svgIcon("copy", 15) + " " +
       L("کپی کد", "Copy code") +
@@ -174,10 +171,8 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       "</div>" +
       '<div id="transferReceivePane" class="transfer-pane" hidden>' +
       '<p class="transfer-hint">' +
-      L(
-        "دوربین را به سمت QR دستگاه دیگر بگیرید یا کد متنی را اینجا پیست کنید.",
-        "Point camera at the other device's QR or paste the text code below."
-      ) +
+      L("دوربین را به سمت QR دستگاه دیگر بگیرید یا کد متنی را اینجا پیست کنید.",
+        "Point camera at the other device's QR or paste the text code below.") +
       "</p>" +
       '<div id="qrScanner" style="border-radius:12px;overflow:hidden;margin-bottom:12px;background:var(--surface);min-height:60px"></div>' +
       '<button class="btn btn-ghost btn-sm" id="startScanBtn" style="width:100%;margin-bottom:10px">' + svgIcon("camera", 15) + " " +
@@ -197,7 +192,6 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
     var tabs = content.querySelectorAll(".transfer-tab");
     var sendPane = content.querySelector("#transferSendPane");
     var receivePane = content.querySelector("#transferReceivePane");
-
     tabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
         tabs.forEach(function (t) { t.classList.remove("active"); });
@@ -217,17 +211,15 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
     var codeTextEl = content.querySelector("#transferCodeText");
     var qrContainer = content.querySelector("#qrContainer");
 
+    // Text code is always available; QR only when small enough.
+    codeTextEl.value = payload.json || "";
     if (!payload.ok) {
       qrContainer.innerHTML =
         '<p style="color:var(--warning);text-align:center;padding:20px;line-height:1.8">' +
-        L(
-          "⚠️ داده‌های شما برای QR بزرگ‌تر از حد مجاز است.<br>لطفاً از پشتیبان فایل استفاده کنید.",
-          "⚠️ Your data is too large for QR transfer.<br>Please use file backup instead."
-        ) +
+        L("⚠️ داده‌های شما برای QR بزرگ‌تر از حد مجاز است.<br>از کد متنی زیر یا پشتیبان فایل استفاده کنید.",
+          "⚠️ Your data is too large for QR transfer.<br>Use the text code below or a file backup.") +
         "</p>";
-      codeTextEl.value = "";
     } else {
-      codeTextEl.value = payload.json;
       renderQR(qrContainer, payload.json);
       if (payload.slim) {
         var warn = document.createElement("p");
@@ -240,14 +232,21 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
     var copyBtn = content.querySelector('[data-action="copy-transfer-code"]');
     if (copyBtn) {
       copyBtn.addEventListener("click", function () {
-        if (!codeTextEl.value) return;
-        try {
-          navigator.clipboard.writeText(codeTextEl.value);
-          toast(L("کد کپی شد", "Code copied"), "success");
-        } catch (e) {
+        if (!codeTextEl.value) {
+          toast(L("کد خالی است", "Code is empty"), "error");
+          return;
+        }
+        var done = function () { toast(L("کد کپی شد", "Code copied"), "success"); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(codeTextEl.value).then(done, function () {
+            codeTextEl.select();
+            try { document.execCommand("copy"); } catch (err) {}
+            done();
+          });
+        } else {
           codeTextEl.select();
           try { document.execCommand("copy"); } catch (err) {}
-          toast(L("کد کپی شد", "Code copied"), "success");
+          done();
         }
       });
     }
