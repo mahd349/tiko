@@ -136,47 +136,53 @@ const WEEKDAY_FULL_EN = [
   };
 
   const ICON_LIST = [
-    ["droplet", "آب"],
-    ["run", "دویدن"],
-    ["book", "مطالعه"],
-    ["lotus", "مراقبه"],
-    ["dumbbell", "وزنه"],
-    ["music", "موسیقی"],
-    ["code", "کدنویسی"],
-    ["food", "تغذیه"],
-    ["moon", "خواب"],
-    ["nosmoke", "ترک سیگار"],
-    ["wallet", "پس‌انداز"],
-    ["palette", "نقاشی"],
-    ["broom", "نظافت"],
-    ["pen", "نوشتن"],
-    ["target", "هدف"],
-    ["sun", "صبح زود"],
-    ["walk", "پیاده‌روی"],
-    ["brain", "تمرکز"],
-    ["nophone", "بی‌گوشی"],
-    ["sprout", "گیاه"],
-    ["bike", "دوچرخه"],
-    ["heart", "سلامتی"],
-    ["coffee", "قهوه"],
-    ["chat", "ارتباط"],
-    ["star", "ستاره"],
-    ["camera", "عکاسی"],
-    ["film", "فیلم"],
-    ["zap", "انرژی"],
-    ["smile", "حال خوب"],
-    ["gift", "بخشش"],
-    ["globe", "زبان خارجی"],
-    ["award", "موفقیت"],
-    ["headphones", "پادکست"],
-    ["mic", "ضبط صدا"],
-    ["trend", "رشد"],
-    ["users", "دوستان"],
-    ["video", "ویدیو"],
-    ["wind", "تنفس عمیق"],
-    ["sunrise", "طلوع"],
-    ["map", "سفر"]
-  ];
+  ["droplet", "آب", "Water"],
+  ["run", "دویدن", "Running"],
+  ["book", "مطالعه", "Reading"],
+  ["lotus", "مراقبه", "Meditation"],
+  ["dumbbell", "وزنه", "Weights"],
+  ["music", "موسیقی", "Music"],
+  ["code", "کدنویسی", "Coding"],
+  ["food", "تغذیه", "Nutrition"],
+  ["moon", "خواب", "Sleep"],
+  ["nosmoke", "ترک سیگار", "Quit smoking"],
+  ["wallet", "پس‌انداز", "Saving"],
+  ["palette", "نقاشی", "Painting"],
+  ["broom", "نظافت", "Cleaning"],
+  ["pen", "نوشتن", "Writing"],
+  ["target", "هدف", "Goal"],
+  ["sun", "صبح زود", "Early morning"],
+  ["walk", "پیاده‌روی", "Walking"],
+  ["brain", "تمرکز", "Focus"],
+  ["nophone", "بی‌گوشی", "No phone"],
+  ["sprout", "گیاه", "Plant"],
+  ["bike", "دوچرخه", "Biking"],
+  ["heart", "سلامتی", "Health"],
+  ["coffee", "قهوه", "Coffee"],
+  ["chat", "ارتباط", "Socializing"],
+  ["star", "ستاره", "Star"],
+  ["camera", "عکاسی", "Photography"],
+  ["film", "فیلم", "Movie"],
+  ["zap", "انرژی", "Energy"],
+  ["smile", "حال خوب", "Good mood"],
+  ["gift", "بخشش", "Giving"],
+  ["globe", "زبان خارجی", "Foreign language"],
+  ["award", "موفقیت", "Success"],
+  ["headphones", "پادکست", "Podcast"],
+  ["mic", "ضبط صدا", "Recording"],
+  ["trend", "رشد", "Growth"],
+  ["users", "دوستان", "Friends"],
+  ["video", "ویدیو", "Video"],
+  ["wind", "تنفس عمیق", "Deep breathing"],
+  ["sunrise", "طلوع", "Sunrise"],
+  ["map", "سفر", "Travel"]
+];
+
+function iconLabel(id) {
+  const item = ICON_LIST.find(function (i) { return i[0] === id; });
+  if (!item) return id;
+  return window.I18N && window.I18N.lang === "en" ? item[2] : item[1];
+}
 
   const LEGACY_ICON_MAP = {
     "💧": "droplet",
@@ -389,87 +395,87 @@ toggleNewActiveDay(Number(chip.dataset.day));
 renderNewActiveDays();
 }
 
-  function initIconPicker() {
-    const btn = el("habitIconBtn");
-    const pop = el("habitIconPop");
-    const hidden = el("habitEmoji");
+function initIconPicker() {
+  const btn = el("habitIconBtn");
+  const pop = el("habitIconPop");
+  const hidden = el("habitEmoji");
+  if (!btn || !pop || !hidden) return;
 
-    if (!btn || !pop || !hidden) return;
+  hidden.value = normalizeIcon(hidden.value || DEFAULT_ICON);
 
-    hidden.value = normalizeIcon(hidden.value || DEFAULT_ICON);
-
+  function renderOptions() {
     pop.innerHTML = ICON_LIST.map(function (item) {
       const id = item[0];
-      const label = item[1];
-
+      const label = iconLabel(id);
       return (
-        '<button type="button" class="icon-opt" role="option" data-icon="' + id + '" aria-selected="false" title="' + label + '">' +
+        '<button type="button" class="icon-opt" role="option" data-icon="' + id + '" aria-selected="' +
+        (id === hidden.value ? "true" : "false") + '" title="' + label + '">' +
         iconHTML(id, 19) +
         "</button>"
       );
     }).join("");
+  }
 
-    function paint() {
-      btn.innerHTML = iconHTML(hidden.value, 22);
-
-      pop.querySelectorAll(".icon-opt").forEach(function (option) {
-        option.setAttribute(
-          "aria-selected",
-          option.dataset.icon === hidden.value ? "true" : "false"
-        );
-      });
-    }
-
-    function close() {
-      pop.classList.remove("open");
-      btn.setAttribute("aria-expanded", "false");
-    }
-
-    btn.addEventListener("click", function (event) {
-      event.stopPropagation();
-
-      const isOpen = pop.classList.toggle("open");
-      btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-
-      if (isOpen) {
-        const selected =
-          pop.querySelector('[aria-selected="true"]') || pop.firstElementChild;
-
-        if (selected) selected.focus();
-      }
+  function paint() {
+    btn.innerHTML = iconHTML(hidden.value, 22);
+    pop.querySelectorAll(".icon-opt").forEach(function (option) {
+      option.setAttribute(
+        "aria-selected",
+        option.dataset.icon === hidden.value ? "true" : "false"
+      );
     });
+  }
 
-    pop.addEventListener("click", function (event) {
-      const option = event.target.closest(".icon-opt");
-      if (!option) return;
+  function close() {
+    pop.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+  }
 
-      hidden.value = option.dataset.icon;
-      paint();
+  btn.addEventListener("click", function (event) {
+    event.stopPropagation();
+    const isOpen = pop.classList.toggle("open");
+    btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    if (isOpen) {
+      const selected =
+        pop.querySelector('[aria-selected="true"]') || pop.firstElementChild;
+      if (selected) selected.focus();
+    }
+  });
+
+  pop.addEventListener("click", function (event) {
+    const option = event.target.closest(".icon-opt");
+    if (!option) return;
+    hidden.value = option.dataset.icon;
+    paint();
+    close();
+    btn.focus();
+  });
+
+  pop.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      event.stopPropagation();
       close();
       btn.focus();
-    });
+    }
+  });
 
-    pop.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        close();
-        btn.focus();
-      }
-    });
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest("#habitIconPicker")) {
+      close();
+    }
+  });
 
-    document.addEventListener("click", function (event) {
-      if (!event.target.closest("#habitIconPicker")) {
-        close();
-      }
-    });
-
-    window.resetHabitIconPicker = function () {
-      hidden.value = DEFAULT_ICON;
-      paint();
-    };
-
+  window.resetHabitIconPicker = function () {
+    hidden.value = DEFAULT_ICON;
+    renderOptions();
     paint();
-  }
+  };
+
+  window.refreshHabitIconPicker = renderOptions;
+
+  renderOptions();
+  paint();
+}
 function parseTags(value) {
 return String(value || "")
 .split(/[،,]/)
@@ -788,29 +794,31 @@ renderEditActiveDays();
 renderEditActiveDays();
 }
 
-    if (iconGrid) {
-      iconGrid.innerHTML = ICON_LIST.map(function (item) {
-        const iconId = item[0];
+function renderEditIconGrid() {
+  if (!iconGrid) return;
+  iconGrid.innerHTML = ICON_LIST.map(function (item) {
+    const iconId = item[0];
+    const label = iconLabel(iconId);
+    return (
+      '<button type="button" class="icon-opt" role="option" data-icon="' + iconId + '" aria-selected="' +
+      (iconId === hiddenIcon.value ? "true" : "false") + '" title="' + label + '">' +
+      iconHTML(iconId, 19) +
+      "</button>"
+    );
+  }).join("");
+}
 
-        return (
-          '<button type="button" class="icon-opt" role="option" data-icon="' + iconId + '" aria-selected="' +
-          (iconId === selectedIcon ? "true" : "false") + '">' +
-          iconHTML(iconId, 19) +
-          "</button>"
-        );
-      }).join("");
-
-      iconGrid.addEventListener("click", function (event) {
-        const option = event.target.closest(".icon-opt");
-        if (!option) return;
-
-        hiddenIcon.value = option.dataset.icon;
-
-        iconGrid.querySelectorAll(".icon-opt").forEach(function (item) {
-          item.setAttribute("aria-selected", item === option ? "true" : "false");
-        });
-      });
-    }
+if (iconGrid) {
+  renderEditIconGrid();
+  iconGrid.addEventListener("click", function (event) {
+    const option = event.target.closest(".icon-opt");
+    if (!option) return;
+    hiddenIcon.value = option.dataset.icon;
+    iconGrid.querySelectorAll(".icon-opt").forEach(function (item) {
+      item.setAttribute("aria-selected", item.dataset.icon === hiddenIcon.value ? "true" : "false");
+    });
+  });
+}
 
     if (nameInput) nameInput.focus();
 
@@ -1280,12 +1288,13 @@ renderHabitProjectOptions();
 }
 });
 document.addEventListener("i18n:changed", function () {
-renderNewActiveDays();
-renderCatFilters();
-renderHabitProjectOptions();
-var tags = el("habitTags");
-if (tags) tags.placeholder = window.I18N.t("tags.formPlaceholder");
-render();
+  renderNewActiveDays();
+  renderCatFilters();
+  renderHabitProjectOptions();
+  if (window.refreshHabitIconPicker) window.refreshHabitIconPicker();
+  var tags = el("habitTags");
+  if (tags) tags.placeholder = window.I18N.t("tags.formPlaceholder");
+  render();
 });
 }
 window.Habits = {
