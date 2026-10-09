@@ -5,7 +5,7 @@ Visible only when the signed-in Google account is in ADMIN_EMAILS.
 ================================================================ */
 (function () {
 "use strict";
-var ADMIN_EMAILS = ["hello.routine@outlook.com"];
+var ADMIN_EMAILS = ["hello.routine@outlook.com", "mahdimoslem349@gmail.com"];
 
 function L(fa, en) {
 return window.I18N && window.I18N.lang === "en" ? en : fa;
