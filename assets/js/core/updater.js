@@ -1,13 +1,11 @@
 /* ================================================================
 ROUTINE — CORE / UPDATER.JS
 Detects new deploys and politely asks the user to reload.
-Only future versions can be notified; already-shipped builds get
-updates automatically via SW skipWaiting + claim on next navigation.
 Keep MY_VERSION in sync with sw.js CACHE on every release.
 ================================================================ */
 (function () {
   "use strict";
-  var MY_VERSION = "routine-v38";
+  var MY_VERSION = "routine-v39";
   var RELOAD_GUARD = "pd_update_reload_at";
   var SAW_UPDATE = "pd_saw_update";
 
@@ -41,10 +39,7 @@ Keep MY_VERSION in sync with sw.js CACHE on every release.
   function notifyUpdate(version) {
     try { sessionStorage.setItem(SAW_UPDATE, version); } catch (e) {}
     toast(
-      L(
-        "نسخهٔ جدید آماده است؛ برای اعمال، صفحه را تازه‌سازی کن.",
-        "A new version is ready; reload to apply."
-      ),
+      L("نسخهٔ جدید آماده است؛ برای اعمال، صفحه را تازه‌سازی کن.", "A new version is ready; reload to apply."),
       "info",
       {
         duration: 20000,
