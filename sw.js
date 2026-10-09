@@ -1,10 +1,11 @@
 /* ================================================================
 ROUTINE — SERVICE WORKER
 Offline support + stale-while-revalidate caching
-v38: never return undefined from respondWith; re-warm empty cache;
-bypass immutable HTTP cache when (re)caching same-origin assets
+v39: never return undefined from respondWith; re-warm empty cache;
+bypass immutable HTTP cache when (re)caching same-origin assets;
+force-reload open tabs once when an old cache is replaced
 ================================================================ */
-const CACHE = "routine-v38";
+const CACHE = "routine-v39";
 
 const CORE = [
   "/",
@@ -47,6 +48,16 @@ const CORE = [
   "/assets/js/features/autosave.js",
   "/rahnama/styles.css",
   "/rahnama/index.html",
+  "/rahnama/chand-rooz-adat/",
+  "/rahnama/ghanoon-do-daghighe/",
+  "/rahnama/esterik-chist/",
+  "/rahnama/barnamerizi-rooz-shamsi/",
+  "/rahnama/technique-pomodoro/",
+  "/rahnama/si-ideh-adat/",
+  "/rahnama/khab-e-zood/",
+  "/rahnama/ahmal-kari/",
+  "/rahnama/afzayesh-tamarkoz/",
+  "/rahnama/kholase-adat-haye-atomi/",
   "/en/index.html"
 ];
 
@@ -111,12 +122,14 @@ self.addEventListener("activate", function (event) {
           })
           .then(function () {
             return self.clients.claim().then(function () {
-              if (hadOldCaches) {
+              if (hadOldCaches && !self.__migrated) {
+                self.__migrated = true;
                 return self.clients
                   .matchAll({ type: "window", includeUncontrolled: true })
                   .then(function (clients) {
                     clients.forEach(function (client) {
                       client.postMessage({ type: "sw-update", version: CACHE });
+                      client.navigate(client.url).catch(function () {});
                     });
                   });
               }
@@ -143,7 +156,6 @@ self.addEventListener("fetch", function (event) {
 
   const sameOrigin = url.origin === self.location.origin;
 
-  /* Navigation: network-first, offline fallback (never undefined) */
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -169,7 +181,6 @@ self.addEventListener("fetch", function (event) {
     return;
   }
 
-  /* Static assets & fonts: stale-while-revalidate */
   if (sameOrigin || isCacheableHost(url.hostname)) {
     event.respondWith(
       caches.match(req).then(function (cached) {
