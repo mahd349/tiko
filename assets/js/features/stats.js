@@ -324,125 +324,128 @@ return window.Calendar.keyToJalaliShort(key, "en") + " " + values[index] + "%";
 }
 }
 
-  function drawTrend(keys, values) {
-    const svg = el("trendChart");
-    if (!svg) return;
+function trendColor(value) {
+  const v = Math.max(0, Math.min(100, value));
+  if (v < 25) return "#ef4444";
+  if (v < 50) return "#f87171";
+  if (v < 75) return "#94a3b8";
+  return "#22c55e";
+}
 
-    const W = 800;
-    const H = 240;
-    const pad = {
-      t: 18,
-      r: 20,
-      b: 30,
-      l: 42
-    };
+function drawTrend(keys, values) {
+  const svg = el("trendChart");
+  if (!svg) return;
+  const W = 800;
+  const H = 240;
+  const pad = {
+    t: 18,
+    r: 20,
+    b: 30,
+    l: 42
+  };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+  const max = 100;
 
-    const cw = W - pad.l - pad.r;
-    const ch = H - pad.t - pad.b;
-    const max = 100;
+  function X(i) {
+    return pad.l + (cw * i) / Math.max(1, keys.length - 1);
+  }
+  function Y(v) {
+    return pad.t + ch - (v / max) * ch;
+  }
 
-    let grid = "";
+  const gradient =
+    '<defs>' +
+    '<linearGradient id="trendGradient" x1="0" y1="1" x2="0" y2="0" gradientUnits="userSpaceOnUse" y1="' + (H - pad.b) + '" y2="' + pad.t + '">' +
+    '<stop offset="0%" stop-color="#ef4444"/>' +
+    '<stop offset="25%" stop-color="#f87171"/>' +
+    '<stop offset="50%" stop-color="#e2e8f0"/>' +
+    '<stop offset="75%" stop-color="#38bdf8"/>' +
+    '<stop offset="100%" stop-color="#22c55e"/>' +
+    '</linearGradient>' +
+    '</defs>';
 
-    for (let i = 0; i <= 4; i += 1) {
-      const y = pad.t + (ch * i) / 4;
+  let grid = "";
+  for (let i = 0; i <= 4; i += 1) {
+    const y = pad.t + (ch * i) / 4;
+    grid +=
+      '<line x1="' + pad.l + '" y1="' + y + '" x2="' + (W - pad.r) + '" y2="' + y + '" class="line-chart-grid"></line>';
+    grid +=
+      '<text x="' + (pad.l - 8) + '" y="' + (y + 4) + '" class="line-chart-axis-text" text-anchor="end">' +
+      window.I18N.faNum(Math.round((max * (4 - i)) / 4)) +
+      "</text>";
+  }
 
+  keys.forEach(function (key, index) {
+    if (index % 5 === 0 || index === keys.length - 1) {
       grid +=
-        '<line x1="' + pad.l + '" y1="' + y + '" x2="' + (W - pad.r) + '" y2="' + y + '" class="line-chart-grid"></line>';
-
-      grid +=
-        '<text x="' + (pad.l - 8) + '" y="' + (y + 4) + '" class="line-chart-axis-text" text-anchor="end">' +
-        window.I18N.faNum(Math.round((max * (4 - i)) / 4)) +
+        '<text x="' + X(index) + '" y="' + (H - 8) + '" class="line-chart-axis-text">' +
+        window.Calendar.keyToJalaliShort(key) +
         "</text>";
     }
+  });
 
-    function X(i) {
-      return pad.l + (cw * i) / Math.max(1, keys.length - 1);
+  let path = "";
+  let area = "M " + pad.l + " " + (H - pad.b) + " ";
+  values.forEach(function (value, index) {
+    const x = X(index);
+    const y = Y(value);
+    if (index === 0) {
+      path += "M " + x + " " + y;
+      area += "L " + x + " " + y;
+    } else {
+      const px = X(index - 1);
+      const py = Y(values[index - 1]);
+      const seg =
+        " C " + (px + (x - px) / 2) + " " + py +
+        ", " + (px + (x - px) / 2) + " " + y +
+        ", " + x + " " + y;
+      path += seg;
+      area += seg;
     }
+  });
+  area += " L " + X(keys.length - 1) + " " + (H - pad.b) + " Z";
 
-    function Y(v) {
-      return pad.t + ch - (v / max) * ch;
-    }
+  let dots = "";
+  values.forEach(function (value, index) {
+    dots +=
+      '<circle cx="' + X(index) + '" cy="' + Y(value) + '" r="4" fill="' + trendColor(value) + '" class="line-chart-dot" data-i="' + index + '" data-v="' + Math.round(value) + '" data-k="' + keys[index] + '"></circle>';
+  });
 
-    keys.forEach(function (key, index) {
-      if (index % 5 === 0 || index === keys.length - 1) {
-        grid +=
-          '<text x="' + X(index) + '" y="' + (H - 8) + '" class="line-chart-axis-text">' +
-          window.Calendar.keyToJalaliShort(key) +
-          "</text>";
-      }
+  svg.innerHTML =
+    gradient +
+    '<path d="' + area + '" fill="url(#trendGradient)" class="line-chart-area"></path>' +
+    grid +
+    '<path d="' + path + '" stroke="url(#trendGradient)" class="line-chart-path"></path>' +
+    dots;
+
+  const tooltip = el("trendTooltip");
+  const container = svg.parentElement;
+  svg.querySelectorAll(".line-chart-dot").forEach(function (dot) {
+    dot.addEventListener("mouseenter", function () {
+      if (!tooltip || !container) return;
+      tooltip.textContent =
+        window.Calendar.keyToJalaliFull(dot.dataset.k) +
+        " — " +
+        window.I18N.percent(dot.dataset.v);
+      const dotRect = dot.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      tooltip.style.left =
+        Math.max(
+          4,
+          Math.min(
+            containerRect.width - tooltip.offsetWidth - 4,
+            dotRect.left - containerRect.left + dotRect.width / 2 - tooltip.offsetWidth / 2
+          )
+        ) + "px";
+      tooltip.style.top = dotRect.top - containerRect.top - 42 + "px";
+      tooltip.style.opacity = "1";
     });
-
-    let path = "";
-    let area = "M " + pad.l + " " + (H - pad.b) + " ";
-
-    values.forEach(function (value, index) {
-      const x = X(index);
-      const y = Y(value);
-
-      if (index === 0) {
-        path += "M " + x + " " + y;
-        area += "L " + x + " " + y;
-      } else {
-        const px = X(index - 1);
-        const py = Y(values[index - 1]);
-        const seg =
-          " C " + (px + (x - px) / 2) + " " + py +
-          ", " + (px + (x - px) / 2) + " " + y +
-          ", " + x + " " + y;
-
-        path += seg;
-        area += seg;
-      }
+    dot.addEventListener("mouseleave", function () {
+      if (tooltip) tooltip.style.opacity = "0";
     });
-
-    area += " L " + X(keys.length - 1) + " " + (H - pad.b) + " Z";
-
-    let dots = "";
-
-    values.forEach(function (value, index) {
-      dots +=
-        '<circle cx="' + X(index) + '" cy="' + Y(value) + '" r="4" fill="var(--accent)" class="line-chart-dot" data-i="' + index + '" data-v="' + Math.round(value) + '" data-k="' + keys[index] + '"></circle>';
-    });
-
-    svg.innerHTML =
-      '<path d="' + area + '" fill="var(--accent)" class="line-chart-area"></path>' +
-      grid +
-      '<path d="' + path + '" stroke="var(--accent)" class="line-chart-path"></path>' +
-      dots;
-
-    const tooltip = el("trendTooltip");
-    const container = svg.parentElement;
-
-    svg.querySelectorAll(".line-chart-dot").forEach(function (dot) {
-      dot.addEventListener("mouseenter", function () {
-        if (!tooltip || !container) return;
-
-        tooltip.textContent =
-          window.Calendar.keyToJalaliFull(dot.dataset.k) +
-          " — " +
-          window.I18N.percent(dot.dataset.v);
-
-        const dotRect = dot.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        tooltip.style.left =
-          Math.max(
-            4,
-            Math.min(
-              containerRect.width - tooltip.offsetWidth - 4,
-              dotRect.left - containerRect.left + dotRect.width / 2 - tooltip.offsetWidth / 2
-            )
-          ) + "px";
-
-        tooltip.style.top = dotRect.top - containerRect.top - 42 + "px";
-        tooltip.style.opacity = "1";
-      });
-
-      dot.addEventListener("mouseleave", function () {
-        if (tooltip) tooltip.style.opacity = "0";
-      });
-    });
-  }
+  });
+}
 
 function renderTrendChart() {
 const keys = rangeKeys();
