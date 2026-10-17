@@ -3459,6 +3459,15 @@ flex: 0 0 auto;
   width: 100%;
 }
 
+/* دکمه قالب‌ها وسط کارت باشه که چشم کاربر راحت پیداش کنه */
+#habitTemplatesToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin: 12px auto 0;
+}
+
 /* چون display:grid حالت hidden پیش‌فرض رو نقض می‌کنه */
 .templates-grid[hidden] {
   display: none;
