@@ -298,8 +298,8 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
   // رندر کارت‌های قالب؛ فقط اونایی که کاربر هنوز نساخته
   function renderStudentTemplates() {
     const container = el("habitTemplatesList");
-    const card = el("habitTemplatesCard");
-    if (!container || !card) return;
+    const toggle = el("habitTemplatesToggle");
+    if (!container || !toggle) return;
 
     const currentHabitNames = window.Store.state.habits.map(function (h) {
       return h.name;
@@ -321,13 +321,14 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
       );
     }).join("");
 
-    // اگه همه قالب‌ها اضافه شده بودن، کل باکس رو مخفی کن
+    // اگه همه قالب‌ها اضافه شده بودن، دکمه و لیست رو کلاً مخفی کن
     if (!html) {
-      card.style.display = "none";
+      toggle.style.display = "none";
+      container.setAttribute("hidden", "");
       return;
     }
 
-    card.style.display = "";
+    toggle.style.display = "";
     container.innerHTML = html;
   }
   // وقتی کاربر روی دکمه افزودن قالب کلیک می‌کنه
