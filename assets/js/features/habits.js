@@ -1324,24 +1324,6 @@ enableHabitSwipe(box);
     if (addBtn) {
       addBtn.addEventListener("click", add);
     }
-         // باز و بسته کردن باکس قالب‌های آماده
-    const templatesToggle = el("habitTemplatesToggle");
-    if (templatesToggle) {
-      templatesToggle.addEventListener("click", function () {
-        const list = el("habitTemplatesList");
-        if (!list) return;
-
-        const open = list.hasAttribute("hidden");
-        if (open) {
-          list.removeAttribute("hidden");
-        } else {
-          list.setAttribute("hidden", "");
-        }
-
-        templatesToggle.classList.toggle("open", open);
-        templatesToggle.setAttribute("aria-expanded", open ? "true" : "false");
-      });
-    }
 
     if (nameInput) {
       nameInput.addEventListener("keydown", function (event) {
