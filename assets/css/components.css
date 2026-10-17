@@ -3447,53 +3447,16 @@ margin-bottom: 0;
 .btn-icon svg {
 flex: 0 0 auto;
 }
+
 /* ================================================================
-   Templates (Student Habits) — collapsible box
+   Templates (Student Habits) — list inside add-habit card
 ================================================================ */
-.templates-card {
-  padding: 10px;
-}
-
-.templates-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 14px;
-  background: var(--bg-2);
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  color: var(--text-1);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.templates-toggle:hover {
-  border-color: var(--accent);
-}
-
-.templates-toggle-icon {
-  display: inline-flex;
-  color: var(--accent);
-}
-
-.templates-toggle-chev {
-  margin-inline-start: auto;
-  display: inline-flex;
-  transition: transform 0.2s ease;
-}
-
-.templates-toggle.open .templates-toggle-chev {
-  transform: rotate(180deg);
-}
-
 .templates-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
   margin-top: 10px;
+  width: 100%;
 }
 
 /* چون display:grid حالت hidden پیش‌فرض رو نقض می‌کنه */
