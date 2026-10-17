@@ -1395,10 +1395,11 @@ if (habitInput) habitInput.focus();
       if (action === "delete-habit") {
         remove(id);
       }
-    });
-           if (action === "add-student-template") {
+                  if (action === "add-student-template") {
         addStudentTemplate(id);
       }
+    });
+
   
     document.addEventListener("change", function (event) {
       const input = event.target.closest("[data-habit-input]");
