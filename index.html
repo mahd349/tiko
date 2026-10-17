@@ -505,12 +505,14 @@
     </div>
 
     <div class="card">
-          <div class="card templates-card" id="habitTemplatesCard">
-      <div class="card-header">
-        <div>
-          <span class="card-eyebrow" data-i18n="habits.templatesEyebrow">پیشنهادی</span>
-          <h3 data-i18n="habits.templatesTitle">قالب‌های آماده دانش‌آموزی</h3>
-        </div>
+    <div class="card templates-card" id="habitTemplatesCard">
+      <button type="button" class="templates-toggle" id="habitTemplatesToggle" aria-expanded="false" aria-controls="habitTemplatesList">
+        <span class="templates-toggle-icon" aria-hidden="true" data-icon="sparkle"></span>
+        <span>قالب‌های آماده</span>
+        <span class="templates-toggle-chev" aria-hidden="true" data-icon="chevronDown"></span>
+      </button>
+      <div class="templates-grid" id="habitTemplatesList" hidden></div>
+    </div>
       </div>
       <div class="templates-grid" id="habitTemplatesList"></div>
     </div>
