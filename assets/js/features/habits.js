@@ -255,87 +255,81 @@ return window.Icons ? window.Icons.svg(name, size || 16) : "";
   // قالب‌های آماده دانش‌آموزی 
   // لیست عادت‌های پایه که بچه‌ها معمولا با یه کلیک اضافه می‌کنن
   // ================================================================
+  // قالب‌های آماده دانش‌آموزی؛ فقط آیکون‌های کتابخونه خودت، بدون ایموجی
   const STUDENT_TEMPLATES = [
     {
       id: "study2h",
       name: "مطالعه ۲ ساعت در روز",
-      icon: "book", // آیکون کتاب از کتابخونه خودت
+      icon: "book",
       category: "learning",
       type: "timer",
-      goal: 120, // ۱۲۰ دقیقه معادل ۲ ساعت
-      color: "#3b82f6",
-      desc: "تایمر مطالعه عمیق و پیوسته"
+      goal: 120,
+      color: "#3b82f6"
     },
     {
       id: "tests20",
       name: "حل ۲۰ تست",
-      icon: "pen", // آیکون خودنویس
+      icon: "pen",
       category: "learning",
       type: "number",
       goal: 20,
-      color: "#8b5cf6",
-      desc: "تست‌زنی روزانه برای تسلط بیشتر"
+      color: "#8b5cf6"
     },
     {
       id: "sleep12",
       name: "خواب منظم (قبل از ۱۲ شب)",
-      icon: "moon", // آیکون ماه
+      icon: "moon",
       category: "health",
       type: "checkbox",
       goal: 0,
-      color: "#6366f1",
-      desc: "تنظیم ریتم خواب برای بازدهی بهتر"
+      color: "#6366f1"
     },
     {
       id: "nophoneStudy",
       name: "عدم استفاده از گوشی در ساعت مطالعه",
-      icon: "nophone", // آیکون گوشی خط‌خورده
+      icon: "nophone",
       category: "personal",
       type: "checkbox",
       goal: 0,
-      color: "#ef4444",
-      desc: "تمرکز صددرصد بدون حواس‌پرتی"
+      color: "#ef4444"
     }
   ];
 
-  // رندر کردن کارت‌های قالب روی صفحه
+  // رندر کارت‌های قالب؛ فقط اونایی که کاربر هنوز نساخته
   function renderStudentTemplates() {
     const container = el("habitTemplatesList");
-    if (!container) return;
+    const card = el("habitTemplatesCard");
+    if (!container || !card) return;
 
-    // چک می‌کنیم ببینیم کاربر کدوم یکی از این عادت‌ها رو از قبل نساخته
-    // که اگه ساخته بود، از لیست پیشنهادی حذفش کنیم که الکی شلوغ نشه
-    const currentHabitNames = window.Store.state.habits.map(function(h) { return h.name; });
+    const currentHabitNames = window.Store.state.habits.map(function (h) {
+      return h.name;
+    });
 
-    const html = STUDENT_TEMPLATES.filter(function(tpl) {
+    const html = STUDENT_TEMPLATES.filter(function (tpl) {
       return currentHabitNames.indexOf(tpl.name) === -1;
-    }).map(function(tpl) {
+    }).map(function (tpl) {
       return (
         '<div class="template-card" style="border-color:' + tpl.color + '33">' +
           '<div class="template-head">' +
-            '<span class="template-icon" style="color:' + tpl.color + '">' + iconHTML(tpl.icon, 22) + '</span>' +
-            '<div class="template-info">' +
-              '<div class="template-name">' + window.Utils.escapeHtml(tpl.name) + '</div>' +
-              '<div class="template-desc">' + window.Utils.escapeHtml(tpl.desc) + '</div>' +
-            '</div>' +
-          '</div>' +
+            '<span class="template-icon" style="color:' + tpl.color + '">' + iconHTML(tpl.icon, 20) + "</span>" +
+            '<div class="template-name">' + window.Utils.escapeHtml(tpl.name) + "</div>" +
+          "</div>" +
           '<button class="btn btn-primary btn-sm" data-action="add-student-template" data-id="' + tpl.id + '">' +
-            svgIcon("plus", 14) + ' افزودن' +
-          '</button>' +
-        '</div>'
+            svgIcon("plus", 14) + " افزودن" +
+          "</button>" +
+        "</div>"
       );
     }).join("");
 
+    // اگه همه قالب‌ها اضافه شده بودن، کل باکس رو مخفی کن
     if (!html) {
-      // اگه همه رو اضافه کرده بود، کلا کارت رو مخفی می‌کنیم
-      container.innerHTML = '<p class="form-hint" style="text-align:center;padding:10px">همه قالب‌های پیشنهادی اضافه شده‌اند!</p>';
-      if (el("habitTemplatesCard")) el("habitTemplatesCard").style.display = "none";
-    } else {
-      if (el("habitTemplatesCard")) el("habitTemplatesCard").style.display = "block";
-      container.innerHTML = html;
+      card.style.display = "none";
+      return;
     }
-  }
 
+    card.style.display = "";
+    container.innerHTML = html;
+  }
   // وقتی کاربر روی دکمه افزودن قالب کلیک می‌کنه
   function addStudentTemplate(id) {
     const tpl = STUDENT_TEMPLATES.find(function(t) { return t.id === id; });
@@ -1328,6 +1322,24 @@ enableHabitSwipe(box);
 
     if (addBtn) {
       addBtn.addEventListener("click", add);
+    }
+         // باز و بسته کردن باکس قالب‌های آماده
+    const templatesToggle = el("habitTemplatesToggle");
+    if (templatesToggle) {
+      templatesToggle.addEventListener("click", function () {
+        const list = el("habitTemplatesList");
+        if (!list) return;
+
+        const open = list.hasAttribute("hidden");
+        if (open) {
+          list.removeAttribute("hidden");
+        } else {
+          list.setAttribute("hidden", "");
+        }
+
+        templatesToggle.classList.toggle("open", open);
+        templatesToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      });
     }
 
     if (nameInput) {
