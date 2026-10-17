@@ -251,7 +251,125 @@ window.UI.toast(message, type, options);
 function svgIcon(name, size) {
 return window.Icons ? window.Icons.svg(name, size || 16) : "";
 }
+  // ================================================================
+  // قالب‌های آماده دانش‌آموزی 
+  // لیست عادت‌های پایه که بچه‌ها معمولا با یه کلیک اضافه می‌کنن
+  // ================================================================
+  const STUDENT_TEMPLATES = [
+    {
+      id: "study2h",
+      name: "مطالعه ۲ ساعت در روز",
+      icon: "book", // آیکون کتاب از کتابخونه خودت
+      category: "learning",
+      type: "timer",
+      goal: 120, // ۱۲۰ دقیقه معادل ۲ ساعت
+      color: "#3b82f6",
+      desc: "تایمر مطالعه عمیق و پیوسته"
+    },
+    {
+      id: "tests20",
+      name: "حل ۲۰ تست",
+      icon: "pen", // آیکون خودنویس
+      category: "learning",
+      type: "number",
+      goal: 20,
+      color: "#8b5cf6",
+      desc: "تست‌زنی روزانه برای تسلط بیشتر"
+    },
+    {
+      id: "sleep12",
+      name: "خواب منظم (قبل از ۱۲ شب)",
+      icon: "moon", // آیکون ماه
+      category: "health",
+      type: "checkbox",
+      goal: 0,
+      color: "#6366f1",
+      desc: "تنظیم ریتم خواب برای بازدهی بهتر"
+    },
+    {
+      id: "nophoneStudy",
+      name: "عدم استفاده از گوشی در ساعت مطالعه",
+      icon: "nophone", // آیکون گوشی خط‌خورده
+      category: "personal",
+      type: "checkbox",
+      goal: 0,
+      color: "#ef4444",
+      desc: "تمرکز صددرصد بدون حواس‌پرتی"
+    }
+  ];
 
+  // رندر کردن کارت‌های قالب روی صفحه
+  function renderStudentTemplates() {
+    const container = el("habitTemplatesList");
+    if (!container) return;
+
+    // چک می‌کنیم ببینیم کاربر کدوم یکی از این عادت‌ها رو از قبل نساخته
+    // که اگه ساخته بود، از لیست پیشنهادی حذفش کنیم که الکی شلوغ نشه
+    const currentHabitNames = window.Store.state.habits.map(function(h) { return h.name; });
+
+    const html = STUDENT_TEMPLATES.filter(function(tpl) {
+      return currentHabitNames.indexOf(tpl.name) === -1;
+    }).map(function(tpl) {
+      return (
+        '<div class="template-card" style="border-color:' + tpl.color + '33">' +
+          '<div class="template-head">' +
+            '<span class="template-icon" style="color:' + tpl.color + '">' + iconHTML(tpl.icon, 22) + '</span>' +
+            '<div class="template-info">' +
+              '<div class="template-name">' + window.Utils.escapeHtml(tpl.name) + '</div>' +
+              '<div class="template-desc">' + window.Utils.escapeHtml(tpl.desc) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<button class="btn btn-primary btn-sm" data-action="add-student-template" data-id="' + tpl.id + '">' +
+            svgIcon("plus", 14) + ' افزودن' +
+          '</button>' +
+        '</div>'
+      );
+    }).join("");
+
+    if (!html) {
+      // اگه همه رو اضافه کرده بود، کلا کارت رو مخفی می‌کنیم
+      container.innerHTML = '<p class="form-hint" style="text-align:center;padding:10px">همه قالب‌های پیشنهادی اضافه شده‌اند!</p>';
+      if (el("habitTemplatesCard")) el("habitTemplatesCard").style.display = "none";
+    } else {
+      if (el("habitTemplatesCard")) el("habitTemplatesCard").style.display = "block";
+      container.innerHTML = html;
+    }
+  }
+
+  // وقتی کاربر روی دکمه افزودن قالب کلیک می‌کنه
+  function addStudentTemplate(id) {
+    const tpl = STUDENT_TEMPLATES.find(function(t) { return t.id === id; });
+    if (!tpl) return;
+
+    // یه چک نهایی که مطمئن شیم تو دیتابیس نیست
+    const exists = window.Store.state.habits.some(function(h) {
+      return h.name === tpl.name;
+    });
+
+    if (exists) {
+      toast("این عادت از قبل اضافه شده است", "info");
+      return;
+    }
+
+    // اضافه کردن عادت به استور
+    window.Store.addHabit({
+      name: tpl.name,
+      emoji: tpl.icon,
+      category: tpl.category,
+      type: tpl.type,
+      goal: tpl.goal,
+      color: tpl.color,
+      projectId: null,
+      tags: [],
+      activeDays: [0, 1, 2, 3, 4, 5, 6]
+    });
+
+    toast("عادت «" + tpl.name + "» اضافه شد", "success");
+    
+    // لیست پیشنهادی و عادت‌های اصلی رو رفرش می‌کنیم
+    renderStudentTemplates();
+    refreshAll();
+  }
   function refreshAll() {
     if (window.App && typeof window.App.renderAll === "function") {
       window.App.renderAll();
@@ -1278,7 +1396,10 @@ if (habitInput) habitInput.focus();
         remove(id);
       }
     });
-
+           if (action === "add-student-template") {
+        addStudentTemplate(id);
+      }
+  
     document.addEventListener("change", function (event) {
       const input = event.target.closest("[data-habit-input]");
       if (!input) return;
@@ -1301,12 +1422,17 @@ initIconPicker();
 initActiveDaysPicker();
 bind();
 renderCatFilters();
+     renderStudentTemplates();
 startDayWatcher();
 ensureTick();
 window.Store.subscribe(function (action) {
-if (String(action).indexOf("project:") === 0) {
-renderHabitProjectOptions();
-}
+  if (String(action).indexOf("project:") === 0) {
+    renderHabitProjectOptions();
+  }
+   
+  if (String(action).indexOf("habit:") === 0) {
+    renderStudentTemplates();
+  }
 });
 document.addEventListener("i18n:changed", function () {
 renderNewActiveDays();
