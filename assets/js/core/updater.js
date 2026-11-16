@@ -8,7 +8,7 @@ Keep MY_VERSION in sync with sw.js CACHE on every release.
 ================================================================ */
 (function () {
   "use strict";
-  var MY_VERSION = "routine-v40";
+  var MY_VERSION = "routine-v41";
   var RELOAD_GUARD = "pd_update_reload_at";
   var SAW_UPDATE = "pd_saw_update";
   var SEEN_ADMIN_MSG = "tiko_last_seen_admin_msg";
