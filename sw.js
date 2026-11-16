@@ -120,23 +120,39 @@ self.addEventListener("activate", function (event) {
               }
             });
           })
-          .then(function () {
-            return self.clients.claim().then(function () {
-              if (hadOldCaches && !self.__migrated) {
-                self.__migrated = true;
-                return self.clients
-                  .matchAll({ type: "window", includeUncontrolled: true })
-                  .then(function (clients) {
-                    clients.forEach(function (client) {
-                      client.postMessage({ type: "sw-update", version: CACHE });
-                      client.navigate(client.url).catch(function () {});
-                    });
-                  });
-              }
+.then(function () {
+  return self.clients.claim().then(function () {
+    // Check admin message for all clients
+    fetch("/admin-message.json", { cache: "no-store" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (data && data.show && data.id && data.message) {
+          self.clients.matchAll({ type: "window" }).then(function (clients) {
+            clients.forEach(function (client) {
+              client.postMessage({
+                type: "ADMIN_MESSAGE",
+                id: data.id,
+                text: data.message,
+                force_update: data.force_update || false
+              });
             });
           });
+        }
       })
-  );
+      .catch(function () {});
+
+    if (hadOldCaches && !self.__migrated) {
+      self.__migrated = true;
+      return self.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then(function (clients) {
+          clients.forEach(function (client) {
+            client.postMessage({ type: "sw-update", version: CACHE });
+            client.navigate(client.url).catch(function () {});
+          });
+        });
+    }
+  });
 });
 
 function isCacheableHost(hostname) {
