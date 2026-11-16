@@ -40,6 +40,62 @@ Keep MY_VERSION in sync with sw.js CACHE on every release.
     location.reload();
   }
 
+  /* پاک‌سازی کامل حافظهٔ پنهان + گرفتن نسخهٔ جدید — فقط با کلیک کاربر */
+  function bustUrl() {
+    try {
+      var url = new URL(location.href);
+      url.searchParams.set("upd", Date.now().toString(36));
+      return url.toString();
+    } catch (e) {
+      return location.href;
+    }
+  }
+
+  function hardRefresh() {
+    markReload();
+    try { sessionStorage.removeItem(SAW_UPDATE); } catch (e) {}
+
+    setTimeout(function () {
+      toast(L("در حال پاک‌سازی حافظهٔ پنهان…", "Clearing cache…"), "info", { duration: 8000 });
+    }, 0);
+
+    var jobs = [];
+
+    // ۱) حذف تمام Cache Storage های این دامنه
+    if (window.caches && caches.keys) {
+      jobs.push(
+        caches.keys()
+          .then(function (keys) {
+            return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+          })
+          .catch(function () {})
+      );
+    }
+
+    // ۲) فعال‌کردن سرویس‌ورکر جدید و گرفتن آخرین sw.js
+    if ("serviceWorker" in navigator) {
+      jobs.push(
+        navigator.serviceWorker.getRegistration()
+          .then(function (reg) {
+            if (!reg) return;
+            if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+            return reg.update().catch(function () {});
+          })
+          .catch(function () {})
+      );
+    }
+
+    var navigated = false;
+    function go() {
+      if (navigated) return;
+      navigated = true;
+      location.replace(bustUrl());
+    }
+
+    Promise.all(jobs).then(go, go);
+    setTimeout(go, 4000); // اگر شبکه کند بود، کاربر معطل نماند
+  }
+
   function notifyUpdate(version) {
     try { sessionStorage.setItem(SAW_UPDATE, version); } catch (e) {}
     toast(
@@ -47,7 +103,7 @@ Keep MY_VERSION in sync with sw.js CACHE on every release.
       "info",
       {
         duration: 20000,
-        action: { label: L("تازه‌سازی", "Reload"), onClick: reloadOnce }
+        action: { label: L("تازه‌سازی", "Reload"), onClick: hardRefresh }
       }
     );
   }
