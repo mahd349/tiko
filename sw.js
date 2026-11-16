@@ -74,6 +74,12 @@ function offlineResponse() {
     { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }
+self.addEventListener("message", function (event) {
+  var d = event.data;
+  if (d && (d.type === "SKIP_WAITING" || d.type === "skip-waiting")) {
+    self.skipWaiting();
+  }
+});
 
 self.addEventListener("install", function (event) {
   event.waitUntil(
