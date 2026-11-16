@@ -7,7 +7,7 @@ the SW fetches /admin-message.json with no-store and replies.
 Also broadcasts once right after activation so tabs opened during
 an update receive pending messages too.
 ================================================================ */
-const CACHE = "routine-v40";
+const CACHE = "routine-v41";
 
 const CORE = [
   "/",
