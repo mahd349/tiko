@@ -1,13 +1,17 @@
 /* ================================================================
 ROUTINE — CORE / UPDATER.JS
 Detects new deploys and politely asks the user to reload.
+Also receives admin messages relayed by the service worker from
+/admin-message.json (outside the app cache). Each message id is
+shown once per browser via localStorage.
 Keep MY_VERSION in sync with sw.js CACHE on every release.
 ================================================================ */
 (function () {
   "use strict";
-  var MY_VERSION = "routine-v39";
+  var MY_VERSION = "routine-v40";
   var RELOAD_GUARD = "pd_update_reload_at";
   var SAW_UPDATE = "pd_saw_update";
+  var SEEN_ADMIN_MSG = "tiko_last_seen_admin_msg";
 
   function L(fa, en) {
     return window.I18N && window.I18N.lang === "en" ? en : fa;
@@ -68,58 +72,56 @@ Keep MY_VERSION in sync with sw.js CACHE on every release.
       .catch(function () {});
   }
 
-function notifyAdminMessage(data) {
-  var SEEN_KEY = "tiko_last_seen_admin_msg";
-  var lastSeen = null;
-  try { lastSeen = localStorage.getItem(SEEN_KEY); } catch (e) {}
-
-  // Skip if user already saw this exact message
-  if (lastSeen === data.id) return;
-
-  // Mark as seen immediately
-  try { localStorage.setItem(SEEN_KEY, data.id); } catch (e) {}
-
-  toast(data.text, "info", {
-    duration: 15000,
-    action: {
-      label: L("تازه‌سازی", "Reload"),
-      onClick: function () {
-        if ("caches" in window) {
-          caches.keys().then(function (keys) {
-            keys.forEach(function (key) { caches.delete(key); });
-          });
-        }
-        location.reload();
-      }
+  function clearCachesAndReload() {
+    var done = function () { location.reload(); };
+    if ("caches" in window) {
+      caches
+        .keys()
+        .then(function (keys) {
+          return Promise.all(
+            keys.map(function (key) { return caches.delete(key); })
+          );
+        })
+        .then(done, done);
+    } else {
+      done();
     }
-  });
-
-  // Optional: force reload after a short delay if requested
-  if (data.force_update) {
-    setTimeout(function () {
-      if ("caches" in window) {
-        caches.keys().then(function (keys) {
-          keys.forEach(function (key) { caches.delete(key); });
-        });
-      }
-      location.reload();
-    }, 3000);
   }
-}
 
-function init() {
-  if (!("serviceWorker" in navigator)) return;
+  function notifyAdminMessage(d) {
+    var seen = null;
+    try { seen = localStorage.getItem(SEEN_ADMIN_MSG); } catch (e) {}
+    if (seen === d.id) return;
+    try { localStorage.setItem(SEEN_ADMIN_MSG, d.id); } catch (e) {}
 
-  navigator.serviceWorker.addEventListener("message", function (event) {
-    var d = event.data;
-    if (d && d.type === "sw-update" && d.version && d.version !== MY_VERSION) {
-      notifyUpdate(d.version);
+    toast(d.text, "info", {
+      duration: 20000,
+      action: { label: L("تازه‌سازی", "Reload"), onClick: clearCachesAndReload }
+    });
+
+    if (d.force_update) {
+      setTimeout(clearCachesAndReload, 5000);
     }
-    // Handle admin messages
-    if (d && d.type === "ADMIN_MESSAGE" && d.id && d.text) {
-      notifyAdminMessage(d);
+  }
+
+  function requestAdminCheck() {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: "CHECK_ADMIN_MESSAGE" });
     }
-  });
+  }
+
+  function init() {
+    if (!("serviceWorker" in navigator)) return;
+
+    navigator.serviceWorker.addEventListener("message", function (event) {
+      var d = event.data;
+      if (d && d.type === "sw-update" && d.version && d.version !== MY_VERSION) {
+        notifyUpdate(d.version);
+      }
+      if (d && d.type === "ADMIN_MESSAGE" && d.id && d.text) {
+        notifyAdminMessage(d);
+      }
+    });
 
     navigator.serviceWorker.addEventListener("controllerchange", function () {
       var saw = null;
@@ -135,16 +137,19 @@ function init() {
         setInterval(function () {
           reg.update();
           check();
+          requestAdminCheck();
         }, 6 * 60 * 60 * 1000);
 
         document.addEventListener("visibilitychange", function () {
           if (!document.hidden) {
             reg.update();
             check();
+            requestAdminCheck();
           }
         });
 
         setTimeout(check, 15000);
+        requestAdminCheck();
       })
       .catch(function () {});
   }
