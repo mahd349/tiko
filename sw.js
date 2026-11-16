@@ -1,11 +1,13 @@
 /* ================================================================
 ROUTINE — SERVICE WORKER
 Offline support + stale-while-revalidate caching
-v39: never return undefined from respondWith; re-warm empty cache;
-bypass immutable HTTP cache when (re)caching same-origin assets;
-force-reload open tabs once when an old cache is replaced
+v40: fixes v39 edit syntax error; adds admin message channel that
+lives outside the app cache: pages post CHECK_ADMIN_MESSAGE and
+the SW fetches /admin-message.json with no-store and replies.
+Also broadcasts once right after activation so tabs opened during
+an update receive pending messages too.
 ================================================================ */
-const CACHE = "routine-v39";
+const CACHE = "routine-v40";
 
 const CORE = [
   "/",
@@ -120,39 +122,24 @@ self.addEventListener("activate", function (event) {
               }
             });
           })
-.then(function () {
-  return self.clients.claim().then(function () {
-    // Check admin message for all clients
-    fetch("/admin-message.json", { cache: "no-store" })
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) {
-        if (data && data.show && data.id && data.message) {
-          self.clients.matchAll({ type: "window" }).then(function (clients) {
-            clients.forEach(function (client) {
-              client.postMessage({
-                type: "ADMIN_MESSAGE",
-                id: data.id,
-                text: data.message,
-                force_update: data.force_update || false
-              });
+          .then(function () {
+            return self.clients.claim().then(function () {
+              broadcastAdminMessage();
+              if (hadOldCaches && !self.__migrated) {
+                self.__migrated = true;
+                return self.clients
+                  .matchAll({ type: "window", includeUncontrolled: true })
+                  .then(function (clients) {
+                    clients.forEach(function (client) {
+                      client.postMessage({ type: "sw-update", version: CACHE });
+                      client.navigate(client.url).catch(function () {});
+                    });
+                  });
+              }
             });
           });
-        }
       })
-      .catch(function () {});
-
-    if (hadOldCaches && !self.__migrated) {
-      self.__migrated = true;
-      return self.clients
-        .matchAll({ type: "window", includeUncontrolled: true })
-        .then(function (clients) {
-          clients.forEach(function (client) {
-            client.postMessage({ type: "sw-update", version: CACHE });
-            client.navigate(client.url).catch(function () {});
-          });
-        });
-    }
-  });
+  );
 });
 
 function isCacheableHost(hostname) {
@@ -216,6 +203,50 @@ self.addEventListener("fetch", function (event) {
             return new Response("", { status: 503, statusText: "Offline" });
           });
         return cached || network;
+      })
+    );
+  }
+});
+
+/* ================================================================
+ADMIN MESSAGE CHANNEL (outside app cache)
+================================================================ */
+function fetchAdminMessage() {
+  return fetch(freshRequest("/admin-message.json"))
+    .then(function (res) {
+      return res.ok ? res.json() : null;
+    })
+    .then(function (data) {
+      if (!data || !data.show || !data.id || !data.message) return null;
+      return {
+        type: "ADMIN_MESSAGE",
+        id: data.id,
+        text: data.message,
+        force_update: data.force_update === true
+      };
+    })
+    .catch(function () {
+      return null;
+    });
+}
+
+function broadcastAdminMessage() {
+  return fetchAdminMessage().then(function (msg) {
+    if (!msg) return;
+    return self.clients.matchAll({ type: "window" }).then(function (clients) {
+      clients.forEach(function (client) {
+        client.postMessage(msg);
+      });
+    });
+  });
+}
+
+self.addEventListener("message", function (event) {
+  const d = event.data;
+  if (d && d.type === "CHECK_ADMIN_MESSAGE" && event.source) {
+    event.waitUntil(
+      fetchAdminMessage().then(function (msg) {
+        if (msg) event.source.postMessage(msg);
       })
     );
   }
